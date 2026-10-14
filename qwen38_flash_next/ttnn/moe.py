@@ -67,8 +67,11 @@ EXPERTS_PER_DEVICE = ROUTED_EXPERTS // EXPERT_SHARDS
 # and the shared down weight zero ROWS out to this width before the mesh shard, so every device owns whole tiles.
 # silu(0) * 0 == 0 and a zero down row contributes nothing, so the padded chain is exact.
 # Fabric mux cores for the EP combine collective: the far corner of the 12x10 worker grid, away from the decode
-# chain's storage and worker cores.  The local output path needs none, so this is only read when EP > 1.
-COMBINE_MUX_CORES = ttnn.CoreRangeSet([ttnn.CoreRange(ttnn.CoreCoord(10, 8), ttnn.CoreCoord(11, 9))])
+# chain's storage and worker cores.  The local output path combines inside one device and takes none: handing it a
+# mux range moves the collective off that path and the combined rows come back wrong.
+COMBINE_MUX_CORES = (
+    ttnn.CoreRangeSet([ttnn.CoreRange(ttnn.CoreCoord(10, 8), ttnn.CoreCoord(11, 9))]) if EP_SIZE > 1 else None
+)
 SHARED_INTERMEDIATE_PADDED = -(-INTERMEDIATE_SIZE // (TP_SIZE * ttnn.TILE_SIZE)) * ttnn.TILE_SIZE * TP_SIZE
 LOCAL_SHARED_INTERMEDIATE = SHARED_INTERMEDIATE_PADDED // TP_SIZE
 TOP_K = 10
