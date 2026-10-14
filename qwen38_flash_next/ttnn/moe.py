@@ -66,6 +66,9 @@ EXPERTS_PER_DEVICE = ROUTED_EXPERTS // EXPERT_SHARDS
 # 640 is five tiles: it splits over four devices but not over eight.  The shared gate/up weights take zero COLUMNS
 # and the shared down weight zero ROWS out to this width before the mesh shard, so every device owns whole tiles.
 # silu(0) * 0 == 0 and a zero down row contributes nothing, so the padded chain is exact.
+# Fabric mux cores for the EP combine collective: the far corner of the 12x10 worker grid, away from the decode
+# chain's storage and worker cores.  The local output path needs none, so this is only read when EP > 1.
+COMBINE_MUX_CORES = ttnn.CoreRangeSet([ttnn.CoreRange(ttnn.CoreCoord(10, 8), ttnn.CoreCoord(11, 9))])
 SHARED_INTERMEDIATE_PADDED = -(-INTERMEDIATE_SIZE // (TP_SIZE * ttnn.TILE_SIZE)) * ttnn.TILE_SIZE * TP_SIZE
 LOCAL_SHARED_INTERMEDIATE = SHARED_INTERMEDIATE_PADDED // TP_SIZE
 TOP_K = 10
@@ -1133,7 +1136,7 @@ class Qwen38TTNNMoE:
             cluster_axis=LOCAL_COMBINE_AXIS,
             topology=None,
             num_links=None,
-            mux_core_range_set=None,
+            mux_core_range_set=COMBINE_MUX_CORES,
             output_memory_config=ttnn.DRAM_MEMORY_CONFIG,
             optional_output_tensor=self.local_combine_output,
             optional_cross_device_semaphore=None,
@@ -1368,7 +1371,7 @@ class Qwen38TTNNMoE:
             cluster_axis=LOCAL_COMBINE_AXIS,
             topology=None,
             num_links=None,
-            mux_core_range_set=None,
+            mux_core_range_set=COMBINE_MUX_CORES,
             output_memory_config=ttnn.DRAM_MEMORY_CONFIG,
             optional_output_tensor=self.local_combine_output,
             optional_cross_device_semaphore=None,
@@ -1558,10 +1561,10 @@ class Qwen38TTNNMoE:
         one-tile rows, three for the 128-row chunk and the one-call slab).
 
         The replica rings belong to the op's local output path, which needs a combine axis of extent one.  With EP
-        rows the partial sums cross that axis, so the launch runs without them."""
+        rows the op takes its full-CCL path instead, where the streaming ring (0) is the only admitted form."""
 
         if EP_SIZE > 1:
-            return 1
+            return 0
         return MOE_ROWS_FORMS[moe_rows_form_for(self.rows)]
 
     @property
@@ -1687,7 +1690,7 @@ class Qwen38TTNNMoE:
                 cluster_axis=LOCAL_COMBINE_AXIS,
                 topology=None,
                 num_links=None,
-                mux_core_range_set=None,
+                mux_core_range_set=COMBINE_MUX_CORES,
                 output_memory_config=ttnn.DRAM_MEMORY_CONFIG,
                 optional_output_tensor=self.local_combine_output,
                 optional_cross_device_semaphore=None,

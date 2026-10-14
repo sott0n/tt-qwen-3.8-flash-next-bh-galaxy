@@ -897,10 +897,9 @@ def _expert_byte_ranges(
     experts_per_device = experts // len(physical_ids)
     run = blocks * (rows // ttnn.TILE_SIZE) * (cols // ttnn.TILE_SIZE) * BF4_TILE_BYTES
     shard = experts_per_device * ring_size * run
-    shard_index, local = divmod(expert, experts_per_device)
-    # The payload holds one buffer per device; with EP rows the row's shard is replicated across its TP columns, so
-    # the expert's first copy is at the head of its row.
-    device_index = shard_index * (len(physical_ids) // EXPERT_SHARDS)
+    # The payload holds one buffer per expert shard, in shard order: a mesh coordinate on the 1xTP line, an EP row
+    # otherwise.  The row's copies on its TP columns are not stored again.
+    device_index, local = divmod(expert, experts_per_device)
     return tuple(
         (device_index * shard + (ring_bank * experts_per_device + local) * run, run) for ring_bank in range(ring_size)
     )

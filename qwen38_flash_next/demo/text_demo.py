@@ -26,6 +26,7 @@ from loguru import logger
 import ttnn
 from models.common.utility_functions import run_for_blackhole
 from models.demos.blackhole.qwen38_flash_next.chat import TOKENIZER_SIZE, Qwen38OfficialChatTemplate
+from models.demos.blackhole.qwen38_flash_next.config import EP_SIZE
 from models.demos.blackhole.qwen38_flash_next.tools.qwen38_vllm import Qwen38ForCausalLM
 from models.demos.blackhole.qwen38_flash_next.ttnn.builder import RESIDENT_CONTEXT_HEADROOM
 from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import MESH_SHAPE
@@ -40,7 +41,7 @@ PROMPT_FILE = Path(__file__).parent / "sample_prompts" / "input_data_questions_p
 DEVICE_PARAMS = {
     "l1_small_size": 24576,
     "num_command_queues": 2,
-    "fabric_config": ttnn.FabricConfig.FABRIC_1D,
+    "fabric_config": ttnn.FabricConfig.FABRIC_2D if EP_SIZE > 1 else ttnn.FabricConfig.FABRIC_1D,
     "trace_region_size": 0,
 }
 
