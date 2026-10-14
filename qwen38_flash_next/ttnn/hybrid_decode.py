@@ -46,6 +46,7 @@ from typing import Any, Literal, NoReturn
 import torch
 
 import ttnn
+from models.demos.blackhole.qwen38_flash_next.config import SUPPORTED_TP_SIZES
 from models.demos.blackhole.qwen38_flash_next.ttnn.bf4 import Qwen38BF4ResidentSet
 from models.demos.blackhole.qwen38_flash_next.ttnn.builder import (
     Qwen38BuildProvenance,
@@ -2142,14 +2143,14 @@ class Qwen38TTNNHybridDecodeSession:
 
 def validate_hybrid_decode_static_contract() -> None:
     if (
-        TP_SIZE,
+        TP_SIZE in SUPPORTED_TP_SIZES,
         MESH_SHAPE,
         BACKBONE_LAYERS,
         DRAFT_EXTENSION_CALLS,
         VERIFY_POSITIONS,
         VOCAB_SIZE,
         MAX_CONTEXT,
-    ) != (4, (1, 4), 48, 3, 5, 248_320, 262_144):
+    ) != (True, (1, TP_SIZE), 48, 3, 5, 248_320, 262_144):
         raise RuntimeError("Qwen3.8 hybrid TTNN geometry or shifted-MTP contract drifted")
 
 

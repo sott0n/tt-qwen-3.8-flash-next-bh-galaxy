@@ -32,6 +32,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.bf4 import Qwen38BF4ResidentS
 from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import Qwen38TTNNLMHead, Qwen38TTNNTokenEmbedding
 from models.demos.blackhole.qwen38_flash_next.ttnn.final_mixer import Qwen38TTNNFinalMixer
 from models.demos.blackhole.qwen38_flash_next.ttnn.layer import (
+    LOCAL_HIDDEN_SIZE,
     Qwen38TTNNDecoderLayer,
     Qwen38TTNNDecoderLayerResult,
     Qwen38TTNNDecoderLayerSnapshot,
@@ -66,8 +67,8 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.qsa import (
     Qwen38TTNNQSASelection,
 )
 
-RESIDUAL_LOCAL_SHAPE = (1, 4, 1, 640)
-EMBEDDING_LOCAL_SHAPE = (1, 1, 1, 640)
+RESIDUAL_LOCAL_SHAPE = (1, 4, 1, LOCAL_HIDDEN_SIZE)
+EMBEDDING_LOCAL_SHAPE = (1, 1, 1, LOCAL_HIDDEN_SIZE)
 BF4_STREAMED_LOAD_POLICY = "per-layer-call-serialized"
 BF4_RESIDENT_LOAD_POLICY = "build-time-resident-components-owned"
 BF4_LOAD_POLICY = BF4_STREAMED_LOAD_POLICY
@@ -1557,8 +1558,8 @@ def validate_mtp_draft_static_contract() -> None:
         5,
         0,
         4,
-        (1, 4, 1, 640),
-        (1, 1, 1, 640),
+        (1, 4, 1, LOCAL_HIDDEN_SIZE),
+        (1, 1, 1, LOCAL_HIDDEN_SIZE),
         "per-layer-call-serialized",
         "build-time-resident-components-owned",
         "shifted-target-conditioned-seed-v1",

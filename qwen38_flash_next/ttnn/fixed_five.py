@@ -42,6 +42,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import TensorPlacem
 from models.demos.blackhole.qwen38_flash_next.ttnn.layer import (
     BACKBONE_LAYERS,
     BLOCK_LOCAL_SHAPE,
+    LOCAL_HIDDEN_SIZE,
     RESIDUAL_LOCAL_SHAPE,
     Qwen38TTNNDecoderLayerState,
     Qwen38TTNNLayerType,
@@ -554,9 +555,7 @@ class Qwen38TTNNFixedFiveTarget(Qwen38FixedFiveTarget):
             )
         allocated_context = getattr(self.model, "allocated_context", MAX_CONTEXT)
         if not 0 <= base_position or base_position + TARGET_ROWS > allocated_context:
-            raise ValueError(
-                f"five-position target from {base_position} exceeds allocated context {allocated_context}"
-            )
+            raise ValueError(f"five-position target from {base_position} exceeds allocated context {allocated_context}")
 
         snapshot = self.model.snapshot_state(state)
         transaction = _Qwen38FixedFiveTransaction(
@@ -779,8 +778,8 @@ def validate_fixed_five_static_contract() -> None:
         5,
         5,
         48,
-        (1, 1, 1, 640),
-        (1, 4, 1, 640),
+        (1, 1, 1, LOCAL_HIDDEN_SIZE),
+        (1, 4, 1, LOCAL_HIDDEN_SIZE),
     ):
         raise RuntimeError("Qwen3.8 fixed-five geometry drifted")
     if not issubclass(Qwen38TTNNFixedFiveTarget, Qwen38FixedFiveTarget):

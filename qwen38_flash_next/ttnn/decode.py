@@ -49,6 +49,7 @@ from typing import Any, Literal, NoReturn
 import torch
 
 import ttnn
+from models.demos.blackhole.qwen38_flash_next.config import SUPPORTED_TP_SIZES
 from models.demos.blackhole.qwen38_flash_next.ttnn.builder import (
     Qwen38BuildProvenance,
     Qwen38LiveBuildIdentity,
@@ -59,9 +60,9 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.builder import (
 from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import MESH_SHAPE, TP_SIZE, Qwen38MeshContract
 from models.demos.blackhole.qwen38_flash_next.ttnn.layer import BACKBONE_LAYERS
 from models.demos.blackhole.qwen38_flash_next.ttnn.model import (
-    DecodePhaseObserver,
     MAX_CONTEXT,
     VOCAB_SIZE,
+    DecodePhaseObserver,
     LayerObserver,
     Qwen38TTNNGreedyStep,
     Qwen38TTNNTextModel,
@@ -818,9 +819,9 @@ class Qwen38OrdinaryDecodeSession:
 def validate_decode_static_contract() -> None:
     """No-device guard for ordinary decode scope and termination semantics."""
 
-    if (TP_SIZE, MESH_SHAPE, BACKBONE_LAYERS, VOCAB_SIZE, MAX_CONTEXT) != (
-        4,
-        (1, 4),
+    if (TP_SIZE in SUPPORTED_TP_SIZES, MESH_SHAPE, BACKBONE_LAYERS, VOCAB_SIZE, MAX_CONTEXT) != (
+        True,
+        (1, TP_SIZE),
         48,
         248320,
         262144,

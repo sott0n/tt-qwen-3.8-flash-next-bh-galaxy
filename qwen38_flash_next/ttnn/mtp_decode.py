@@ -32,7 +32,7 @@ from typing import Any, NoReturn
 DRAFT_STEPS = 4
 DRAFT_EXTENSION_CALLS = DRAFT_STEPS - 1
 VERIFY_POSITIONS = DRAFT_STEPS + 1
-from models.demos.blackhole.qwen38_flash_next.config import TP_SIZE
+from models.demos.blackhole.qwen38_flash_next.config import SUPPORTED_TP_SIZES, TP_SIZE
 
 VOCAB_SIZE = 248_320
 MAX_CONTEXT = 262_144
@@ -1039,11 +1039,18 @@ class Qwen38SpeculativeDecodeController:
 
 
 def validate_mtp_decode_static_contract() -> None:
-    if (DRAFT_STEPS, DRAFT_EXTENSION_CALLS, VERIFY_POSITIONS, TP_SIZE, VOCAB_SIZE, MTP_LAYER_INDEX) != (
+    if (
+        DRAFT_STEPS,
+        DRAFT_EXTENSION_CALLS,
+        VERIFY_POSITIONS,
+        TP_SIZE in SUPPORTED_TP_SIZES,
+        VOCAB_SIZE,
+        MTP_LAYER_INDEX,
+    ) != (
         4,
         3,
         5,
-        4,
+        True,
         248_320,
         0,
     ):
