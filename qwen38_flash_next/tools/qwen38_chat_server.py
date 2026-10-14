@@ -1739,13 +1739,13 @@ class Qwen38ChatHandler(http.server.BaseHTTPRequestHandler):
                 for delta in final_deltas:
                     wire.event(chunk({"delta": delta, "finish_reason": None}))
                 wire.event(
-                        chunk(
-                            {"delta": {}, "finish_reason": finish_reason},
-                            usage=usage,
-                            qwen38=extension,
-                            timings=_timings(usage, extension),
-                        )
+                    chunk(
+                        {"delta": {}, "finish_reason": finish_reason},
+                        usage=usage,
+                        qwen38=extension,
+                        timings=_timings(usage, extension),
                     )
+                )
                 wire.write(b"data: [DONE]\n\n")
             else:
                 self._send_json(
@@ -2261,6 +2261,11 @@ def _parser() -> argparse.ArgumentParser:
         help="four KMD device nodes for a profile on other chips of a larger host, e.g. 4,5,6,7",
     )
     parser.add_argument(
+        "--visible-devices",
+        default=None,
+        help="the four UMD indices that open --device-nodes, where a host does not number the two alike",
+    )
+    parser.add_argument(
         "--prepare-only",
         action="store_true",
         help="open the mesh, convert the missing BF4 layers into the cache, close: no traces, no serving",
@@ -2498,10 +2503,13 @@ def main() -> int:
     if args.device_nodes is not None:
         try:
             hardware_profile = hardware_profile.with_device_nodes(
-                tuple(int(node) for node in args.device_nodes.split(","))
+                tuple(int(node) for node in args.device_nodes.split(",")),
+                visible=None if args.visible_devices is None else [int(i) for i in args.visible_devices.split(",")],
             )
         except (ValueError, hardware_profiles.HardwareProfileError) as error:
             raise SystemExit(f"--device-nodes {args.device_nodes!r}: {error}") from error
+    elif args.visible_devices is not None:
+        raise SystemExit("--visible-devices names the indices of --device-nodes, which was not given")
 
     def marker(phase: str) -> None:
         append_marker(args.phase_log, phase)

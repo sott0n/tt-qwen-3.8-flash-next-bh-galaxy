@@ -13,7 +13,7 @@ import re
 import socket
 from dataclasses import dataclass, field, replace
 from pathlib import Path
-from typing import Sequence, Any, Mapping
+from typing import Any, Mapping, Sequence
 
 import ttnn
 
@@ -62,12 +62,30 @@ class ResidentHardwareProfile:
         return f"{self.host} partition-{self.partition.upper()}"
 
     def with_device_nodes(
-        self, nodes: tuple[int, int, int, int], *, present: Sequence[int] | None = None
+        self,
+        nodes: tuple[int, int, int, int],
+        *,
+        present: Sequence[int] | None = None,
+        visible: Sequence[int] | None = None,
     ) -> "ResidentHardwareProfile":
-        """The same profile on other KMD nodes (four chips of a larger host)."""
+        """The same profile on other KMD nodes (four chips of a larger host).
+
+        ``visible`` names the UMD indices that open those nodes, for a host where the two do not agree: a
+        32-chip Galaxy numbers its chips so that UMD index 16 carries KMD node 24.  Without it the indices are
+        derived below, which holds only where the node numbers are the indices.
+        """
 
         if len(nodes) != 4 or len(set(nodes)) != 4 or any(type(node) is not int or node < 0 for node in nodes):
             raise HardwareProfileError(f"device nodes must be four distinct non-negative ints, got {nodes!r}")
+        if visible is not None:
+            visible = tuple(visible)
+            if (
+                len(visible) != 4
+                or len(set(visible)) != 4
+                or any(type(index) is not int or index < 0 for index in visible)
+            ):
+                raise HardwareProfileError(f"visible devices must be four distinct non-negative ints, got {visible!r}")
+            return replace(self, device_nodes=nodes, visible_devices=",".join(str(value) for value in visible))
         # ``TT_VISIBLE_DEVICES`` takes UMD's device indices, 0..N-1 over the nodes present under /dev/tenstorrent (the cluster
         # descriptor keeps naming the chips by their node numbers).  Four nodes that are all the host presents (a container
         # holding four nodes of a larger host) are the indices 0, 1, 2, 3 whatever their names; on a host that presents more,
