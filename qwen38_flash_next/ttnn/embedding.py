@@ -127,7 +127,7 @@ IO_CACHE_LOCK_TIMEOUT_SECONDS = 60.0
 # burst (must match dram_sharded_matmul_configs over 40 storage cores).
 # 5 * 8192 + 3 * 7040 = 62080 pads twelve tiles per K row, the least of any
 # such split.
-LM_HEAD_CHUNK_COLUMNS = (8192,) * 5 + (7040,) * 3
+LM_HEAD_CHUNK_COLUMNS = tuple(width * 4 // TP_SIZE for width in (8192,) * 5 + (7040,) * 3)
 TILE_SIZE = 32
 
 # A "token row" is a replicated FP32 TILE [1,1,1,32] holding one global token id

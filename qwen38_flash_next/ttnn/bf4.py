@@ -59,7 +59,7 @@ from models.demos.blackhole.qwen38_flash_next.checkpoint import (
     PINNED_CHECKPOINT_REVISION,
     Qwen38Checkpoint,
 )
-from models.demos.blackhole.qwen38_flash_next.config import CONFIG_SHA256, Qwen38Placement
+from models.demos.blackhole.qwen38_flash_next.config import CONFIG_SHA256, TP_SIZE, Qwen38Placement
 from models.demos.blackhole.qwen38_flash_next.tt.moe import Qwen38MoEWeights
 from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     MESH_SHAPE,
@@ -417,13 +417,13 @@ def qualify_live_bf4_ring(mesh_device) -> tuple[int, ...]:
     """
 
     physical_ids = tuple(int(item) for item in mesh_device.get_device_ids())
-    if len(physical_ids) != 4:
-        raise RuntimeError(f"BF4 conversion requires four local devices, got {len(physical_ids)}")
+    if len(physical_ids) != TP_SIZE:
+        raise RuntimeError(f"BF4 conversion requires {TP_SIZE} local devices, got {len(physical_ids)}")
     if mesh_device.arch() != ttnn.Arch.BLACKHOLE:
         raise RuntimeError("BF4 conversion requires a Blackhole mesh")
 
     signatures: list[tuple[tuple[int, int], ...]] = []
-    for index in range(4):
+    for index in range(TP_SIZE):
         coordinate = ttnn.MeshCoordinate(0, index)
         coordinate_device_id = int(mesh_device.get_device_id(coordinate))
         if coordinate_device_id != physical_ids[index]:
@@ -613,7 +613,7 @@ class BF4CacheIdentity:
     hidden_size: int = 2560
     intermediate_size: int = 640
     routed_experts: int = 512
-    experts_per_device: int = 128
+    experts_per_device: int = 512 // TP_SIZE
     dtype: str = DTYPE
     packer: str = PACKER
     format_version: int = FORMAT_VERSION
@@ -680,11 +680,11 @@ class BF4CacheIdentity:
         if self.mesh_shape != MESH_SHAPE:
             raise ValueError(f"BF4 cache requires mesh {MESH_SHAPE}, got {self.mesh_shape}")
         if (
-            len(self.physical_ids) != 4
-            or len(set(self.physical_ids)) != 4
+            len(self.physical_ids) != TP_SIZE
+            or len(set(self.physical_ids)) != TP_SIZE
             or any(device_id < 0 for device_id in self.physical_ids)
         ):
-            raise ValueError(f"BF4 cache requires four distinct physical IDs, got {self.physical_ids}")
+            raise ValueError(f"BF4 cache requires {TP_SIZE} distinct physical IDs, got {self.physical_ids}")
         if self.ring_size not in BLACKHOLE_RING_SIZES:
             raise ValueError(f"Blackhole ring size must be one of {BLACKHOLE_RING_SIZES}, got {self.ring_size}")
         if sorted(self.dram_bank_ring_order) != list(range(self.ring_size)):
@@ -693,7 +693,7 @@ class BF4CacheIdentity:
             2560,
             640,
             512,
-            128,
+            512 // TP_SIZE,
         ):
             raise ValueError("BF4 cache identity does not match the pinned Qwen3.8-Flash-Next routed shape")
         if (self.dtype, self.packer, self.format_version, self.layout_version) != (
@@ -813,10 +813,15 @@ def _prepare_routed_layer_host_tensors(
     caller continues to use the existing temporary tensorbin + manifest path.
     """
 
-    expected_ranges = tuple((device * 128, (device + 1) * 128) for device in range(4))
-    if tuple(tuple(pair) for pair in weights.expert_ranges) != expected_ranges:
+    # The canonical split: one contiguous equal block of experts per device, in device order.
+    actual_ranges = tuple(tuple(pair) for pair in weights.expert_ranges)
+    experts_per_device = (actual_ranges[-1][1] // TP_SIZE) if len(actual_ranges) == TP_SIZE else 0
+    expected_ranges = tuple(
+        (device * experts_per_device, (device + 1) * experts_per_device) for device in range(TP_SIZE)
+    )
+    if actual_ranges != expected_ranges:
         raise RuntimeError(
-            f"layer host packing requires canonical EP4 expert ranges {expected_ranges}, "
+            f"layer host packing requires the canonical expert ranges {expected_ranges}, "
             f"got {tuple(weights.expert_ranges)}"
         )
 
@@ -836,7 +841,7 @@ def _prepare_routed_layer_host_tensors(
             gate,
             up,
             1,
-            128,
+            experts_per_device,
             2560,
             640,
             w01_map,
@@ -844,7 +849,7 @@ def _prepare_routed_layer_host_tensors(
         prepared_w2 = prepare_w2_tensor_for_moe_compute(
             shard.down,
             1,
-            128,
+            experts_per_device,
             640,
             2560,
             w2_map,
@@ -1367,7 +1372,7 @@ class Qwen38BF4Cache:
         memory_configs = ttnn.experimental.get_weight_mem_configs(
             mesh_device,
             num_layers=1,
-            experts_per_device=128,
+            experts_per_device=512 // TP_SIZE,
             hidden_size=2560,
             intermediate_size=640,
             has_bias=False,
@@ -1562,7 +1567,7 @@ class Qwen38BF4Cache:
         memory_configs = ttnn.experimental.get_weight_mem_configs(
             mesh_device,
             num_layers=1,
-            experts_per_device=128,
+            experts_per_device=512 // TP_SIZE,
             hidden_size=2560,
             intermediate_size=640,
             has_bias=False,

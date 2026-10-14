@@ -194,8 +194,8 @@ def b5b_runtime_surface() -> dict[str, Any]:
 
 def download_trace_tensor(tensor: Any, *, label: str) -> tuple[torch.Tensor, ...]:
     locals_in_order = tuple(ttnn.get_device_tensors(tensor))
-    if len(locals_in_order) != 4:
-        raise ResidentDecodeError(f"{label} has {len(locals_in_order)} device tensors, expected four")
+    if len(locals_in_order) != TP_SIZE:
+        raise ResidentDecodeError(f"{label} has {len(locals_in_order)} device tensors, expected {TP_SIZE}")
     return tuple(ttnn.to_torch(local).contiguous() for local in locals_in_order)
 
 

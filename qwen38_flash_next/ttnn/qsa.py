@@ -405,19 +405,34 @@ def _canonicalize_flat_replicated_topology(tensor, mesh_contract: Qwen38MeshCont
 
 
 def _expanded_pair_kv(weight: torch.Tensor) -> torch.Tensor:
-    """Return checkpoint rows as ``[kv0, kv0, kv1, kv1]``.
+    """Return checkpoint rows as one copy of each KV head per device of its group.
 
-    The resulting four-head tensor can be sharded over TP.  Devices 0/1 then
-    own independent copies of KV head 0 while devices 2/3 own head 1.  This is
-    intentional pair grouping and is represented as a sharded topology.
+    The resulting ``EXPANDED_KV_HEADS``-head tensor can be sharded over TP: every device of KV head ``h``'s group
+    owns an independent copy of it (devices 0/1 and 2/3 at four devices, 0-3 and 4-7 at eight).  This is intentional
+    group replication and is represented as a sharded topology.
     """
 
     if tuple(weight.shape) != (KV_HEADS * HEAD_DIM, HIDDEN_SIZE):
         raise ValueError(f"QSA K/V checkpoint weight has unexpected shape {tuple(weight.shape)}")
     heads = weight.reshape(KV_HEADS, HEAD_DIM, HIDDEN_SIZE)
-    return torch.stack((heads[0], heads[0], heads[1], heads[1]), dim=0).reshape(
+    per_head = EXPANDED_KV_HEADS // KV_HEADS
+    return torch.stack([heads[head] for head in range(KV_HEADS) for _ in range(per_head)], dim=0).reshape(
         EXPANDED_KV_HEADS * HEAD_DIM, HIDDEN_SIZE
     )
+
+
+def _index_query_per_device(index_q: torch.Tensor) -> torch.Tensor:
+    """``[HIDDEN_SIZE, TP_SIZE, INDEX_HEAD_DIM]``: device ``d`` owns index query head ``d``, or zeros beyond head 3.
+
+    The four index query heads do not divide over eight devices.  A device without a head carries a zero query, whose
+    scores are exact zeros in the all-reduce that sums the heads, so the block stays the width every device expects.
+    """
+
+    columns = index_q.transpose(0, 1)
+    if TP_SIZE > INDEX_QUERY_HEADS:
+        missing = (TP_SIZE - INDEX_QUERY_HEADS) * INDEX_HEAD_DIM
+        columns = torch.nn.functional.pad(columns, (0, missing))
+    return columns.reshape(HIDDEN_SIZE, TP_SIZE, -1)
 
 
 def _merged_projections(
@@ -430,7 +445,7 @@ def _merged_projections(
     five separate linears' columns side by side."""
 
     per_device = {
-        "index_q": index_q.transpose(0, 1).reshape(HIDDEN_SIZE, TP_SIZE, -1),
+        "index_q": _index_query_per_device(index_q),
         "qg": qg.transpose(0, 1).reshape(HIDDEN_SIZE, TP_SIZE, -1),
         "k": _expanded_pair_kv(k).transpose(0, 1).reshape(HIDDEN_SIZE, TP_SIZE, HEAD_DIM),
         "v": _expanded_pair_kv(v).transpose(0, 1).reshape(HIDDEN_SIZE, TP_SIZE, HEAD_DIM),
@@ -648,7 +663,7 @@ class Qwen38TTNNQSAWeights:
         index_q = index_qk[: INDEX_QUERY_HEADS * INDEX_HEAD_DIM]
         index_k = index_qk[INDEX_QUERY_HEADS * INDEX_HEAD_DIM :]
         index_q_tt = upload(
-            index_q.transpose(0, 1).reshape(1, 1, HIDDEN_SIZE, INDEX_QUERY_HEADS * INDEX_HEAD_DIM),
+            _index_query_per_device(index_q).reshape(1, 1, HIDDEN_SIZE, TP_SIZE * INDEX_HEAD_DIM),
             "index_q_dram_sharded",
             output_mapper,
             dram_sharded_weight_memory_config(mesh_device, HIDDEN_SIZE, INDEX_QUERY_HEADS_PER_DEVICE * INDEX_HEAD_DIM),

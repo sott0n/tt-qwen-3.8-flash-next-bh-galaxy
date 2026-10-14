@@ -31,6 +31,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 import ttnn
+from models.demos.blackhole.qwen38_flash_next.config import TP_SIZE
 
 
 def _dram_bank_count(mesh_device) -> int:
@@ -404,6 +405,12 @@ def qualify_decode_dram_workers(mesh_device, requested: int) -> tuple[int, str |
     validate_decode_dram_workers(requested)
     if requested == 1:
         return 1, None
+    if TP_SIZE != 4:
+        # TWO_WORKER_PROJECTIONS lists the projection shapes qualified on the four-device placement; another degree
+        # gives other shapes, none of them measured.
+        return 1, (
+            f"one reader per DRAM bank: the two-reader projections were qualified at TP4, this mesh is TP{TP_SIZE}"
+        )
     banks = _dram_bank_count(mesh_device)
     if banks != 8:
         return 1, (
@@ -464,6 +471,24 @@ def validate_dram_sharded_weight(tensor, mesh_device, k: int, n: int, *, num_wor
             )
 
 
+def _storage_cores_for_k(k: int, requested: int) -> int:
+    """The storage grid for ``k``: the caller's count, or off TP4 the largest valid grid that divides ``k``.
+
+    Every count the callers pin splits ``k`` into whole tiles at TP4, so the degree it was written for keeps its
+    exact grid and an invalid count still raises there.  Another degree halves the sharded K of several
+    projections, which no longer fills the pinned grid.
+    """
+
+    if TP_SIZE == 4 or k % (ttnn.TILE_SIZE * requested) == 0:
+        return requested
+    candidates = [count for count in range(8, 65, 8) if count <= requested]
+    candidates += [count for count in range(1, 9) if count <= requested]
+    for count in sorted(candidates, reverse=True):
+        if k % (ttnn.TILE_SIZE * count) == 0:
+            return count
+    raise ValueError(f"K={k} does not split into whole tiles over any storage grid at or below {requested} cores")
+
+
 def dram_sharded_matmul_configs(mesh_device, k: int, n: int, *, num_cores: int, num_workers_per_dram_bank: int = 1):
     """Activation memory config plus program config for one decode linear.
 
@@ -477,6 +502,7 @@ def dram_sharded_matmul_configs(mesh_device, k: int, n: int, *, num_cores: int, 
     """
 
     tiles = bank_tiles(mesh_device, k, n, num_workers_per_dram_bank)
+    num_cores = _storage_cores_for_k(k, num_cores)
     if num_workers_per_dram_bank != 1 and num_cores != TWO_WORKER_PROJECTIONS[(k, n)]:
         raise ValueError(
             f"two readers per bank for K={k}, N={n} were qualified with {TWO_WORKER_PROJECTIONS[(k, n)]} activation "

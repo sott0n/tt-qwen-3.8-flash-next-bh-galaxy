@@ -48,7 +48,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 import ttnn
-
+from models.demos.blackhole.qwen38_flash_next.config import TP_SIZE
 from models.demos.blackhole.qwen38_flash_next.ttnn import decode_matmul
 from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     MESH_SHAPE,
@@ -130,10 +130,12 @@ def slab_working_set_bytes(rows: int) -> int:
 HIDDEN = 2560
 GR_PARTIAL_WIDTH = 384
 GDN_PROJECTION_WIDTH = 4160
-GDN_VALUE_WIDTH = 1536
-QSA_LOCAL_QUERY_WIDTH = 1536
+GDN_VALUE_WIDTH = 6144 // TP_SIZE
+QSA_LOCAL_QUERY_WIDTH = 6144 // TP_SIZE
 QSA_HEAD_DIM = 256
-MOE_LOCAL_INTERMEDIATE = 160
+# The shared expert's 640 padded to whole tiles per device, as ``ttnn.moe`` pads the weights it shards.
+MOE_SHARED_INTERMEDIATE_PADDED = -(-640 // (TP_SIZE * ttnn.TILE_SIZE)) * ttnn.TILE_SIZE * TP_SIZE
+MOE_LOCAL_INTERMEDIATE = MOE_SHARED_INTERMEDIATE_PADDED // TP_SIZE
 KV_COLUMNS = (("k", 0, QSA_HEAD_DIM), ("v", QSA_HEAD_DIM, QSA_HEAD_DIM))
 SHARED_COLUMNS = (
     ("shared_gate", 0, MOE_LOCAL_INTERMEDIATE),
@@ -644,8 +646,8 @@ def _host_blocks(module: str, checkpoint, placement, *, layer_index: int, block:
         from models.demos.blackhole.qwen38_flash_next.ttnn import moe
 
         source = Qwen38MoEWeights(checkpoint, placement, layer_index=layer_index)
-        gate = source.shared_gate_proj.transpose(0, 1)
-        up = source.shared_up_proj.transpose(0, 1)
+        gate = moe._pad_shared_columns(source.shared_gate_proj.transpose(0, 1))
+        up = moe._pad_shared_columns(source.shared_up_proj.transpose(0, 1))
         local = MOE_LOCAL_INTERMEDIATE
         gate_up = torch.cat(
             [
@@ -655,10 +657,12 @@ def _host_blocks(module: str, checkpoint, placement, *, layer_index: int, block:
             dim=1,
         )
         return {
-            "shared_gate": gate.reshape(1, 1, HIDDEN, moe.INTERMEDIATE_SIZE),
-            "shared_up": up.reshape(1, 1, HIDDEN, moe.INTERMEDIATE_SIZE),
+            "shared_gate": gate.reshape(1, 1, HIDDEN, MOE_SHARED_INTERMEDIATE_PADDED),
+            "shared_up": up.reshape(1, 1, HIDDEN, MOE_SHARED_INTERMEDIATE_PADDED),
             "shared_gate_up": gate_up.reshape(1, 1, HIDDEN, MESH_SHAPE[1] * 2 * local),
-            "shared_down": source.shared_down_proj.transpose(0, 1).reshape(1, 1, moe.INTERMEDIATE_SIZE, HIDDEN),
+            "shared_down": moe._pad_shared_rows(source.shared_down_proj.transpose(0, 1)).reshape(
+                1, 1, MOE_SHARED_INTERMEDIATE_PADDED, HIDDEN
+            ),
             "shared_scalar_gate": source.shared_scalar_gate.transpose(0, 1).reshape(1, 1, HIDDEN, 1),
         }
     raise ValueError(f"prefill dense module must be one of {MODULES}, got {module!r}")

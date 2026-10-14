@@ -278,7 +278,7 @@ class Qwen38MeshContract:
         if canonical_mesh_shape != MESH_SHAPE:
             raise ValueError(f"Qwen3.8-Flash-Next requires mesh {MESH_SHAPE}, got {self.mesh_shape}")
         if not isinstance(self.physical_ids, tuple):
-            raise ValueError(f"expected four distinct physical IDs, got {self.physical_ids}")
+            raise ValueError(f"expected {TP_SIZE} distinct physical IDs, got {self.physical_ids}")
         try:
             canonical_physical_ids = _shape_tuple(
                 self.physical_ids,
@@ -286,13 +286,13 @@ class Qwen38MeshContract:
                 error_type=ValueError,
             )
         except ValueError as error:
-            raise ValueError(f"expected four distinct physical IDs, got {self.physical_ids}") from error
+            raise ValueError(f"expected {TP_SIZE} distinct physical IDs, got {self.physical_ids}") from error
         if (
             len(canonical_physical_ids) != TP_SIZE
             or len(set(canonical_physical_ids)) != TP_SIZE
             or any(device_id < 0 for device_id in canonical_physical_ids)
         ):
-            raise ValueError(f"expected four distinct physical IDs, got {self.physical_ids}")
+            raise ValueError(f"expected {TP_SIZE} distinct physical IDs, got {self.physical_ids}")
         object.__setattr__(self, "mesh_shape", canonical_mesh_shape)
         object.__setattr__(self, "physical_ids", canonical_physical_ids)
 

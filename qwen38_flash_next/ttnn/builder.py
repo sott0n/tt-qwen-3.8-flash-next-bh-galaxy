@@ -466,7 +466,7 @@ class Qwen38LiveBuildIdentity:
                 for device_id in self.physical_ids
             )
         ):
-            raise ValueError(f"live builder identity requires four distinct physical IDs, got {self.physical_ids}")
+            raise ValueError(f"live builder identity requires {TP_SIZE} distinct physical IDs, got {self.physical_ids}")
         if self.ring_size not in (7, 8):
             raise ValueError(f"live Blackhole DRAM ring must contain seven or eight workers, got {self.ring_size}")
         if any(isinstance(bank, bool) or not isinstance(bank, int) for bank in self.dram_bank_ring_order) or sorted(
@@ -738,9 +738,13 @@ def validate_checkpoint_and_placement(checkpoint: Qwen38Checkpoint, placement: Q
             raise ValueError(f"pinned builder requires config {name}={expected!r}, got {actual!r}")
     if tuple(placement.mesh_shape) != MESH_SHAPE:
         raise ValueError(f"numerical placement must be {MESH_SHAPE}, got {placement.mesh_shape}")
-    expected_expert_ranges = tuple((index * EXPERTS_PER_DEVICE, (index + 1) * EXPERTS_PER_DEVICE) for index in range(4))
+    expected_expert_ranges = tuple(
+        (index * EXPERTS_PER_DEVICE, (index + 1) * EXPERTS_PER_DEVICE) for index in range(TP_SIZE)
+    )
     if tuple(placement.expert_ranges) != expected_expert_ranges:
-        raise ValueError(f"routed experts must be sharded as 128/card, got {tuple(placement.expert_ranges)}")
+        raise ValueError(
+            f"routed experts must be sharded as {EXPERTS_PER_DEVICE}/card, got {tuple(placement.expert_ranges)}"
+        )
     validate_terminal_architecture(checkpoint)
 
 
