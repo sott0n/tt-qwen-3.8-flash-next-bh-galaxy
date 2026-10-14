@@ -59,7 +59,14 @@ from models.demos.blackhole.qwen38_flash_next.checkpoint import (
     PINNED_CHECKPOINT_REVISION,
     Qwen38Checkpoint,
 )
-from models.demos.blackhole.qwen38_flash_next.config import CONFIG_SHA256, TP_SIZE, Qwen38Placement
+from models.demos.blackhole.qwen38_flash_next.config import (
+    CONFIG_SHA256,
+    EP_SIZE,
+    EXPERT_MESH_AXIS,
+    EXPERT_SHARDS,
+    TP_SIZE,
+    Qwen38Placement,
+)
 from models.demos.blackhole.qwen38_flash_next.tt.moe import Qwen38MoEWeights
 from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     MESH_SHAPE,
@@ -200,7 +207,7 @@ def _tensor_identity(tensor: Any) -> Qwen38TensorBackingIdentity:
     try:
         return qwen38_tensor_backing_identity(tensor)
     except RuntimeError as error:
-        raise RuntimeError("BF4 tensor lacks an exact 1x4 device-backing identity") from error
+        raise RuntimeError(f"BF4 tensor lacks an exact {MESH_SHAPE} device-backing identity") from error
 
 
 class BF4CleanupError(RuntimeError):
@@ -417,14 +424,14 @@ def qualify_live_bf4_ring(mesh_device) -> tuple[int, ...]:
     """
 
     physical_ids = tuple(int(item) for item in mesh_device.get_device_ids())
-    if len(physical_ids) != TP_SIZE:
-        raise RuntimeError(f"BF4 conversion requires {TP_SIZE} local devices, got {len(physical_ids)}")
+    if len(physical_ids) != EP_SIZE * TP_SIZE:
+        raise RuntimeError(f"BF4 conversion requires {EP_SIZE * TP_SIZE} local devices, got {len(physical_ids)}")
     if mesh_device.arch() != ttnn.Arch.BLACKHOLE:
         raise RuntimeError("BF4 conversion requires a Blackhole mesh")
 
     signatures: list[tuple[tuple[int, int], ...]] = []
-    for index in range(TP_SIZE):
-        coordinate = ttnn.MeshCoordinate(0, index)
+    for index in range(EP_SIZE * TP_SIZE):
+        coordinate = ttnn.MeshCoordinate(index // TP_SIZE, index % TP_SIZE)
         coordinate_device_id = int(mesh_device.get_device_id(coordinate))
         if coordinate_device_id != physical_ids[index]:
             raise RuntimeError(
@@ -613,7 +620,7 @@ class BF4CacheIdentity:
     hidden_size: int = 2560
     intermediate_size: int = 640
     routed_experts: int = 512
-    experts_per_device: int = 512 // TP_SIZE
+    experts_per_device: int = 512 // EXPERT_SHARDS
     dtype: str = DTYPE
     packer: str = PACKER
     format_version: int = FORMAT_VERSION
@@ -680,11 +687,11 @@ class BF4CacheIdentity:
         if self.mesh_shape != MESH_SHAPE:
             raise ValueError(f"BF4 cache requires mesh {MESH_SHAPE}, got {self.mesh_shape}")
         if (
-            len(self.physical_ids) != TP_SIZE
-            or len(set(self.physical_ids)) != TP_SIZE
+            len(self.physical_ids) != EP_SIZE * TP_SIZE
+            or len(set(self.physical_ids)) != EP_SIZE * TP_SIZE
             or any(device_id < 0 for device_id in self.physical_ids)
         ):
-            raise ValueError(f"BF4 cache requires {TP_SIZE} distinct physical IDs, got {self.physical_ids}")
+            raise ValueError(f"BF4 cache requires {EP_SIZE * TP_SIZE} distinct physical IDs, got {self.physical_ids}")
         if self.ring_size not in BLACKHOLE_RING_SIZES:
             raise ValueError(f"Blackhole ring size must be one of {BLACKHOLE_RING_SIZES}, got {self.ring_size}")
         if sorted(self.dram_bank_ring_order) != list(range(self.ring_size)):
@@ -693,7 +700,7 @@ class BF4CacheIdentity:
             2560,
             640,
             512,
-            512 // TP_SIZE,
+            512 // EXPERT_SHARDS,
         ):
             raise ValueError("BF4 cache identity does not match the pinned Qwen3.8-Flash-Next routed shape")
         if (self.dtype, self.packer, self.format_version, self.layout_version) != (
@@ -815,9 +822,9 @@ def _prepare_routed_layer_host_tensors(
 
     # The canonical split: one contiguous equal block of experts per device, in device order.
     actual_ranges = tuple(tuple(pair) for pair in weights.expert_ranges)
-    experts_per_device = (actual_ranges[-1][1] // TP_SIZE) if len(actual_ranges) == TP_SIZE else 0
+    experts_per_device = (actual_ranges[-1][1] // EXPERT_SHARDS) if len(actual_ranges) == EXPERT_SHARDS else 0
     expected_ranges = tuple(
-        (device * experts_per_device, (device + 1) * experts_per_device) for device in range(TP_SIZE)
+        (device * experts_per_device, (device + 1) * experts_per_device) for device in range(EXPERT_SHARDS)
     )
     if actual_ranges != expected_ranges:
         raise RuntimeError(
@@ -890,7 +897,10 @@ def _expert_byte_ranges(
     experts_per_device = experts // len(physical_ids)
     run = blocks * (rows // ttnn.TILE_SIZE) * (cols // ttnn.TILE_SIZE) * BF4_TILE_BYTES
     shard = experts_per_device * ring_size * run
-    device_index, local = divmod(expert, experts_per_device)
+    shard_index, local = divmod(expert, experts_per_device)
+    # The payload holds one buffer per device; with EP rows the row's shard is replicated across its TP columns, so
+    # the expert's first copy is at the head of its row.
+    device_index = shard_index * (len(physical_ids) // EXPERT_SHARDS)
     return tuple(
         (device_index * shard + (ring_bank * experts_per_device + local) * run, run) for ring_bank in range(ring_size)
     )
@@ -1059,7 +1069,7 @@ class Qwen38BF4Cache:
                 device_index * self.identity.experts_per_device,
                 (device_index + 1) * self.identity.experts_per_device,
             )
-            for device_index in range(len(self.identity.physical_ids))
+            for device_index in range(EXPERT_SHARDS)
         )
         if (
             any(type(value) is not int for pair in record.expert_ranges for value in pair)
@@ -1118,7 +1128,7 @@ class Qwen38BF4Cache:
                     f"BF4 artifact {name} logical shape {artifact.logical_shape!r} differs from "
                     f"canonical slot shape {expected_shape!r}"
                 )
-            expected_global_payload = packed_per_device[name] * len(self.identity.physical_ids)
+            expected_global_payload = packed_per_device[name] * EXPERT_SHARDS
             if _packed_payload_bytes(artifact.logical_shape) != expected_global_payload:
                 raise RuntimeError(f"BF4 artifact {name} packed byte size differs from the canonical slot")
             paths.append(expected_path)
@@ -1368,11 +1378,13 @@ class Qwen38BF4Cache:
             if existing.ring_size != self.identity.ring_size:
                 raise RuntimeError("cached MoE ring size differs from the live cache identity")
 
-        mapper = ttnn.ShardTensor2dMesh(mesh_device, mesh_shape=MESH_SHAPE, dims=(None, 2))
+        mapper = ttnn.ShardTensor2dMesh(
+            mesh_device, mesh_shape=MESH_SHAPE, dims=(2, None) if EXPERT_MESH_AXIS == 0 else (None, 2)
+        )
         memory_configs = ttnn.experimental.get_weight_mem_configs(
             mesh_device,
             num_layers=1,
-            experts_per_device=512 // TP_SIZE,
+            experts_per_device=512 // EXPERT_SHARDS,
             hidden_size=2560,
             intermediate_size=640,
             has_bias=False,
@@ -1567,7 +1579,7 @@ class Qwen38BF4Cache:
         memory_configs = ttnn.experimental.get_weight_mem_configs(
             mesh_device,
             num_layers=1,
-            experts_per_device=512 // TP_SIZE,
+            experts_per_device=512 // EXPERT_SHARDS,
             hidden_size=2560,
             intermediate_size=640,
             has_bias=False,

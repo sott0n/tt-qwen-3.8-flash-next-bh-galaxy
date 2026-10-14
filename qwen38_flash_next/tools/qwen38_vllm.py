@@ -47,6 +47,7 @@ from loguru import logger
 import ttnn
 from models.demos.blackhole.qwen38_flash_next.chat import TOKENIZER_SIZE, VOCAB_SIZE
 from models.demos.blackhole.qwen38_flash_next.checkpoint import PINNED_CHECKPOINT_REVISION
+from models.demos.blackhole.qwen38_flash_next.config import EP_SIZE
 from models.demos.blackhole.qwen38_flash_next.tools.live_decode_diagnostic import (
     MODE,
     construct_live_decode_diagnostic,
@@ -66,12 +67,7 @@ from models.demos.blackhole.qwen38_flash_next.tools.runtime_admission import (
     sha256_of,
 )
 from models.demos.blackhole.qwen38_flash_next.ttnn.builder import RESIDENT_QSA_CACHE_CAPACITIES, Qwen38ResidentContext
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
-    DEFAULT_SLAB_ROWS,
-    MESH_SHAPE,
-    TP_SIZE,
-    is_slab_rows,
-)
+from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import DEFAULT_SLAB_ROWS, MESH_SHAPE, TP_SIZE, is_slab_rows
 
 OPTIMIZATIONS = (None, "performance", "accuracy")  # the plugin's tt.optimizations values; no effect on this chain
 # The warmup smoke's prompt: one full 32-row chunk, a 7-row padded tail, the hand-off, one forced step, one gather.
@@ -387,9 +383,9 @@ class Qwen38ForCausalLM:
             raise ValueError(f"optimizations must be one of {OPTIMIZATIONS}, got {optimizations!r}")
         long_chunks, slab_rows = prefill_form()  # refused by name before any library call
         shape = tuple(int(extent) for extent in mesh_device.shape)
-        if shape != MESH_SHAPE or mesh_device.get_num_devices() != TP_SIZE:
+        if shape != MESH_SHAPE or mesh_device.get_num_devices() != EP_SIZE * TP_SIZE:
             raise ValueError(
-                f"Qwen3.8 needs a {MESH_SHAPE} mesh of {TP_SIZE} devices, "
+                f"Qwen3.8 needs a {MESH_SHAPE} mesh of {EP_SIZE * TP_SIZE} devices, "
                 f"got {shape} with {mesh_device.get_num_devices()}"
             )
         if mesh_device.arch() != ttnn.Arch.BLACKHOLE:

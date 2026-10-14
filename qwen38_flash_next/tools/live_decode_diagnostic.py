@@ -30,7 +30,7 @@ from models.demos.blackhole.qwen38_flash_next.checkpoint import (
     INDEX_SHA256,
     Qwen38Checkpoint,
 )
-from models.demos.blackhole.qwen38_flash_next.config import CONFIG_SHA256, TP_SIZE, Qwen38Placement
+from models.demos.blackhole.qwen38_flash_next.config import CONFIG_SHA256, EP_SIZE, TP_SIZE, Qwen38Placement
 from models.demos.blackhole.qwen38_flash_next.diagnostic_bf4 import (
     EXPECTED_SLOTS,
     DiagnosticBF4Artifact,
@@ -67,7 +67,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import (
 from models.demos.blackhole.qwen38_flash_next.ttnn.model import LayerObserver
 
 MODE = "diagnostic_non_promoting"
-EXPECTED_MESH_SHAPE = (1, TP_SIZE)
+EXPECTED_MESH_SHAPE = (EP_SIZE, TP_SIZE)
 EXPECTED_RING_SIZE = 8
 EXPECTED_RECORD_COUNT = 49
 EXPECTED_TENSORBIN_COUNT = 98
@@ -94,11 +94,11 @@ FileSignature = tuple[int, int, int, int, int]
 def _canonical_physical_ids(physical_ids: Any) -> tuple[int, int, int, int]:
     if (
         not isinstance(physical_ids, tuple)
-        or len(physical_ids) != TP_SIZE
+        or len(physical_ids) != EP_SIZE * TP_SIZE
         or any(isinstance(value, bool) or type(value) is not int or value < 0 for value in physical_ids)
-        or len(set(physical_ids)) != TP_SIZE
+        or len(set(physical_ids)) != EP_SIZE * TP_SIZE
     ):
-        raise ValueError(f"physical_ids must be {TP_SIZE} distinct non-negative ints, got {physical_ids!r}")
+        raise ValueError(f"physical_ids must be {EP_SIZE * TP_SIZE} distinct non-negative ints, got {physical_ids!r}")
     return physical_ids
 
 

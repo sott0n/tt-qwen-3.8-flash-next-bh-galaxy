@@ -45,7 +45,7 @@ from loguru import logger
 import ttnn
 from models.demos.blackhole.qwen36.tt.attention.rope_tp import apply_partial_rope_prefill
 from models.demos.blackhole.qwen38_flash_next.checkpoint import INDEX_SHA256, Qwen38Checkpoint
-from models.demos.blackhole.qwen38_flash_next.config import TP_SIZE, Qwen38Placement
+from models.demos.blackhole.qwen38_flash_next.config import EP_SIZE, TP_SIZE, Qwen38Placement
 from models.demos.blackhole.qwen38_flash_next.ttnn import prefill_glue
 from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     CHUNK_ROW_COUNTS,
@@ -388,10 +388,14 @@ def _canonicalize_flat_replicated_topology(tensor, mesh_contract: Qwen38MeshCont
     distribution = tuple(int(value) for value in topology.distribution_shape())
     coordinates = tuple(tuple(int(value) for value in coordinate) for coordinate in raw_coordinates)
     placements = tuple(type(value).__name__ for value in topology.placements())
-    expected_coordinates = tuple((0, column) for column in range(TP_SIZE))
-    if distribution != (TP_SIZE,) or coordinates != expected_coordinates or placements != ("PlacementReplicate",):
+    expected_coordinates = tuple((row, column) for row in range(EP_SIZE) for column in range(TP_SIZE))
+    if (
+        distribution != (EP_SIZE * TP_SIZE,)
+        or coordinates != expected_coordinates
+        or placements != ("PlacementReplicate",)
+    ):
         raise RuntimeError(
-            "device zero allocation topology is not the exact flat replicated TP4 form: "
+            "device zero allocation topology is not the exact flat replicated form: "
             f"distribution={distribution} coordinates={coordinates} placements={placements}"
         )
     tensor.update_tensor_topology(

@@ -61,7 +61,7 @@ from models.demos.blackhole.qwen38_flash_next.checkpoint import (
     PINNED_CHECKPOINT_REVISION,
     Qwen38Checkpoint,
 )
-from models.demos.blackhole.qwen38_flash_next.config import CONFIG_SHA256, TP_SIZE, Qwen38Placement
+from models.demos.blackhole.qwen38_flash_next.config import CONFIG_SHA256, EP_SIZE, TP_SIZE, Qwen38Placement
 from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     CHUNK_ROWS,
     MESH_SHAPE,
@@ -475,7 +475,7 @@ def _all_gather_owner_select_hidden_fallback(
             or hidden.memory_config() != ttnn.DRAM_MEMORY_CONFIG
         ):
             raise RuntimeError("embedding all-gather fallback output must be BF16 TILE DRAM")
-        if len(retained_locals) != TP_SIZE * 4:
+        if len(retained_locals) != EP_SIZE * TP_SIZE * 4:
             raise RuntimeError("embedding fallback did not retain every stage's four local handles")
         _deallocate(local_partial)
         completed = True
@@ -872,8 +872,8 @@ class Qwen38IOCacheIdentity:
         if tuple(self.mesh_shape) != MESH_SHAPE:
             raise ValueError(f"model I/O cache requires mesh {MESH_SHAPE}, got {self.mesh_shape}")
         if (
-            len(self.physical_ids) != TP_SIZE
-            or len(set(self.physical_ids)) != TP_SIZE
+            len(self.physical_ids) != EP_SIZE * TP_SIZE
+            or len(set(self.physical_ids)) != EP_SIZE * TP_SIZE
             or any(not isinstance(device_id, int) or device_id < 0 for device_id in self.physical_ids)
         ):
             raise ValueError(f"model I/O cache requires four distinct physical IDs, got {self.physical_ids}")

@@ -35,7 +35,13 @@ from models.demos.blackhole.qwen38_flash_next.checkpoint import (
     PINNED_CHECKPOINT_REVISION,
     Qwen38Checkpoint,
 )
-from models.demos.blackhole.qwen38_flash_next.config import CONFIG_SHA256, SUPPORTED_TP_SIZES, TP_SIZE, Qwen38Placement
+from models.demos.blackhole.qwen38_flash_next.config import (
+    CONFIG_SHA256,
+    EP_SIZE,
+    SUPPORTED_TP_SIZES,
+    TP_SIZE,
+    Qwen38Placement,
+)
 from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     CHUNK_ROW_COUNTS,
     MESH_SHAPE,
@@ -299,7 +305,7 @@ def validate_mtp_input_static_contract() -> None:
         (1, 4, 1, local),
         (1, 1, 4, local),
         (1, 1, 2560, local),
-        (1, TP_SIZE),
+        (EP_SIZE, TP_SIZE),
     ):
         raise RuntimeError("MTP input tensor-parallel geometry drifted from the pinned target")
 

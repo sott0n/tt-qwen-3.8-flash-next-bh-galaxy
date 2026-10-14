@@ -18,9 +18,9 @@ from typing import Any, Iterable
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.config import TP_SIZE
+from models.demos.blackhole.qwen38_flash_next.config import EP_SIZE, EXPERT_MESH_AXIS, TP_SIZE
 
-MESH_SHAPE = (1, TP_SIZE)
+MESH_SHAPE = (EP_SIZE, TP_SIZE)
 POSITION_SCALAR_SHAPE = (1, 1, 1, 1)
 POSITION_INDEX_ROW_SHAPE = (1, 1, 1, ttnn.TILE_SIZE)
 # P & ~3 lane mask.  Kept in a tensor: values >= 2**31 must not take the scalar
@@ -198,15 +198,15 @@ def qwen38_tensor_backing_identity(tensor: Any) -> Qwen38TensorBackingIdentity:
     except BaseException as error:
         raise RuntimeError("cannot resolve exact distributed tensor backing identity") from error
 
-    expected_coordinates = tuple((0, column) for column in range(TP_SIZE))
+    expected_coordinates = tuple((row, column) for row in range(EP_SIZE) for column in range(TP_SIZE))
     if (
         distribution_shape != MESH_SHAPE
         or mesh_shape != MESH_SHAPE
         or coordinates != expected_coordinates
-        or len(physical_ids) != TP_SIZE
-        or len(set(physical_ids)) != TP_SIZE
+        or len(physical_ids) != EP_SIZE * TP_SIZE
+        or len(set(physical_ids)) != EP_SIZE * TP_SIZE
         or any(physical_id < 0 for physical_id in physical_ids)
-        or len(local_tensors) != TP_SIZE
+        or len(local_tensors) != EP_SIZE * TP_SIZE
     ):
         raise RuntimeError(
             "distributed tensor backing topology differs from exact 1x4: "
@@ -278,7 +278,7 @@ class Qwen38MeshContract:
         if canonical_mesh_shape != MESH_SHAPE:
             raise ValueError(f"Qwen3.8-Flash-Next requires mesh {MESH_SHAPE}, got {self.mesh_shape}")
         if not isinstance(self.physical_ids, tuple):
-            raise ValueError(f"expected {TP_SIZE} distinct physical IDs, got {self.physical_ids}")
+            raise ValueError(f"expected {EP_SIZE * TP_SIZE} distinct physical IDs, got {self.physical_ids}")
         try:
             canonical_physical_ids = _shape_tuple(
                 self.physical_ids,
@@ -286,13 +286,13 @@ class Qwen38MeshContract:
                 error_type=ValueError,
             )
         except ValueError as error:
-            raise ValueError(f"expected {TP_SIZE} distinct physical IDs, got {self.physical_ids}") from error
+            raise ValueError(f"expected {EP_SIZE * TP_SIZE} distinct physical IDs, got {self.physical_ids}") from error
         if (
-            len(canonical_physical_ids) != TP_SIZE
-            or len(set(canonical_physical_ids)) != TP_SIZE
+            len(canonical_physical_ids) != EP_SIZE * TP_SIZE
+            or len(set(canonical_physical_ids)) != EP_SIZE * TP_SIZE
             or any(device_id < 0 for device_id in canonical_physical_ids)
         ):
-            raise ValueError(f"expected {TP_SIZE} distinct physical IDs, got {self.physical_ids}")
+            raise ValueError(f"expected {EP_SIZE * TP_SIZE} distinct physical IDs, got {self.physical_ids}")
         object.__setattr__(self, "mesh_shape", canonical_mesh_shape)
         object.__setattr__(self, "physical_ids", canonical_physical_ids)
 
@@ -301,8 +301,8 @@ class Qwen38MeshContract:
         if actual_shape != MESH_SHAPE:
             raise RuntimeError(f"opened mesh shape {actual_shape} does not match leased {self.mesh_shape}")
         actual_count = _exact_integer(mesh_device.get_num_devices(), label="opened mesh device count")
-        if actual_count != TP_SIZE:
-            raise RuntimeError(f"opened mesh has {actual_count} devices, expected {TP_SIZE}")
+        if actual_count != EP_SIZE * TP_SIZE:
+            raise RuntimeError(f"opened mesh has {actual_count} devices, expected {EP_SIZE * TP_SIZE}")
         actual_ids = _shape_tuple(mesh_device.get_device_ids(), label="opened mesh physical IDs")
         if actual_ids != self.physical_ids:
             raise RuntimeError(
@@ -343,7 +343,7 @@ class Qwen38MeshContract:
             _shape_tuple(coord, label=f"{placement.value} tensor mesh coordinate[{index}]")
             for index, coord in enumerate(raw_coords)
         )
-        expected_coords = tuple((0, column) for column in range(TP_SIZE))
+        expected_coords = tuple((row, column) for row in range(EP_SIZE) for column in range(TP_SIZE))
         if coords != expected_coords:
             raise RuntimeError(f"{placement.value} tensor mesh-coordinate order {coords} must be {expected_coords}")
 
@@ -359,10 +359,16 @@ class Qwen38MeshContract:
         if shard_dim is None:
             raise ValueError(f"shard_dim is required for {placement.value}")
         expected_dim = _exact_integer(shard_dim, label=f"{placement.value} shard_dim", error_type=ValueError)
-        if names != ("PlacementReplicate", "PlacementShard"):
+        # The routed experts shard over the EP rows when there are several; everything else shards over the TP
+        # columns, which is also where the experts live on the 1xTP line.
+        axis = EXPERT_MESH_AXIS if placement is TensorPlacement.EXPERT_SHARDED else 1
+        expected_names = (
+            ("PlacementShard", "PlacementReplicate") if axis == 0 else ("PlacementReplicate", "PlacementShard")
+        )
+        if names != expected_names:
             raise RuntimeError(f"{placement.value} tensor has unexpected placements {names}")
         actual_dim = _exact_integer(
-            getattr(placements[1], "dim"),
+            getattr(placements[axis], "dim"),
             label=f"{placement.value} tensor PlacementShard.dim",
         )
         if actual_dim != expected_dim:

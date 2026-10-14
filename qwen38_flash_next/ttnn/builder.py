@@ -44,6 +44,8 @@ from models.demos.blackhole.qwen38_flash_next.checkpoint import (
 )
 from models.demos.blackhole.qwen38_flash_next.config import (
     CONFIG_SHA256,
+    EP_SIZE,
+    EXPERT_SHARDS,
     LAYER_PATTERN,
     SUPPORTED_TP_SIZES,
     TP_SIZE,
@@ -121,7 +123,7 @@ PLE_LAYER = 1
 HIDDEN_SIZE = 2560
 VOCAB_SIZE = 248_320
 ROUTED_EXPERTS = 512
-EXPERTS_PER_DEVICE = ROUTED_EXPERTS // TP_SIZE
+EXPERTS_PER_DEVICE = ROUTED_EXPERTS // EXPERT_SHARDS
 TOP_K = 10
 BUILDER_FORMAT_VERSION = 1
 # The resident build allocates one of four contexts: 32,768 (the default; every timing and bitwise pin is at this
@@ -459,14 +461,16 @@ class Qwen38LiveBuildIdentity:
         if tuple(self.mesh_shape) != MESH_SHAPE:
             raise ValueError(f"live builder identity requires mesh {MESH_SHAPE}, got {self.mesh_shape}")
         if (
-            len(self.physical_ids) != TP_SIZE
-            or len(set(self.physical_ids)) != TP_SIZE
+            len(self.physical_ids) != EP_SIZE * TP_SIZE
+            or len(set(self.physical_ids)) != EP_SIZE * TP_SIZE
             or any(
                 isinstance(device_id, bool) or not isinstance(device_id, int) or device_id < 0
                 for device_id in self.physical_ids
             )
         ):
-            raise ValueError(f"live builder identity requires {TP_SIZE} distinct physical IDs, got {self.physical_ids}")
+            raise ValueError(
+                f"live builder identity requires {EP_SIZE * TP_SIZE} distinct physical IDs, got {self.physical_ids}"
+            )
         if self.ring_size not in (7, 8):
             raise ValueError(f"live Blackhole DRAM ring must contain seven or eight workers, got {self.ring_size}")
         if any(isinstance(bank, bool) or not isinstance(bank, int) for bank in self.dram_bank_ring_order) or sorted(
@@ -593,7 +597,7 @@ def validate_builder_static_contract() -> None:
         2560,
         248_320,
         512,
-        512 // TP_SIZE,
+        512 // EXPERT_SHARDS,
         10,
     ):
         raise RuntimeError("builder tensor-parallel/model/MoE geometry drifted from the pinned target")
@@ -739,7 +743,7 @@ def validate_checkpoint_and_placement(checkpoint: Qwen38Checkpoint, placement: Q
     if tuple(placement.mesh_shape) != MESH_SHAPE:
         raise ValueError(f"numerical placement must be {MESH_SHAPE}, got {placement.mesh_shape}")
     expected_expert_ranges = tuple(
-        (index * EXPERTS_PER_DEVICE, (index + 1) * EXPERTS_PER_DEVICE) for index in range(TP_SIZE)
+        (index * EXPERTS_PER_DEVICE, (index + 1) * EXPERTS_PER_DEVICE) for index in range(EXPERT_SHARDS)
     )
     if tuple(placement.expert_ranges) != expected_expert_ranges:
         raise ValueError(

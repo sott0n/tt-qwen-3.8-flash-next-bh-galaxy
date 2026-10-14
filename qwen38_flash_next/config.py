@@ -240,6 +240,35 @@ def configured_tp_size() -> int:
 
 TP_SIZE = configured_tp_size()
 
+SUPPORTED_EP_SIZES = (1, 2, 4)
+
+# The expert-parallel degree: the rows of the EPxTP mesh.  The dense weights shard over the TP columns; the routed
+# experts shard over the EP rows, so a row holds one disjoint block of experts and the per-row partial sums combine
+# along the EP axis.  EP=1 is the 1xTP line every released configuration runs.
+EP_SIZE_VARIABLE = "QWEN38_EP_SIZE"
+
+
+def configured_ep_size() -> int:
+    """``QWEN38_EP_SIZE`` (default 1), refused unless it is one of the supported degrees."""
+
+    raw = os.environ.get(EP_SIZE_VARIABLE, "1")
+    try:
+        value = int(raw)
+    except ValueError as error:
+        raise RuntimeError(f"{EP_SIZE_VARIABLE}={raw!r} is not an integer") from error
+    if value not in SUPPORTED_EP_SIZES:
+        raise RuntimeError(f"{EP_SIZE_VARIABLE}={value} is not one of the supported degrees {SUPPORTED_EP_SIZES}")
+    return value
+
+
+EP_SIZE = configured_ep_size()
+
+# The mesh axis the routed experts shard over, and how many blocks that is.  On the 1xTP line the experts shard over
+# the TP columns, as every released configuration does; with EP rows they shard over the rows instead and each row's
+# partial sums combine along axis 0.
+EXPERT_MESH_AXIS = 0 if EP_SIZE > 1 else 1
+EXPERT_SHARDS = EP_SIZE if EP_SIZE > 1 else TP_SIZE
+
 
 def _ranges(total: int, parts: int) -> tuple[tuple[int, int], ...]:
     if total % parts:
@@ -258,16 +287,18 @@ class Qwen38Placement:
 
     def __post_init__(self) -> None:
         count = len(self.physical_ids)
-        if count != TP_SIZE:
-            raise ValueError(f"Qwen3.8-Flash-Next requires exactly {TP_SIZE} physical devices, got {count}")
-        if tuple(self.mesh_shape) != (1, count):
-            raise ValueError(f"Qwen3.8-Flash-Next requires a 1x{count} mesh, got {self.mesh_shape}")
+        if count != EP_SIZE * TP_SIZE:
+            raise ValueError(f"Qwen3.8-Flash-Next requires exactly {EP_SIZE * TP_SIZE} physical devices, got {count}")
+        if tuple(self.mesh_shape) != (EP_SIZE, TP_SIZE):
+            raise ValueError(f"Qwen3.8-Flash-Next requires an {EP_SIZE}x{TP_SIZE} mesh, got {self.mesh_shape}")
         if len(set(self.physical_ids)) != count:
             raise ValueError(f"physical IDs must be {count} distinct devices, got {self.physical_ids}")
 
     @property
     def num_devices(self) -> int:
-        return len(self.physical_ids)
+        """The TP columns: every per-device dense width, head count and vocabulary range divides over these."""
+
+        return TP_SIZE
 
     @property
     def hidden_ranges(self) -> tuple[tuple[int, int], ...]:
@@ -279,7 +310,7 @@ class Qwen38Placement:
 
     @property
     def expert_ranges(self) -> tuple[tuple[int, int], ...]:
-        return _ranges(self.config.num_experts, self.num_devices)
+        return _ranges(self.config.num_experts, EXPERT_SHARDS)
 
     @property
     def gdn_qk_head_ranges(self) -> tuple[tuple[int, int], ...]:

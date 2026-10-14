@@ -46,7 +46,7 @@ from typing import Any, Literal, NoReturn
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.config import SUPPORTED_TP_SIZES
+from models.demos.blackhole.qwen38_flash_next.config import EP_SIZE, SUPPORTED_TP_SIZES
 from models.demos.blackhole.qwen38_flash_next.ttnn.bf4 import Qwen38BF4ResidentSet
 from models.demos.blackhole.qwen38_flash_next.ttnn.builder import (
     Qwen38BuildProvenance,
@@ -397,8 +397,8 @@ def _require_identity_key(value: str, *, label: str) -> str:
 def _normalize_physical_ids(values: Sequence[int]) -> tuple[int, int, int, int]:
     result = tuple(values)
     if (
-        len(result) != TP_SIZE
-        or len(set(result)) != TP_SIZE
+        len(result) != EP_SIZE * TP_SIZE
+        or len(set(result)) != EP_SIZE * TP_SIZE
         or any(isinstance(value, bool) or not isinstance(value, int) or value < 0 for value in result)
     ):
         raise ValueError(f"hybrid decode requires four distinct nonnegative physical IDs, got {result}")
@@ -2150,7 +2150,7 @@ def validate_hybrid_decode_static_contract() -> None:
         VERIFY_POSITIONS,
         VOCAB_SIZE,
         MAX_CONTEXT,
-    ) != (True, (1, TP_SIZE), 48, 3, 5, 248_320, 262_144):
+    ) != (True, (EP_SIZE, TP_SIZE), 48, 3, 5, 248_320, 262_144):
         raise RuntimeError("Qwen3.8 hybrid TTNN geometry or shifted-MTP contract drifted")
 
 

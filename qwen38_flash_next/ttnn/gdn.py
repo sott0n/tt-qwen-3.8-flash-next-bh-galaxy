@@ -31,7 +31,7 @@ import torch
 
 import ttnn
 from models.demos.blackhole.qwen38_flash_next.checkpoint import INDEX_SHA256, Qwen38Checkpoint
-from models.demos.blackhole.qwen38_flash_next.config import TP_SIZE
+from models.demos.blackhole.qwen38_flash_next.config import EP_SIZE, TP_SIZE
 from models.demos.blackhole.qwen38_flash_next.tt.gdn import Qwen38GDNWeights
 from models.demos.blackhole.qwen38_flash_next.ttnn import fused, prefill_glue
 from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
@@ -292,7 +292,7 @@ def _allocate_head_sharded_zero(
         distribution_shape = tuple(int(value) for value in topology.distribution_shape())
         mesh_coords = tuple(tuple(int(value) for value in coord) for coord in topology.mesh_coords())
         placement_names = tuple(type(value).__name__ for value in topology.placements())
-        expected_coords = tuple((0, column) for column in range(TP_SIZE))
+        expected_coords = tuple((row, column) for row in range(EP_SIZE) for column in range(TP_SIZE))
         if distribution_shape != MESH_SHAPE or mesh_coords != expected_coords:
             raise RuntimeError(
                 f"{label} device allocation has unexpected topology: "
@@ -310,8 +310,10 @@ def _allocate_head_sharded_zero(
         )
         mesh_contract.validate_tensor(tensor, placement=TensorPlacement.HEAD_SHARDED, shard_dim=shard_dim)
         local_tensors = tuple(ttnn.get_device_tensors(tensor))
-        if len(local_tensors) != TP_SIZE:
-            raise RuntimeError(f"{label} device allocation has {len(local_tensors)} locals, expected {TP_SIZE}")
+        if len(local_tensors) != EP_SIZE * TP_SIZE:
+            raise RuntimeError(
+                f"{label} device allocation has {len(local_tensors)} locals, expected {EP_SIZE * TP_SIZE}"
+            )
         for index, local in enumerate(local_tensors):
             if _shape(local) != local_shape:
                 raise RuntimeError(f"{label} local {index} shape must be {local_shape}, got {_shape(local)}")

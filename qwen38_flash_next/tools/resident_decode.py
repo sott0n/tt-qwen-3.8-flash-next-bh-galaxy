@@ -14,6 +14,7 @@ from typing import Any, Sequence
 import torch
 
 import ttnn
+from models.demos.blackhole.qwen38_flash_next.config import EP_SIZE
 from models.demos.blackhole.qwen38_flash_next.tools.live_decode_diagnostic import DIAGNOSTIC_INPUT_TOKEN_ID
 from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import TP_SIZE, replicate_tensor_2d_mesh_mapper
 from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import LOCAL_VOCAB_SIZE, TOKEN_ROW_SHAPE
@@ -194,8 +195,8 @@ def b5b_runtime_surface() -> dict[str, Any]:
 
 def download_trace_tensor(tensor: Any, *, label: str) -> tuple[torch.Tensor, ...]:
     locals_in_order = tuple(ttnn.get_device_tensors(tensor))
-    if len(locals_in_order) != TP_SIZE:
-        raise ResidentDecodeError(f"{label} has {len(locals_in_order)} device tensors, expected {TP_SIZE}")
+    if len(locals_in_order) != EP_SIZE * TP_SIZE:
+        raise ResidentDecodeError(f"{label} has {len(locals_in_order)} device tensors, expected {EP_SIZE * TP_SIZE}")
     return tuple(ttnn.to_torch(local).contiguous() for local in locals_in_order)
 
 

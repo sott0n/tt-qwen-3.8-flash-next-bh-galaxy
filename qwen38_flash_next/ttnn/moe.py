@@ -33,7 +33,7 @@ from ttnn.operations.ccl import MoEActivationFunction
 
 import ttnn
 from models.demos.blackhole.qwen38_flash_next.checkpoint import INDEX_SHA256, Qwen38Checkpoint
-from models.demos.blackhole.qwen38_flash_next.config import TP_SIZE, Qwen38Placement
+from models.demos.blackhole.qwen38_flash_next.config import EP_SIZE, EXPERT_SHARDS, TP_SIZE, Qwen38Placement
 from models.demos.blackhole.qwen38_flash_next.tt.moe import Qwen38MoEWeights
 from models.demos.blackhole.qwen38_flash_next.ttnn import fused
 from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
@@ -62,7 +62,7 @@ from models.tt_transformers.tt.ccl import tt_all_reduce
 HIDDEN_SIZE = 2560
 INTERMEDIATE_SIZE = 640
 ROUTED_EXPERTS = 512
-EXPERTS_PER_DEVICE = ROUTED_EXPERTS // TP_SIZE
+EXPERTS_PER_DEVICE = ROUTED_EXPERTS // EXPERT_SHARDS
 # 640 is five tiles: it splits over four devices but not over eight.  The shared gate/up weights take zero COLUMNS
 # and the shared down weight zero ROWS out to this width before the mesh shard, so every device owns whole tiles.
 # silu(0) * 0 == 0 and a zero down row contributes nothing, so the padded chain is exact.
@@ -345,7 +345,7 @@ def _expert_owner_mapping() -> torch.Tensor:
     """Return replicated routing metadata for the disjoint per-device expert shards."""
 
     owners = torch.arange(ROUTED_EXPERTS, dtype=torch.int32) // EXPERTS_PER_DEVICE
-    if tuple(torch.bincount(owners, minlength=TP_SIZE).tolist()) != (EXPERTS_PER_DEVICE,) * TP_SIZE:
+    if tuple(torch.bincount(owners, minlength=EXPERT_SHARDS).tolist()) != (EXPERTS_PER_DEVICE,) * EXPERT_SHARDS:
         raise AssertionError(f"routed expert ownership must be exactly {EXPERTS_PER_DEVICE} experts per device")
     return owners.unsqueeze(0).repeat(TP_SIZE, 1).contiguous()
 
@@ -1555,8 +1555,13 @@ class Qwen38TTNNMoE:
     @property
     def prefill_rings(self) -> int:
         """The ring count of this instance's launch form (``moe_rows_form_for(self.rows)``: two replica rings for the
-        one-tile rows, three for the 128-row chunk and the one-call slab)."""
+        one-tile rows, three for the 128-row chunk and the one-call slab).
 
+        The replica rings belong to the op's local output path, which needs a combine axis of extent one.  With EP
+        rows the partial sums cross that axis, so the launch runs without them."""
+
+        if EP_SIZE > 1:
+            return 1
         return MOE_ROWS_FORMS[moe_rows_form_for(self.rows)]
 
     @property
