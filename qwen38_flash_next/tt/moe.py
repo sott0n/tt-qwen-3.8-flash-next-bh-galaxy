@@ -26,9 +26,8 @@ import torch
 import torch.nn.functional as F
 
 from models.demos.blackhole.qwen38_flash_next.checkpoint import Qwen38Checkpoint
-from models.demos.blackhole.qwen38_flash_next.config import Qwen38Placement
+from models.demos.blackhole.qwen38_flash_next.config import TP_SIZE, Qwen38Placement
 
-TP_SIZE = 4
 BF4_TILE_BYTES = 576
 TILE_ELEMENTS = 32 * 32
 

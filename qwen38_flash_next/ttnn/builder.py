@@ -42,7 +42,13 @@ from models.demos.blackhole.qwen38_flash_next.checkpoint import (
     INDEX_SHA256,
     Qwen38Checkpoint,
 )
-from models.demos.blackhole.qwen38_flash_next.config import CONFIG_SHA256, LAYER_PATTERN, Qwen38Placement
+from models.demos.blackhole.qwen38_flash_next.config import (
+    CONFIG_SHA256,
+    LAYER_PATTERN,
+    SUPPORTED_TP_SIZES,
+    TP_SIZE,
+    Qwen38Placement,
+)
 from models.demos.blackhole.qwen38_flash_next.tt.ple import Qwen38HostPLEEmbedding
 from models.demos.blackhole.qwen38_flash_next.ttnn.bf4 import (
     BF4CacheIdentity,
@@ -109,14 +115,13 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.qsa import (
 from models.demos.blackhole.qwen38_flash_next.ttnn.vision_residency import VISION_ROW_BUCKETS, Qwen38VisionResidency
 from models.tt_transformers.tt.ccl import TT_CCL
 
-TP_SIZE = 4
 BACKBONE_LAYERS = 48
 MTP_LAYERS = 1
 PLE_LAYER = 1
 HIDDEN_SIZE = 2560
 VOCAB_SIZE = 248_320
 ROUTED_EXPERTS = 512
-EXPERTS_PER_DEVICE = 128
+EXPERTS_PER_DEVICE = ROUTED_EXPERTS // TP_SIZE
 TOP_K = 10
 BUILDER_FORMAT_VERSION = 1
 # The resident build allocates one of four contexts: 32,768 (the default; every timing and bitwise pin is at this
@@ -583,15 +588,15 @@ def validate_builder_static_contract() -> None:
             raise RuntimeError(f"builder layer {spec.layer_index} object graph drifted: {actual} != {expected}")
     if graph.model_io != "vocab-row-sharded-untied" or graph.final_mixer_namespace != "backbone":
         raise RuntimeError("builder model-I/O or terminal-mixer graph drifted")
-    if (TP_SIZE, HIDDEN_SIZE, VOCAB_SIZE, ROUTED_EXPERTS, EXPERTS_PER_DEVICE, TOP_K) != (
-        4,
+    if (TP_SIZE in SUPPORTED_TP_SIZES, HIDDEN_SIZE, VOCAB_SIZE, ROUTED_EXPERTS, EXPERTS_PER_DEVICE, TOP_K) != (
+        True,
         2560,
         248_320,
         512,
-        128,
+        512 // TP_SIZE,
         10,
     ):
-        raise RuntimeError("builder TP4/model/MoE geometry drifted from the pinned target")
+        raise RuntimeError("builder tensor-parallel/model/MoE geometry drifted from the pinned target")
 
 
 def validate_builder_constructor_contract() -> None:

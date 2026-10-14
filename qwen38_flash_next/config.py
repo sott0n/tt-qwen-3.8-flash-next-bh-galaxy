@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -215,6 +216,31 @@ class Qwen38Config:
         )
 
 
+SUPPORTED_TP_SIZES = (4, 8)
+
+# The tensor-parallel degree: the chips of the 1xN mesh one model instance is served from.  Every per-device width,
+# head count and expert count derives from it, so it is read once here and imported everywhere; a module that
+# redefines it silently disagrees with the placement.  The torch reference modules (``tt/``) read it from here, not
+# from the TTNN contracts, so importing ``ttnn`` never cycles through them.
+TP_SIZE_VARIABLE = "QWEN38_TP_SIZE"
+
+
+def configured_tp_size() -> int:
+    """``QWEN38_TP_SIZE`` (default 4), refused unless it is one of the supported degrees."""
+
+    raw = os.environ.get(TP_SIZE_VARIABLE, "4")
+    try:
+        value = int(raw)
+    except ValueError as error:
+        raise RuntimeError(f"{TP_SIZE_VARIABLE}={raw!r} is not an integer") from error
+    if value not in SUPPORTED_TP_SIZES:
+        raise RuntimeError(f"{TP_SIZE_VARIABLE}={value} is not one of the supported degrees {SUPPORTED_TP_SIZES}")
+    return value
+
+
+TP_SIZE = configured_tp_size()
+
+
 def _ranges(total: int, parts: int) -> tuple[tuple[int, int], ...]:
     if total % parts:
         raise ValueError(f"dimension {total} does not divide over {parts} devices")
@@ -224,57 +250,75 @@ def _ranges(total: int, parts: int) -> tuple[tuple[int, int], ...]:
 
 @dataclass(frozen=True)
 class Qwen38Placement:
-    """Numerical TP4/EP4 placement; runtime topology assertions bind it to hardware."""
+    """Numerical TPn/EPn placement over the 1xN mesh; runtime topology assertions bind it to hardware."""
 
     config: Qwen38Config
     mesh_shape: tuple[int, int]
     physical_ids: tuple[int, ...]
 
     def __post_init__(self) -> None:
-        if len(self.physical_ids) != 4:
-            raise ValueError(f"Qwen3.8-Flash-Next requires exactly four physical devices, got {len(self.physical_ids)}")
-        if tuple(self.mesh_shape) != (1, 4):
-            raise ValueError(f"Qwen3.8-Flash-Next requires a 1x4 mesh, got {self.mesh_shape}")
-        if len(set(self.physical_ids)) != 4:
-            raise ValueError(f"physical IDs must be four distinct devices, got {self.physical_ids}")
+        count = len(self.physical_ids)
+        if count != TP_SIZE:
+            raise ValueError(f"Qwen3.8-Flash-Next requires exactly {TP_SIZE} physical devices, got {count}")
+        if tuple(self.mesh_shape) != (1, count):
+            raise ValueError(f"Qwen3.8-Flash-Next requires a 1x{count} mesh, got {self.mesh_shape}")
+        if len(set(self.physical_ids)) != count:
+            raise ValueError(f"physical IDs must be {count} distinct devices, got {self.physical_ids}")
+
+    @property
+    def num_devices(self) -> int:
+        return len(self.physical_ids)
 
     @property
     def hidden_ranges(self) -> tuple[tuple[int, int], ...]:
-        return _ranges(self.config.hidden_size, 4)
+        return _ranges(self.config.hidden_size, self.num_devices)
 
     @property
     def vocab_ranges(self) -> tuple[tuple[int, int], ...]:
-        return _ranges(self.config.vocab_size, 4)
+        return _ranges(self.config.vocab_size, self.num_devices)
 
     @property
     def expert_ranges(self) -> tuple[tuple[int, int], ...]:
-        return _ranges(self.config.num_experts, 4)
+        return _ranges(self.config.num_experts, self.num_devices)
 
     @property
     def gdn_qk_head_ranges(self) -> tuple[tuple[int, int], ...]:
-        return _ranges(self.config.gdn_qk_heads, 4)
+        return _ranges(self.config.gdn_qk_heads, self.num_devices)
 
     @property
     def gdn_value_head_ranges(self) -> tuple[tuple[int, int], ...]:
-        return _ranges(self.config.gdn_value_heads, 4)
+        return _ranges(self.config.gdn_value_heads, self.num_devices)
 
     @property
     def qsa_query_head_ranges(self) -> tuple[tuple[int, int], ...]:
-        return _ranges(self.config.qsa_query_heads, 4)
+        return _ranges(self.config.qsa_query_heads, self.num_devices)
 
     @property
-    def qsa_kv_device_groups(self) -> tuple[tuple[int, int], ...]:
-        # KV head 0 serves Q heads 0..11 on devices 0/1; KV head 1 serves
-        # Q heads 12..23 on devices 2/3.
-        return ((0, 1), (2, 3))
+    def qsa_kv_device_groups(self) -> tuple[tuple[int, ...], ...]:
+        # KV head h is replicated on the devices holding its GQA query group: the mesh split into one contiguous
+        # block per KV head ((0, 1), (2, 3) at four devices; (0, 1, 2, 3), (4, 5, 6, 7) at eight).
+        kv_heads = self.config.qsa_kv_heads
+        per_head, remainder = divmod(self.num_devices, kv_heads)
+        if remainder:
+            raise ValueError(f"{kv_heads} KV heads do not group {self.num_devices} devices")
+        return tuple(tuple(range(head * per_head, (head + 1) * per_head)) for head in range(kv_heads))
+
+    @property
+    def index_query_head_owners(self) -> tuple[int | None, ...]:
+        """Per device, the indexer query head it owns (``None``: a zero query, contributing exact zeros)."""
+
+        heads = self.config.index_query_heads
+        if heads > self.num_devices:
+            raise ValueError(f"{heads} index query heads over {self.num_devices} devices needs several per device")
+        return tuple(device if device < heads else None for device in range(self.num_devices))
 
     @property
     def index_query_head_ranges(self) -> tuple[tuple[int, int], ...]:
-        return _ranges(self.config.index_query_heads, 4)
+        return tuple((owner, owner + 1) if owner is not None else (0, 0) for owner in self.index_query_head_owners)
 
     @property
     def index_key_replicas(self) -> tuple[int, ...]:
-        return (0, 1, 2, 3)
+        return tuple(range(self.num_devices))
 
     @property
     def ple_result_ranges(self) -> tuple[tuple[int, int], ...]:

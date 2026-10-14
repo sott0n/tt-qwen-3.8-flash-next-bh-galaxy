@@ -14,15 +14,15 @@ import torch
 
 import ttnn
 from models.demos.blackhole.qwen38_flash_next.checkpoint import INDEX_SHA256, Qwen38Checkpoint
-from models.demos.blackhole.qwen38_flash_next.config import Qwen38Placement
+from models.demos.blackhole.qwen38_flash_next.config import TP_SIZE, Qwen38Placement
 from models.demos.blackhole.qwen38_flash_next.tt.model import Qwen38FinalMixerWeights
 from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     MESH_SHAPE,
     Qwen38MeshContract,
+    TensorPlacement,
     replicate_tensor_2d_mesh_mapper,
     require_lane_count,
     same_buffer,
-    TensorPlacement,
 )
 from models.demos.blackhole.qwen38_flash_next.ttnn.decode_matmul import (
     dense_dtype_tag,
@@ -32,7 +32,6 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.decode_matmul import (
 )
 
 TP_AXIS = 1
-TP_SIZE = 4
 HIDDEN_SIZE = 2560
 LOCAL_HIDDEN_SIZE = HIDDEN_SIZE // TP_SIZE
 RESIDUAL_BRANCHES = 4

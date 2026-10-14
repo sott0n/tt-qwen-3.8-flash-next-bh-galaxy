@@ -32,7 +32,8 @@ from typing import Any, NoReturn
 DRAFT_STEPS = 4
 DRAFT_EXTENSION_CALLS = DRAFT_STEPS - 1
 VERIFY_POSITIONS = DRAFT_STEPS + 1
-TP_SIZE = 4
+from models.demos.blackhole.qwen38_flash_next.config import TP_SIZE
+
 VOCAB_SIZE = 248_320
 MAX_CONTEXT = 262_144
 QSA_COMPRESS_RATIO = 4

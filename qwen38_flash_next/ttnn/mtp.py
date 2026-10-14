@@ -28,7 +28,6 @@ from typing import Any, Mapping, NoReturn, Sequence
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn.decode_matmul import dense_dtype_tag, dense_math_fidelity_name
 from models.demos.blackhole.qwen38_flash_next.checkpoint import (
     CHECKPOINT_FILE_MANIFEST_SHA256,
     CHECKPOINT_TENSOR_MANIFEST_SHA256,
@@ -36,17 +35,17 @@ from models.demos.blackhole.qwen38_flash_next.checkpoint import (
     PINNED_CHECKPOINT_REVISION,
     Qwen38Checkpoint,
 )
-from models.demos.blackhole.qwen38_flash_next.config import CONFIG_SHA256, Qwen38Placement
+from models.demos.blackhole.qwen38_flash_next.config import CONFIG_SHA256, SUPPORTED_TP_SIZES, TP_SIZE, Qwen38Placement
 from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     CHUNK_ROW_COUNTS,
     MESH_SHAPE,
     Qwen38MeshContract,
-    same_buffer,
     TensorPlacement,
+    same_buffer,
 )
+from models.demos.blackhole.qwen38_flash_next.ttnn.decode_matmul import dense_dtype_tag, dense_math_fidelity_name
 
 TP_AXIS = 1
-TP_SIZE = 4
 HIDDEN_SIZE = 2560
 LOCAL_HIDDEN_SIZE = HIDDEN_SIZE // TP_SIZE
 RESIDUAL_BRANCHES = 4
@@ -276,8 +275,9 @@ def validate_mtp_input_static_contract() -> None:
     }
     if dict(MTP_INPUT_TENSOR_SPECS) != expected_specs:
         raise RuntimeError("MTP input checkpoint tensor contract drifted")
+    local = HIDDEN_SIZE // TP_SIZE
     if (
-        TP_SIZE,
+        TP_SIZE in SUPPORTED_TP_SIZES,
         HIDDEN_SIZE,
         LOCAL_HIDDEN_SIZE,
         RESIDUAL_BRANCHES,
@@ -287,19 +287,21 @@ def validate_mtp_input_static_contract() -> None:
         RESIDUAL_LOCAL_SHAPE,
         HIDDEN_NORM_SCALE_LOCAL_SHAPE,
         PROJECTION_LOCAL_SHAPE,
+        MESH_SHAPE,
     ) != (
-        4,
+        True,
         2560,
-        640,
+        local,
         4,
         10240,
         1.0e-6,
-        (1, 1, 1, 640),
-        (1, 4, 1, 640),
-        (1, 1, 4, 640),
-        (1, 1, 2560, 640),
+        (1, 1, 1, local),
+        (1, 4, 1, local),
+        (1, 1, 4, local),
+        (1, 1, 2560, local),
+        (1, TP_SIZE),
     ):
-        raise RuntimeError("MTP input TP4 geometry drifted from the pinned target")
+        raise RuntimeError("MTP input tensor-parallel geometry drifted from the pinned target")
 
 
 @dataclass

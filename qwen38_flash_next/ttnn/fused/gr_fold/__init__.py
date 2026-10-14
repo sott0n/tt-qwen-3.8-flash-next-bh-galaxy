@@ -36,7 +36,8 @@ from .. import program as fp
 from ..registry import BITWISE, FusedKernel, register
 
 NAME = "gr_fold"
-TP_SIZE = 4
+from ....config import TP_SIZE
+
 TP_AXIS = 1
 TRANSPORT_KERNEL = fp.kernel_source(NAME, "transport.cpp")
 SEM_PROBE = fp.kernel_source(NAME, "sem_probe.cpp")

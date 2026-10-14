@@ -61,7 +61,7 @@ from models.demos.blackhole.qwen38_flash_next.checkpoint import (
     PINNED_CHECKPOINT_REVISION,
     Qwen38Checkpoint,
 )
-from models.demos.blackhole.qwen38_flash_next.config import CONFIG_SHA256, Qwen38Placement
+from models.demos.blackhole.qwen38_flash_next.config import CONFIG_SHA256, TP_SIZE, Qwen38Placement
 from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     CHUNK_ROWS,
     MESH_SHAPE,
@@ -82,7 +82,6 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.decode_matmul import (
 from models.tt_transformers.tt.ccl import tt_all_reduce
 
 TP_AXIS = 1
-TP_SIZE = 4
 HIDDEN_SIZE = 2560
 LOCAL_HIDDEN_SIZE = HIDDEN_SIZE // TP_SIZE
 VOCAB_SIZE = 248_320
@@ -1217,9 +1216,11 @@ class Qwen38TTNNModelIOWeights:
             mapper = ttnn.ShardTensor2dMesh(mesh_device, mesh_shape=MESH_SHAPE, dims=(None, 3))
             tensor = cache.load_or_create(
                 # a converted chunk carries the dtype tag in its artifact name; the BF16 artifacts keep theirs
-                name=f"lm-head-chunk-dram-sharded-{chunk_index:02d}-cols-{chunk_offset}-{chunk_offset + chunk_size}"
-                if lm_head_dtype == ttnn.bfloat16
-                else f"lm-head-chunk-dram-sharded-{lm_head_tag}-{chunk_index:02d}-cols-{chunk_offset}-{chunk_offset + chunk_size}",
+                name=(
+                    f"lm-head-chunk-dram-sharded-{chunk_index:02d}-cols-{chunk_offset}-{chunk_offset + chunk_size}"
+                    if lm_head_dtype == ttnn.bfloat16
+                    else f"lm-head-chunk-dram-sharded-{lm_head_tag}-{chunk_index:02d}-cols-{chunk_offset}-{chunk_offset + chunk_size}"
+                ),
                 mesh_device=mesh_device,
                 host_factory=build_chunk,
                 mapper=mapper,

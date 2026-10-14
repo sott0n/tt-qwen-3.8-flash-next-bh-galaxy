@@ -45,24 +45,24 @@ from loguru import logger
 import ttnn
 from models.demos.blackhole.qwen36.tt.attention.rope_tp import apply_partial_rope_prefill
 from models.demos.blackhole.qwen38_flash_next.checkpoint import INDEX_SHA256, Qwen38Checkpoint
-from models.demos.blackhole.qwen38_flash_next.config import Qwen38Placement
+from models.demos.blackhole.qwen38_flash_next.config import TP_SIZE, Qwen38Placement
+from models.demos.blackhole.qwen38_flash_next.ttnn import prefill_glue
 from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     CHUNK_ROW_COUNTS,
-    chunk_row_tiles,
     CHUNK_ROWS,
-    is_slab_rows,
     LONG_CHUNK_ROWS,
     MAX_LANES,
     MESH_SHAPE,
     POSITION_INDEX_ROW_SHAPE,
     Qwen38MeshContract,
+    TensorPlacement,
+    chunk_row_tiles,
+    is_slab_rows,
     replicate_tensor_2d_mesh_mapper,
     require_lane_count,
     same_buffer,
     tensor_metadata,
-    TensorPlacement,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn import prefill_glue
 from models.demos.blackhole.qwen38_flash_next.ttnn.decode_matmul import (
     dense_dtype_tag,
     dense_math_fidelity_name,
@@ -74,10 +74,12 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.decode_matmul import (
     validate_decode_dram_workers,
     validate_dram_sharded_weight,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.prefill_dense import Qwen38TTNNPrefillDense, prefill_linear
-from models.demos.blackhole.qwen38_flash_next.ttnn.prefill_dense import slab_working_set_bytes
+from models.demos.blackhole.qwen38_flash_next.ttnn.prefill_dense import (
+    Qwen38TTNNPrefillDense,
+    prefill_linear,
+    slab_working_set_bytes,
+)
 
-TP_SIZE = 4
 # The slab scores and selects its blocks in row blocks of this many query rows: the score all-reduce's [4, rows,
 # blocks] transient stays at 32 MB per block at 32k (256 MB at 256k) instead of four times that.
 SLAB_SCORE_BLOCK_ROWS = 512

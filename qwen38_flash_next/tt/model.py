@@ -17,7 +17,7 @@ import torch
 import torch.nn.functional as F
 
 from models.demos.blackhole.qwen38_flash_next.checkpoint import Qwen38Checkpoint, TensorMetadata
-from models.demos.blackhole.qwen38_flash_next.config import Qwen38Config, Qwen38Placement
+from models.demos.blackhole.qwen38_flash_next.config import TP_SIZE, Qwen38Config, Qwen38Placement
 from models.demos.blackhole.qwen38_flash_next.reference import gated_residual_read
 from models.demos.blackhole.qwen38_flash_next.tt.layer import (
     Qwen38DecoderLayer,
@@ -25,7 +25,6 @@ from models.demos.blackhole.qwen38_flash_next.tt.layer import (
     Qwen38DecoderLayerState,
 )
 
-TP_SIZE = 4
 EMBEDDING_NAME = "model.language_model.embed_tokens.weight"
 LM_HEAD_NAME = "lm_head.weight"
 
@@ -316,8 +315,9 @@ class Qwen38TextModelOracle:
         state: Qwen38TextModelState | None = None,
         return_logits: bool = True,
         logits_to_keep: int = 1,
-        layer_observer: Callable[[int, torch.Tensor, Qwen38DecoderLayerState, Qwen38DecoderLayerAux], None]
-        | None = None,
+        layer_observer: (
+            Callable[[int, torch.Tensor, Qwen38DecoderLayerState, Qwen38DecoderLayerAux], None] | None
+        ) = None,
     ) -> Qwen38TextModelOutput:
         if input_ids.ndim != 2 or input_ids.shape[1] == 0:
             raise ValueError("text-model input IDs must contain at least one token")

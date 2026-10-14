@@ -17,7 +17,6 @@ and ordering semantics before asynchronous host prefetch is introduced.
 from __future__ import annotations
 
 import functools
-
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Sequence
@@ -37,14 +36,15 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     MESH_SHAPE,
     Qwen38MeshContract,
     TensorPlacement,
+    is_slab_rows,
     replicate_tensor_2d_mesh_mapper,
     require_lane_count,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import is_slab_rows
 from models.demos.blackhole.qwen38_flash_next.ttnn.gdn import Qwen38TTNNRowsSelectors, Qwen38TTNNRowsSelectorsLanes
 
 TP_AXIS = 1
-TP_SIZE = 4
+from models.demos.blackhole.qwen38_flash_next.config import TP_SIZE
+
 HIDDEN_SIZE = 2560
 LOCAL_HIDDEN_SIZE = HIDDEN_SIZE // TP_SIZE
 RESIDUAL_BRANCHES = 4

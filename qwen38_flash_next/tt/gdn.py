@@ -19,9 +19,8 @@ import torch
 import torch.nn.functional as F
 
 from models.demos.blackhole.qwen38_flash_next.checkpoint import Qwen38Checkpoint
+from models.demos.blackhole.qwen38_flash_next.config import TP_SIZE
 from models.demos.blackhole.qwen38_flash_next.reference import causal_depthwise_conv1d, gated_delta_recurrent
-
-TP_SIZE = 4
 
 
 @dataclass(frozen=True)

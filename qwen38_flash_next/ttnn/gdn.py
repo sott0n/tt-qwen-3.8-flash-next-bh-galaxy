@@ -31,6 +31,7 @@ import torch
 
 import ttnn
 from models.demos.blackhole.qwen38_flash_next.checkpoint import INDEX_SHA256, Qwen38Checkpoint
+from models.demos.blackhole.qwen38_flash_next.config import TP_SIZE
 from models.demos.blackhole.qwen38_flash_next.tt.gdn import Qwen38GDNWeights
 from models.demos.blackhole.qwen38_flash_next.ttnn import fused, prefill_glue
 from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
@@ -57,7 +58,6 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.decode_matmul import (
 )
 from models.demos.blackhole.qwen38_flash_next.ttnn.prefill_dense import Qwen38TTNNPrefillDense, prefill_linear
 
-TP_SIZE = 4
 TP_AXIS = 1
 HIDDEN_SIZE = 2560
 HIDDEN_SIZE_PER_DEVICE = HIDDEN_SIZE // TP_SIZE

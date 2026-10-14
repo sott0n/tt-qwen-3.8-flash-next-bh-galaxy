@@ -18,8 +18,8 @@ from typing import Any, Iterable
 import torch
 
 import ttnn
+from models.demos.blackhole.qwen38_flash_next.config import TP_SIZE
 
-TP_SIZE = 4
 MESH_SHAPE = (1, TP_SIZE)
 POSITION_SCALAR_SHAPE = (1, 1, 1, 1)
 POSITION_INDEX_ROW_SHAPE = (1, 1, 1, ttnn.TILE_SIZE)

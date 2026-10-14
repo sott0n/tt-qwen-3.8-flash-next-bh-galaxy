@@ -33,7 +33,8 @@ from .. import program as fp
 from ..registry import BITWISE, FusedKernel, register
 
 NAME = "gr_read"
-TP_SIZE = 4
+from ....config import TP_SIZE
+
 TP_AXIS = 1
 BRANCHES = 4
 LOCAL_HIDDEN = 640

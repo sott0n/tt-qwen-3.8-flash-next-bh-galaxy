@@ -48,7 +48,8 @@ from typing import Any, NoReturn
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.config import CONFIG_SHA256, LAYER_PATTERN, Qwen38Config
+from models.demos.blackhole.qwen38_flash_next import mrope, vision_splice
+from models.demos.blackhole.qwen38_flash_next.config import CONFIG_SHA256, LAYER_PATTERN, TP_SIZE, Qwen38Config
 from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
 from models.demos.blackhole.qwen38_flash_next.ttnn import moe as moe_module
 from models.demos.blackhole.qwen38_flash_next.ttnn import qsa as qsa_module
@@ -68,7 +69,6 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     require_rope_shift,
     tensor_metadata,
 )
-from models.demos.blackhole.qwen38_flash_next import mrope, vision_splice
 from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import (
     Qwen38ShardedLogits,
     Qwen38TTNNEmbeddingSyncPolicy,
@@ -99,7 +99,6 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.ple import (
     Qwen38TTNNPLERowsPreparedInput,
 )
 
-TP_SIZE = 4
 HIDDEN_SIZE = 2560
 LOCAL_HIDDEN_SIZE = HIDDEN_SIZE // TP_SIZE
 RESIDUAL_BRANCHES = 4

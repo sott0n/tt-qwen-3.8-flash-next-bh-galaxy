@@ -38,7 +38,6 @@ view owns reused complete-block indices would make rejection cleanup unsafe.
 from __future__ import annotations
 
 import functools
-
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
@@ -52,9 +51,11 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.bf4 import Qwen38BF4Streamer
 from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     CHUNK_ROW_COUNTS,
     CHUNK_ROWS,
+    LONG_CHUNK_ROWS,
     MESH_SHAPE,
     Qwen38MeshContract,
     TensorPlacement,
+    is_slab_rows,
     require_lane_count,
     tensor_metadata,
 )
@@ -73,7 +74,6 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.gr import (
     block_rows_shape,
     residual_rows_shape,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import LONG_CHUNK_ROWS, is_slab_rows
 from models.demos.blackhole.qwen38_flash_next.ttnn.moe import SUPPORTED_ROWS, Qwen38TTNNMoE, Qwen38TTNNRouting
 from models.demos.blackhole.qwen38_flash_next.ttnn.ple import (
     Qwen38TTNNPLE,
@@ -91,7 +91,8 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.qsa import Qwen38TTNNQSA, Qwe
 BACKBONE_LAYERS = 48
 MTP_LAYERS = 1
 HIDDEN_SIZE = 2560
-TP_SIZE = 4
+from models.demos.blackhole.qwen38_flash_next.config import TP_SIZE
+
 LOCAL_HIDDEN_SIZE = HIDDEN_SIZE // TP_SIZE
 RESIDUAL_BRANCHES = 4
 RESIDUAL_LOCAL_SHAPE = (1, RESIDUAL_BRANCHES, 1, LOCAL_HIDDEN_SIZE)
@@ -1222,7 +1223,9 @@ class Qwen38TTNNDecoderLayer:
                 f"{(self.namespace.value, self.layer_index)}"
             )
         if state.rows not in CHUNK_ROW_COUNTS and not is_slab_rows(state.rows):
-            raise ValueError(f"chunk state rows must be one of {CHUNK_ROW_COUNTS} or a slab row count, got {state.rows!r}")
+            raise ValueError(
+                f"chunk state rows must be one of {CHUNK_ROW_COUNTS} or a slab row count, got {state.rows!r}"
+            )
         if isinstance(self.attention, Qwen38TTNNGDN) != isinstance(state.attention, Qwen38TTNNGDNRowsState):
             raise TypeError(f"layer {self.layer_index} chunk attention state is {type(state.attention).__name__}")
         attention_rows = (
