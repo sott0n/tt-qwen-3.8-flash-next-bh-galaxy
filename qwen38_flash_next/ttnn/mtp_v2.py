@@ -52,20 +52,20 @@ from typing import Any
 import torch
 
 import ttnn
+from models.demos.blackhole.qwen38_flash_next import vision_splice
 from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
 from models.demos.blackhole.qwen38_flash_next.ttnn import qsa as qsa_module
-from models.demos.blackhole.qwen38_flash_next import vision_splice
 from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     CHUNK_ROW_COUNTS,
     CHUNK_ROWS,
     LONG_CHUNK_ROWS,
     MESH_SHAPE,
     Qwen38MeshContract,
+    TensorPlacement,
     is_slab_rows,
     replicate_tensor_2d_mesh_mapper,
     same_buffer,
     tensor_metadata,
-    TensorPlacement,
 )
 from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import (
     SAMPLING_CANDIDATE_ROW_SHAPE,
@@ -103,7 +103,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.ple import (
 # the QSA verify path admits k + 1 <= qsa.VERIFY_MAX_ROWS = 6 rows per pass (two compressed blocks completed, two KV
 # blocks spanned, so the op sequence never depends on P), so k = 5 is the largest draft count until that path is
 # proven wider on silicon.
-SUPPORTED_DRAFTS = (3, 4, 5)
+SUPPORTED_DRAFTS = (1, 3, 4, 5)
 DEFAULT_DRAFTS = 4
 RESIDUAL_ROWS_SHAPE = (1, RESIDUAL_BRANCHES, CHUNK_ROWS, LOCAL_HIDDEN_SIZE)
 BLOCK_ROWS_SHAPE = (1, 1, CHUNK_ROWS, LOCAL_HIDDEN_SIZE)
