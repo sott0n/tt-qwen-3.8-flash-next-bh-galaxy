@@ -33,6 +33,11 @@ from models.demos.common.prefill.adapter import PrefillModelAdapter, PrefillRunP
 GDN_LAYERS = 36
 QSA_LAYERS = 12
 
+# The common runner reads PREFILL_NUM_LAYERS with DeepSeek's 61 as its default, and it reads it
+# after importing this adapter, so a setdefault here gives this model its own count. An explicit
+# value still wins.
+os.environ.setdefault("PREFILL_NUM_LAYERS", "48")
+
 
 class Qwen38FlashNextConfig:
     """Static dimensions the common runner reads.  It uses only ``FABRIC_PAYLOAD_SIZE``; the rest

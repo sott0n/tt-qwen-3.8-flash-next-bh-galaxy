@@ -16,6 +16,7 @@ attention layers.  See ``kv_chunk_table`` for why the GDN stage is one bucket.
 
 from __future__ import annotations
 
+import os
 import socket
 from dataclasses import dataclass
 from pathlib import Path
@@ -83,6 +84,14 @@ class Qwen38SlotCaches(KvCaches):
         self.states.clear()
 
 
+def _checkpoint_root() -> str:
+    return os.environ.get("PREFILL_HF_MODEL") or os.environ.get("MODEL_WEIGHTS_DIR") or ""
+
+
+def _cache_root() -> str:
+    return os.environ.get("PREFILL_TTNN_CACHE") or os.environ.get("QWEN38_CACHE_ROOT") or ""
+
+
 def allocate_slot_caches(*, mesh_device, hf_config, params):
     """Allocate one generic state and its chunk state per user slot.
 
@@ -116,7 +125,6 @@ def build_target_model(*, mesh_device, params):
     """
 
     import argparse
-    import os
 
     import ttnn
     from models.demos.blackhole.qwen38_flash_next.tools import hardware_profiles, runtime_admission
@@ -132,8 +140,11 @@ def build_target_model(*, mesh_device, params):
         model_io_cache_root=cache_root / "caches" / label / "model-io",
         allocated_context=params.max_seq_len,
         bf4_producer_identity=None,
-        tt_metal_sha=os.environ.get("QWEN38_TT_METAL_SHA"),
+        source_head=None,
     )
+    # No declared identity: runtime_admission derives it from the checkout, which is what a
+    # serving run wants. Declaring one would also have to match the checkout head.
+
     profile = hardware_profiles.resolve_hardware_profile(os.environ.get("PREFILL_HARDWARE_PROFILE", "p150-line"))
     profile, _derivation = resolve_route(profile)
 
