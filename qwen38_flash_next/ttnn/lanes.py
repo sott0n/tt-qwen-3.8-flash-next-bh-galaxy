@@ -38,6 +38,7 @@ from dataclasses import dataclass
 from typing import Any
 
 import torch
+
 import ttnn
 from models.demos.blackhole.qwen38_flash_next.config import LAYER_PATTERN
 from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
@@ -612,12 +613,23 @@ class Qwen38TTNNLanePager:
         else:
             self._unpack_body(lane)
 
-    def evict(self, lane, slot: Qwen38LaneHostSlot) -> Qwen38LaneMoveTiming:
+    def evict(self, lane, slot: Qwen38LaneHostSlot, *, to_host: bool = True) -> Qwen38LaneMoveTiming:
         """Lane ``lane``'s image into ``slot``: the pack (trace replay or eager body), the six small transfers, the
-        KV slabs.  The lane's device state is left as it is (a re-admission or a masked reset overwrites it)."""
+        KV slabs.  The lane's device state is left as it is (a re-admission or a masked reset overwrites it).
+
+        ``to_host=False`` stops after the pack body: the small families stay in ``self.packs`` and the KV stays in
+        ``self.layout.kv``, so a consumer that runs before anything else touches this pager reads them off the
+        device and ``slot`` is left untouched.  Paging a lane out still needs the host copy, because the packs are
+        reused by the next move."""
 
         lane, slot = _exact_index(lane, self.layout.lanes, label="evicted lane"), self._slot(slot)
         started = time.perf_counter_ns()
+        if not to_host:
+            with ttnn.corruptible_allocation_scope(self.mesh_device):
+                self._run_pack(lane)
+                self._fence()
+            done = time.perf_counter_ns()
+            return Qwen38LaneMoveTiming((done - started) / 1e6, 0.0, 0.0, (done - started) / 1e6)
         # A move runs between two replays of the lane traces and consumes every device buffer it allocates before
         # the next one: whatever the ops allocate (the tracker saw the KV region slice and a pack copy outlive the
         # move on a 4x p150 lane, run lfm-disc-a-4883992f) may sit in a trace's scratch and be overwritten later.

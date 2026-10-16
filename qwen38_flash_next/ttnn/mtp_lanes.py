@@ -25,11 +25,11 @@ the draft body follow in the next stages on the same states.
 
 from __future__ import annotations
 
+import hashlib
+import time
 from collections.abc import Callable, Sequence
 from contextlib import AbstractContextManager
 from dataclasses import dataclass, field
-import hashlib
-import time
 from typing import Any
 
 import torch
@@ -39,7 +39,6 @@ from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
 from models.demos.blackhole.qwen38_flash_next.ttnn import mtp_v2
 from models.demos.blackhole.qwen38_flash_next.ttnn import qsa as qsa_module
 from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
-    require_rope_shift,
     BLOCK_START_LANE_MASK,
     CHUNK_ROWS,
     MESH_SHAPE,
@@ -49,6 +48,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     TensorPlacement,
     replicate_tensor_2d_mesh_mapper,
     require_lane_count,
+    require_rope_shift,
     tensor_metadata,
 )
 from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import TOKEN_ROW_SHAPE, ZERO_EMBEDDING_TOKEN
@@ -1053,14 +1053,20 @@ def import_qsa_lane(
     position: int,
     lane: int,
     allocated_context: int,
+    resident_kv=None,
 ) -> None:
     """Lane ``lane`` of a QSA layer from image ``index``: the KV slab at row ``u*C`` (the pager's re-admission write
     through its staging), the compressed blocks (``fill_cache`` at batch u) and the raw history rows 0..2 <- ring slots
-    ``(P - 3 .. P - 1) % 4`` (``sync_verify_raw_history_from_ring`` landing in batch u)."""
+    ``(P - 3 .. P - 1) % 4`` (``sync_verify_raw_history_from_ring`` landing in batch u).
 
-    staging = pager.kv_stagings[index % KV_STAGINGS]
-    ttnn.copy_host_to_device_tensor(slot.tensors["kv"][index], staging)
-    write_kv_slab_lane(state.packed_kv_cache, staging, lane, allocated_context, label=f"QSA layer image {index}")
+    ``resident_kv`` is the source slab still on device (the evicting pager's own cache, for a one-lane layout it is
+    the whole tensor and carries the staging shape).  Given it, the slab is written straight from there and the
+    host slot's KV is neither read nor required."""
+
+    if resident_kv is None:
+        resident_kv = pager.kv_stagings[index % KV_STAGINGS]
+        ttnn.copy_host_to_device_tensor(slot.tensors["kv"][index], resident_kv)
+    write_kv_slab_lane(state.packed_kv_cache, resident_kv, lane, allocated_context, label=f"QSA layer image {index}")
     part = _slice0(pager.packs["compressed"], index)
     _fill_lane(state.compressed_index_cache, part, lane, label=f"QSA layer image {index} compressed blocks")
     _deallocate(part)
@@ -1120,6 +1126,7 @@ def import_lane_state(
     alignment_slot: Qwen38LaneHostSlot,
     alignment_pager: Qwen38TTNNLanePager,
     rope_shift: int = 0,
+    resident: bool = False,
 ) -> None:
     """Admit a prefilled sequence into lane ``lane`` from its 1-lane images: the pager's host slot of the generic
     state (``model.generic_lane_layout``) and of the alignment layer's generic state, evicted after the prompt's
@@ -1140,7 +1147,11 @@ def import_lane_state(
     if len(gdn_phases) != len(gdn_layers):
         raise ValueError(f"gdn_phases needs one ring phase per GDN layer ({len(gdn_layers)}), got {len(gdn_phases)}")
     context = model.allocated_context
-    load_lane_image(backbone_pager, backbone_slot)
+    # ``resident``: the caller evicted with ``to_host=False``, so both pagers still hold this prompt's image in
+    # their own device buffers and the host slots were never written.  Nothing between that eviction and here may
+    # touch either pager, which is what the admission path guarantees.
+    if not resident:
+        load_lane_image(backbone_pager, backbone_slot)
     conv_tiles = ttnn.to_layout(backbone_pager.packs["conv"], ttnn.TILE_LAYOUT, memory_config=ttnn.DRAM_MEMORY_CONFIG)
     gdn_index = qsa_index = 0
     for layer, layer_state in zip(model.layers, verify.layers):
@@ -1165,12 +1176,14 @@ def import_lane_state(
                 position=position,
                 lane=lane,
                 allocated_context=context,
+                resident_kv=backbone_pager.layout.kv[qsa_index] if resident else None,
             )
             qsa_index += 1
         if layer_state.ple is not None:
             import_ple_lane(layer_state.ple, backbone_pager, lane=lane, context=ple_context)
     _deallocate(conv_tiles)
-    load_lane_image(alignment_pager, alignment_slot)
+    if not resident:
+        load_lane_image(alignment_pager, alignment_slot)
     alignment = verify.alignment
     import_qsa_lane(
         alignment.layer_state.attention_state,
@@ -1181,6 +1194,7 @@ def import_lane_state(
         position=position,
         lane=lane,
         allocated_context=context,
+        resident_kv=alignment_pager.layout.kv[0] if resident else None,
     )
     verify.positions.write_lane(lane, position, rope_shift)
     verify.pass_contexts[lane] = (ple_context,) * (verify.rows + 1)

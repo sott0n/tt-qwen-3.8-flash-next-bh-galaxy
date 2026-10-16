@@ -32,16 +32,16 @@ its dispatch is the registry's), so the referee chain and the lanes run the serv
 
 from __future__ import annotations
 
+import os
 import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Sequence
 
-import ttnn
 from ttnn.unsafe_allocation_tracker import UnsafeAllocationTracker
 
+import ttnn
 from models.demos.blackhole.qwen38_flash_next.tools import resident_decode
 from models.demos.blackhole.qwen38_flash_next.tools.qwen38_chat_session import CHUNK_PREFILL_MIN_ROWS
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import LONG_CHUNK_ROWS
 from models.demos.blackhole.qwen38_flash_next.tools.qwen38_lane_scheduler import (
     Qwen38LaneAdmitted,
     Qwen38LaneTicket,
@@ -49,6 +49,7 @@ from models.demos.blackhole.qwen38_flash_next.tools.qwen38_lane_scheduler import
 )
 from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
 from models.demos.blackhole.qwen38_flash_next.ttnn import mtp_lanes, mtp_v2
+from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import LONG_CHUNK_ROWS
 from models.demos.blackhole.qwen38_flash_next.ttnn.lanes import (
     Qwen38LaneHostPool,
     Qwen38LaneLayout,
@@ -69,6 +70,10 @@ ADMISSION_EVENT_ROWS = LONG_CHUNK_ROWS
 # of the prefill, the forced last step and the row read, the eviction into the host slot; the import into the lane
 # ends the admission.
 ADMISSION_SEGMENTS = ("tower", "chunks", "prefilled", "evicted")
+# The admission's eviction and import are back to back on the same two pagers, so the prompt's image can stay in
+# their device buffers instead of making a round trip through the host slots.  Opt-in while the host-slot path is
+# the one every other caller (a lane paged out and re-admitted later) still needs.
+RESIDENT_ADMISSION = os.environ.get("QWEN38_RESIDENT_ADMISSION", "0") == "1"
 
 
 class Qwen38LanesSessionError(RuntimeError):
@@ -414,8 +419,9 @@ class Qwen38LanesSession:
         if between is not None:
             between("prefilled", len(ids), len(ids))
         evict_started = self.clock_ns()
-        self.backbone_pager.evict(0, self.backbone_pool.slots[0])
-        self.alignment_pager.evict(0, self.alignment_pool.slots[0])
+        resident = RESIDENT_ADMISSION
+        backbone_move = self.backbone_pager.evict(0, self.backbone_pool.slots[0], to_host=not resident)
+        alignment_move = self.alignment_pager.evict(0, self.alignment_pool.slots[0], to_host=not resident)
         evicted = self.clock_ns()
         if between is not None:
             between("evicted", len(ids), len(ids))
@@ -436,6 +442,7 @@ class Qwen38LanesSession:
             alignment_slot=self.alignment_pool.slots[0],
             alignment_pager=self.alignment_pager,
             rope_shift=rope_shift,
+            resident=resident,
         )
         ttnn.synchronize_device(self.mesh)
         imported = self.clock_ns()
@@ -444,6 +451,12 @@ class Qwen38LanesSession:
             "prefill": (prefilled - started) / 1e9 - spent,
             "evict": (evicted - evict_started) / 1e9,
             "import": (imported - import_started) / 1e9,
+            # The eviction by leg, summed over the two pagers: which of the pack body, the small pack-buffer
+            # transfers and the KV slabs the admission actually spends its time in.  The totals above hide that,
+            # and the three legs have different fixes.
+            "evict_trace": (backbone_move.trace_ms + alignment_move.trace_ms) / 1e3,
+            "evict_small": (backbone_move.small_transfers_ms + alignment_move.small_transfers_ms) / 1e3,
+            "evict_kv": (backbone_move.kv_ms + alignment_move.kv_ms) / 1e3,
         }
         if vision is not None:
             seconds = {"tower": tower_seconds, **seconds}

@@ -271,8 +271,10 @@ def test_pager_moves_replay_raw_behind_an_event_fence_and_apply_the_residue_rule
     for text in (_body("_run_pack"), _body("_run_unpack")):
         assert "ttnn._ttnn_execute_trace(self.mesh_device" in text and "blocking=False" in text
         assert "ttnn.execute_trace(" not in text
-    for text in (evict, readmit):
-        assert text.count("self._fence()") == 3
+    # Three fences on the host-slot path of each move; the eviction's device-resident path adds its own, because
+    # its consumer reads the pack buffers on the default queue rather than the pager's.
+    assert evict.count("self._fence()") == 4
+    assert readmit.count("self._fence()") == 3
     assert "self._run_pack(lane)" in evict and "self._run_unpack(lane)" in readmit
     assert "position_row.admit(lane, slot.position)" in readmit
     assert readmit.index("position_row.admit(lane, slot.position)") < readmit.index("copy_host_to_device_tensor")
@@ -283,8 +285,10 @@ def test_pager_moves_replay_raw_behind_an_event_fence_and_apply_the_residue_rule
     assert "output_tensor=staging" in evict and "blocking=False, cq_id=self.cq_id" in evict
     # A move's device allocations are acknowledged corruptible: they are consumed before the next replay and may
     # sit in a lane trace's scratch (the tracker refused the replay after the first eviction otherwise).
+    # One scope per path: the eviction has two, its host-slot path and its device-resident one.
+    assert evict.count("with ttnn.corruptible_allocation_scope(self.mesh_device)") == 2
+    assert readmit.count("with ttnn.corruptible_allocation_scope(self.mesh_device)") == 1
     for text in (evict, readmit):
-        assert text.count("with ttnn.corruptible_allocation_scope(self.mesh_device)") == 1
         assert text.index("corruptible_allocation_scope") < text.index("self._fence()")
     assert "(self.evict(lane, slot), self.readmit(slot, lane)) for lane in range(self.layout.lanes)" in _body(
         "warm_moves"
@@ -348,7 +352,10 @@ def test_lane_shapes_match_the_component_states():
     }
     # The QSA / GDN / PLE lane-state sources allocate exactly these shapes.
     qsa = inspect.getsource(lanes_module.qsa_module.Qwen38TTNNQSA.allocate_lane_state)
-    assert "(1, 1, lanes * self.allocated_context + kv_scratch_rows, 2 * HEAD_DIM)" in qsa and "(lanes, 1, rows, INDEX_HEAD_DIM)" in qsa
+    assert (
+        "(1, 1, lanes * self.allocated_context + kv_scratch_rows, 2 * HEAD_DIM)" in qsa
+        and "(lanes, 1, rows, INDEX_HEAD_DIM)" in qsa
+    )
     assert "(1, lanes, CACHE_WRITE_ROWS, 2 * HEAD_DIM)" in qsa and "(1, lanes, CACHE_WRITE_ROWS, INDEX_HEAD_DIM)" in qsa
     gdn = inspect.getsource(lanes_module.gdn_module.Qwen38TTNNGDNState.allocate)
     assert (
