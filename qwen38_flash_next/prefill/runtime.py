@@ -128,8 +128,13 @@ def build_target_model(*, mesh_device, params):
 
     import ttnn
     from models.demos.blackhole.qwen38_flash_next.tools import hardware_profiles, runtime_admission
+    from models.demos.blackhole.qwen38_flash_next.tools.live_decode_diagnostic import MODE as HARDWARE_MODE
     from models.demos.blackhole.qwen38_flash_next.tools.live_decode_diagnostic import construct_live_decode_diagnostic
     from models.demos.blackhole.qwen38_flash_next.tools.qwen38_chat_session import resolve_route
+
+    # construct_live_decode_diagnostic refuses any other mode; it is a precondition of this
+    # construction path rather than an operator choice, so the runtime sets it.
+    os.environ.setdefault("QWEN38_HARDWARE_MODE", HARDWARE_MODE)
 
     cache_root = Path(_cache_root())
     label = os.environ.get("PREFILL_CACHE_LABEL", "c32768-p150-line")
