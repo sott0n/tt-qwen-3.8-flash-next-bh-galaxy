@@ -334,7 +334,18 @@ class Qwen38PrefillRuntime:
 
         return list(token_ids)
 
-    def prefill_chunk(self, input_tensor, kv_cache, *, slot_id, actual_start, actual_end, request_id=0):
+    def prefill_chunk(
+        self,
+        input_tensor,
+        kv_cache,
+        *,
+        slot_id,
+        actual_start,
+        actual_end,
+        request_id=0,
+        d2h_service=None,
+        metadata_msg=None,
+    ):
         """Prefill one chunk into ``slot_id``'s state.  Returns None: this rank is the last one."""
 
         state = kv_cache.state_for(slot_id)
