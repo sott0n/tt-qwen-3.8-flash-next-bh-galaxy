@@ -619,8 +619,8 @@ class Qwen38TTNNLanePager:
 
         ``to_host=False`` stops after the pack body: the small families stay in ``self.packs`` and the KV stays in
         ``self.layout.kv``, so a consumer that runs before anything else touches this pager reads them off the
-        device and ``slot`` is left untouched.  Paging a lane out still needs the host copy, because the packs are
-        reused by the next move."""
+        device and ``slot`` is left untouched.  The default writes the host copy: the packs are one buffer set per
+        pager, so an image that has to outlive the next move needs a slot of its own."""
 
         lane, slot = _exact_index(lane, self.layout.lanes, label="evicted lane"), self._slot(slot)
         started = time.perf_counter_ns()

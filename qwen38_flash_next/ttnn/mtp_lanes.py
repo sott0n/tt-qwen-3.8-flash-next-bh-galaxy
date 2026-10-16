@@ -1146,6 +1146,10 @@ def import_lane_state(
     gdn_layers = [layer for layer in model.layers if isinstance(layer.attention, Qwen38TTNNGDN)]
     if len(gdn_phases) != len(gdn_layers):
         raise ValueError(f"gdn_phases needs one ring phase per GDN layer ({len(gdn_layers)}), got {len(gdn_phases)}")
+    if resident and (backbone_pager.layout.lanes != 1 or alignment_pager.layout.lanes != 1):
+        # A resident KV source is read whole, so it has to be the lane's slab as it stands.  A wider pager keeps
+        # its lanes side by side in one cache and only the eviction's staging slice carries the slab.
+        raise ValueError("a resident import needs one-lane pagers")
     context = model.allocated_context
     # ``resident``: the caller evicted with ``to_host=False``, so both pagers still hold this prompt's image in
     # their own device buffers and the host slots were never written.  Nothing between that eviction and here may

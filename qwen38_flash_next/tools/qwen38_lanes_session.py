@@ -32,7 +32,6 @@ its dispatch is the registry's), so the referee chain and the lanes run the serv
 
 from __future__ import annotations
 
-import os
 import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Sequence
@@ -67,13 +66,9 @@ WARM_TOKEN_ID = 1  # any exact vocabulary id for the warm passes' rows
 # point) per 128-row chunk, or per four 32-row chunks, so the decoding lanes' passes can run between chunk groups.
 ADMISSION_EVENT_ROWS = LONG_CHUNK_ROWS
 # The admission's segments as ``between`` names them: an image prompt's images through the tower, the chunk groups
-# of the prefill, the forced last step and the row read, the eviction into the host slot; the import into the lane
-# ends the admission.
+# of the prefill, the forced last step and the row read, the eviction of the prompt's image; the import into the
+# lane ends the admission.
 ADMISSION_SEGMENTS = ("tower", "chunks", "prefilled", "evicted")
-# The admission's eviction and import are back to back on the same two pagers, so the prompt's image can stay in
-# their device buffers instead of making a round trip through the host slots.  Opt-in while the host-slot path is
-# the one every other caller (a lane paged out and re-admitted later) still needs.
-RESIDENT_ADMISSION = os.environ.get("QWEN38_RESIDENT_ADMISSION", "0") == "1"
 
 
 class Qwen38LanesSessionError(RuntimeError):
@@ -419,9 +414,10 @@ class Qwen38LanesSession:
         if between is not None:
             between("prefilled", len(ids), len(ids))
         evict_started = self.clock_ns()
-        resident = RESIDENT_ADMISSION
-        backbone_move = self.backbone_pager.evict(0, self.backbone_pool.slots[0], to_host=not resident)
-        alignment_move = self.alignment_pager.evict(0, self.alignment_pool.slots[0], to_host=not resident)
+        # The eviction and the import below are back to back on these two pagers and nothing else touches them in
+        # between, so the prompt's image stays in their device buffers: no host slot is written or read here.
+        backbone_move = self.backbone_pager.evict(0, self.backbone_pool.slots[0], to_host=False)
+        alignment_move = self.alignment_pager.evict(0, self.alignment_pool.slots[0], to_host=False)
         evicted = self.clock_ns()
         if between is not None:
             between("evicted", len(ids), len(ids))
@@ -442,7 +438,7 @@ class Qwen38LanesSession:
             alignment_slot=self.alignment_pool.slots[0],
             alignment_pager=self.alignment_pager,
             rope_shift=rope_shift,
-            resident=resident,
+            resident=True,
         )
         ttnn.synchronize_device(self.mesh)
         imported = self.clock_ns()
