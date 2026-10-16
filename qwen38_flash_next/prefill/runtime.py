@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import os
 import socket
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Sequence
 
@@ -116,6 +116,24 @@ def allocate_slot_caches(*, mesh_device, hf_config, params):
     return caches
 
 
+def _opened_route(mesh_device) -> tuple:
+    return tuple(int(device_id) for device_id in mesh_device.get_device_ids())
+
+
+def _opened_nodes(route: tuple) -> tuple:
+    """KMD node numbers for UMD indices.  A 32-chip Galaxy swaps the two middle groups: indices
+    16-23 open nodes 24-31 and 24-31 open 16-23; below 16 the two agree."""
+
+    def node(index: int) -> int:
+        if 16 <= index < 24:
+            return index + 8
+        if 24 <= index < 32:
+            return index - 8
+        return index
+
+    return tuple(node(index) for index in route)
+
+
 def build_target_model(*, mesh_device, params):
     """Run this model's own CPU preparation and builder against an already-open mesh.
 
@@ -152,6 +170,11 @@ def build_target_model(*, mesh_device, params):
 
     profile = hardware_profiles.resolve_hardware_profile(os.environ.get("PREFILL_HARDWARE_PROFILE", "p150-line"))
     profile, _derivation = resolve_route(profile)
+    # The engine opens the mesh before the adapter is called and picks its own physical order, so
+    # the leased route is taken from the mesh in hand rather than derived from the cluster
+    # descriptor; the model's mesh contract compares the two exactly.
+    opened = _opened_route(mesh_device)
+    profile = replace(profile, route=opened, route_nodes=_opened_nodes(opened))
 
     def marker(_name: str) -> None:
         return None
