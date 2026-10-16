@@ -22,6 +22,8 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Sequence
 
+from loguru import logger
+
 import ttnn
 from models.demos.blackhole.qwen38_flash_next.prefill import kv_chunk_table as kct
 from models.demos.blackhole.qwen38_flash_next.prefill.adapter import GDN_LAYERS, QSA_LAYERS
@@ -176,8 +178,9 @@ def build_target_model(*, mesh_device, params):
     opened = _opened_route(mesh_device)
     profile = replace(profile, route=opened, route_nodes=_opened_nodes(opened))
 
-    def marker(_name: str) -> None:
-        return None
+    def marker(name: str) -> None:
+        # The construction path is minutes of silent CPU work; the markers are the only progress.
+        logger.info(f"[qwen38 prefill] {name}")
 
     prepared, _oracle = runtime_admission.prepare_cpu(args, marker=marker, hardware_profile=profile)
     construction = construct_live_decode_diagnostic(
