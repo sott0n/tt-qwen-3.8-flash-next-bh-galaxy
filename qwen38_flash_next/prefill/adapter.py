@@ -44,7 +44,10 @@ class Qwen38FlashNextConfig:
     document the model for readers and feed the cache geometry."""
 
     EMB_SIZE = 2560  # hidden_size
-    FABRIC_PAYLOAD_SIZE = EMB_SIZE
+    # The runner builds the fabric router config from this. Mirroring the embedding dim, as the
+    # larger models do, puts the packet below this model's 4096-byte fp32 tile pages, and the
+    # runtime recommends 8192 for its 2048-byte bf16 pages.
+    FABRIC_PAYLOAD_SIZE = 8192
     NUM_LAYERS = 48
     GDN_LAYERS = GDN_LAYERS
     QSA_LAYERS = QSA_LAYERS
