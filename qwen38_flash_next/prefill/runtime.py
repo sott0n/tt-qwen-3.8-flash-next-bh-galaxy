@@ -62,6 +62,7 @@ class Qwen38SlotCaches(KvCaches):
         self.model = model
         self.states = list(states)
         self.chunk_states = list(chunk_states)
+        self.contexts = [None] * num_users
         self.num_users = num_users
 
     def _check(self, slot_id: int) -> int:
@@ -110,7 +111,7 @@ def allocate_slot_caches(*, mesh_device, hf_config, params):
         state = model.allocate_generic_state()
         model.reset_generic_state_inplace(state)
         chunk_state = model.allocate_chunk_state(state)
-        model.reset_chunk_state_inplace(chunk_state)
+        model.reset_chunk_state_inplace(state, chunk_state)
         states.append(state)
         chunk_states.append(chunk_state)
     caches = Qwen38SlotCaches(model=model, states=states, chunk_states=chunk_states, num_users=params.num_users)
@@ -313,15 +314,16 @@ class Qwen38PrefillRuntime:
         """
 
         self._caches = kv_cache
-        rows = kv_cache.model.CHUNK_ROWS if hasattr(kv_cache.model, "CHUNK_ROWS") else 32
-        warm = [0] * rows
+        model = kv_cache.model
         for slot in range(kv_cache.num_users):
             state = kv_cache.state_for(slot)
             chunk_state = kv_cache.chunk_state_for(slot)
-            kv_cache.model.write_chunk_inputs(chunk_state, warm, start_position=0)
-            kv_cache.model.forward_prefill_chunk_generic(chunk_state, state)
-            kv_cache.model.reset_generic_state_inplace(state)
-            kv_cache.model.reset_chunk_state_inplace(chunk_state)
+            rows = chunk_state.rows
+            model.write_chunk_inputs(chunk_state, [0] * rows, ple_context=None, start_position=0)
+            model.forward_prefill_chunk_generic(chunk_state, state)
+            model.reset_generic_state_inplace(state)
+            model.reset_chunk_state_inplace(state, chunk_state)
+            kv_cache.contexts[slot] = None
 
     def make_chunk_input(self, token_ids) -> list:
         """This rank is first and last, so a chunk's input is its token ids.
@@ -338,15 +340,26 @@ class Qwen38PrefillRuntime:
         state = kv_cache.state_for(slot_id)
         chunk_state = kv_cache.chunk_state_for(slot_id)
         model = kv_cache.model
+        rows = chunk_state.rows
         accepted = int(actual_end) - int(actual_start)
-        if accepted <= 0 or accepted > chunk_state.rows:
-            raise ValueError(f"chunk holds {accepted} real rows, outside (0,{chunk_state.rows}]")
+        if accepted <= 0 or accepted > rows:
+            raise ValueError(f"chunk holds {accepted} real rows, outside (0,{rows}]")
 
-        model.write_chunk_inputs(chunk_state, list(input_tensor), start_position=int(actual_start))
-        if accepted != chunk_state.rows:
-            # The tail chunk is padded; only its real rows may be committed.
-            model.write_chunk_accepted(chunk_state, accepted)
+        tokens = list(input_tensor)
+        if len(tokens) > rows:
+            raise ValueError(f"chunk holds {len(tokens)} tokens, more than the {rows}-row form")
+        tokens += [0] * (rows - len(tokens))
+
+        contexts = model.write_chunk_inputs(
+            chunk_state,
+            tokens,
+            ple_context=kv_cache.contexts[slot_id],
+            start_position=int(actual_start),
+        )
+        # The accept scalar counts from zero: r real rows is r - 1.
+        model.write_chunk_accepted(chunk_state, accepted - 1)
         model.forward_prefill_chunk_generic(chunk_state, state)
+        kv_cache.contexts[slot_id] = contexts[accepted]
         if self._layer_ack is not None:
             self._layer_ack.bump(request_id)
         return None
