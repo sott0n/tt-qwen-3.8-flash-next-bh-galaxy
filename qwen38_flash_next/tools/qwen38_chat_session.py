@@ -632,8 +632,9 @@ def lanes_capacity_admission(
     must fit the largest contiguous block.  The open measures the growth (states, traces) and refuses READY when it
     exceeds the required side: the estimate's margins are what the measurement is judged against."""
 
-    if isinstance(lanes, bool) or type(lanes) is not int or not 2 <= lanes <= 8:
-        raise ValueError(f"lanes must be an int in [2, 8], got {lanes!r}")
+    from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import require_lane_count
+
+    lanes = require_lane_count(lanes, label="lane count")
     if isinstance(drafts, bool) or type(drafts) is not int or drafts not in mtp_v2.SUPPORTED_DRAFTS:
         raise ValueError(f"drafts must be one of {mtp_v2.SUPPORTED_DRAFTS}, got {drafts!r}")
     rows = drafts + 1
