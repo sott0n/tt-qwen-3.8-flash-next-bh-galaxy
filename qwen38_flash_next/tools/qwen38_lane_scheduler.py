@@ -69,7 +69,7 @@ from models.demos.blackhole.qwen38_flash_next.chat import TOKENIZER_SIZE
 from models.demos.blackhole.qwen38_flash_next.tools.qwen38_chat_protocol import THINK_END_ID
 
 MIN_LANES = 2
-MAX_LANES = 8  # B x (k + 1) <= 32 with k >= 3
+MAX_LANES = 16  # B x (k + 1) <= 32; 16 lanes need k = 1
 ONE_TILE_ROWS = 32
 # Placeholder drafts of a host-written block (the bootstrap's form; any exact ids would do: acceptance is a filter).
 PLACEHOLDER_DRAFT_TOKEN = 0

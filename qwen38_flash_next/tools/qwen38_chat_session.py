@@ -64,9 +64,9 @@ test drives the session with a scripted chain.
 from __future__ import annotations
 
 import itertools
-from collections import deque
 import json
 import time
+from collections import deque
 from dataclasses import dataclass, field, replace
 from functools import partial
 from pathlib import Path
@@ -76,6 +76,7 @@ import torch
 from ttnn.unsafe_allocation_tracker import UnsafeAllocationTracker
 
 import ttnn
+from models.demos.blackhole.qwen38_flash_next import vision_splice
 from models.demos.blackhole.qwen38_flash_next.chat import (
     EOS_TOKEN_IDS,
     IM_START_ID,
@@ -84,6 +85,7 @@ from models.demos.blackhole.qwen38_flash_next.chat import (
     VOCAB_SIZE,
     Qwen38ChatFormatError,
 )
+from models.demos.blackhole.qwen38_flash_next.config import LAYER_PATTERN
 from models.demos.blackhole.qwen38_flash_next.tools import hardware_profiles, physical_route
 from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_protocol as protocol
 from models.demos.blackhole.qwen38_flash_next.tools import qwen38_sampling_step as sampling_step
@@ -94,19 +96,14 @@ from models.demos.blackhole.qwen38_flash_next.tools.live_decode_diagnostic impor
     Qwen38LiveDecodeConstruction,
     construct_live_decode_diagnostic,
 )
-from models.demos.blackhole.qwen38_flash_next import vision_splice
 from models.demos.blackhole.qwen38_flash_next.tools.qwen38_prefill_driver import (
     Qwen38ChunkPrefill,
     Qwen38PrefillResult,
     alignment_steps,
 )
+from models.demos.blackhole.qwen38_flash_next.ttnn import fused as fused_module
 from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
 from models.demos.blackhole.qwen38_flash_next.ttnn import mtp_v2
-from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import ZERO_EMBEDDING_TOKEN
-from models.demos.blackhole.qwen38_flash_next.config import LAYER_PATTERN
-from models.demos.blackhole.qwen38_flash_next.ttnn import fused as fused_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gdn_rows_scan as gdn_rows_scan_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import mtp_accept as mtp_accept_module
 from models.demos.blackhole.qwen38_flash_next.ttnn.bf4 import (
     BF4_TILE_BYTES,
     BLACKHOLE_RING_SIZES,
@@ -126,6 +123,9 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     Qwen38MeshContract,
     is_slab_rows,
 )
+from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import ZERO_EMBEDDING_TOKEN
+from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gdn_rows_scan as gdn_rows_scan_module
+from models.demos.blackhole.qwen38_flash_next.ttnn.fused import mtp_accept as mtp_accept_module
 from models.demos.blackhole.qwen38_flash_next.ttnn.model import GENERIC_HEAD_LAYERS, Qwen38TTNNGenericTraceKey
 
 # The device position P must stay below allocated_context (RoPE table lookup, KV write); the consumed EOS step and a
@@ -165,7 +165,7 @@ THINK_END_ID = protocol.THINK_END_ID
 # the GDN state re-anchor settings (off = every GDN layer commits through the chunk kernel; layer0 = layer 0's
 # commits run the 1-row fp32 step recurrence over the committed rows), the bootstrap pass's placeholder drafts, the
 # resident expert pairs with the MTP layer's.
-MTP_DRAFTS = (3, 4, 5)
+MTP_DRAFTS = (1, 3, 4, 5)
 MTP_GDN_ANCHORS = ("off", "layer0")
 MTP_GDN_ANCHOR_LAYERS = {"off": (), "layer0": (0,)}
 MTP_BOOTSTRAP_DRAFT_TOKEN = 0

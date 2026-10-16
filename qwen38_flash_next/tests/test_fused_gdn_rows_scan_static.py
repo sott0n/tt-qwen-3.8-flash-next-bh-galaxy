@@ -15,7 +15,6 @@ import re
 from pathlib import Path
 from types import SimpleNamespace
 
-import pytest
 import torch
 
 import ttnn
@@ -243,8 +242,8 @@ def test_admits_is_the_fused_bodys_input_contract():
     assert module.admits(None, None, other, _state()) is False
 
 
-def test_commit_needs_the_selectors_accept_count():
-    with pytest.raises(RuntimeError):
+def test_commit_needs_the_selectors_accept_count(expect_error):
+    with expect_error(RuntimeError, "needs the pass's accept count on its selectors"):
         module.commit(None, None, SimpleNamespace(prefix=None), _state(), SimpleNamespace(accepted=None))
     selectors = gdn_module.Qwen38TTNNRowsSelectors(5, None, (), None)
     assert selectors.accepted is None  # defaulted: older constructions and the wrap's selectors carry none
@@ -426,10 +425,10 @@ def test_lanes_kernel_argument_layouts_and_the_finiteness_rule():
 
 
 def test_lanes_admission_and_prefix_bytes():
-    assert module.MAX_LANES == 8
+    assert module.MAX_LANES == 16
     assert module.lanes_admitted(4, 5) and module.lanes_admitted(6, 5) and module.lanes_admitted(8, 4)
-    assert module.lanes_admitted(2, 8) and module.lanes_admitted(1, 1)
-    assert not module.lanes_admitted(8, 5) and not module.lanes_admitted(9, 3)  # the tile; the lane count
+    assert module.lanes_admitted(2, 8) and module.lanes_admitted(1, 1) and module.lanes_admitted(16, 2)
+    assert not module.lanes_admitted(8, 5) and not module.lanes_admitted(17, 1)  # the tile; the lane count
     assert not module.lanes_admitted(2, 9) and not module.lanes_admitted(0, 5)  # MAX_ROWS per lane
     assert module.lanes_prefix_shape(4, 5) == (20, HEADS, HEAD_DIM, HEAD_DIM)
     # one slot = 12 x 16 tile pages of 4 KiB; 36 GDN layers at rows 20 = 70,778,880 B per bank over 8 banks
@@ -499,7 +498,7 @@ def test_attach_lanes_needs_the_form_and_honours_the_shared_off_switch(monkeypat
     assert module.lane_buffers_of(single) is None and module.buffers_of(state) is state.scan_buffers
 
 
-def test_admits_lanes_is_the_lane_bodys_input_contract():
+def test_admits_lanes_is_the_lane_bodys_input_contract(expect_error):
     state = _LaneRowsState()
     assert module.admits_lanes(state, _lane_state()) is False  # no buffers attached
     state.scan_buffers = module.LaneBuffers(prefix=None, constants=None, gated_memory_config=None, lanes=4, rows=5)
@@ -507,13 +506,13 @@ def test_admits_lanes_is_the_lane_bodys_input_contract():
     assert module.admits_lanes(state, _lane_state(lanes=2)) is False  # another lane count
     assert module.admits_lanes(state, _lane_state(dtype=ttnn.bfloat16)) is False
     assert module.admits_lanes(state, SimpleNamespace()) is False
-    with pytest.raises(RuntimeError):
+    with expect_error(RuntimeError, "lanes body called on a state outside its contract"):
         module.rows_body_scan_lanes(None, None, state, _lane_state(lanes=2))  # a wiring error, not a fallback
 
 
-def test_commit_lanes_needs_the_selectors_committed_counts():
+def test_commit_lanes_needs_the_selectors_committed_counts(expect_error):
     buffers = module.LaneBuffers(prefix=None, constants=None, gated_memory_config=None, lanes=4, rows=5)
-    with pytest.raises(RuntimeError):
+    with expect_error(RuntimeError, "needs the per-lane committed counts on its selectors"):
         module.commit_lanes(None, None, buffers, _lane_state(), SimpleNamespace(committed_counts=None))
     selectors = gdn_module.Qwen38TTNNRowsSelectorsLanes(4, 5, None, None, None, None, ())
     assert selectors.committed_counts is None  # defaulted: older constructions carry none

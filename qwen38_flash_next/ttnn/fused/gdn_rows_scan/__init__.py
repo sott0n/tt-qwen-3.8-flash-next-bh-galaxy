@@ -89,7 +89,7 @@ MAX_ROWS = 8
 # The lanes form: B lanes x R rows (R = k + 1 <= MAX_ROWS) lane-major in one tile, B * R <= 32, one (value head,
 # lane) item per core (12 B cores, the whole head per core), the state [B, 12, 128, 128] and the prefix states
 # [B * R, 12, 128, 128] (slot u * R + j = lane u after j + 1 rows; the single form's tensor with rows = B * R).
-MAX_LANES = 8
+MAX_LANES = 16
 # The layer's verify segment with the fold on: the all-gather, the projection linear, its S2I, the qkv landing slice,
 # this program, the out-projection linear, the reduce-scatter (the wrap runs 11, the chain 58); the commit: the pick,
 # the history concat and its select matmul (the wrap runs 5).
@@ -393,8 +393,9 @@ def run_lanes(projected, history, taps, constants, norm, recurrent, prefix, out,
     items = _lane_items(lanes)
     work = fp.split_work(len(items), mesh)
     cores = fp.core_rectangle(work, mesh)
-    if len(work) != len(items):
-        raise RuntimeError(f"{NAME} lanes form places one item per core; {len(items)} items got {len(work)} cores")
+    placed = sum(w.count for w in work)
+    if placed != len(items):
+        raise RuntimeError(f"{NAME} lanes form placed {placed} of {len(items)} items over {len(work)} cores")
 
     def pairs(w):
         return [value for item in items[w.start : w.start + w.count] for value in item]
