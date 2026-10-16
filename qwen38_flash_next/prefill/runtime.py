@@ -193,6 +193,24 @@ def build_target_model(*, mesh_device, params):
     return construction.builder.build_target()
 
 
+def _chunk_token_ids(input_tensor, rows: int) -> list:
+    """The chunk's token ids as host ints.
+
+    The engine hands the runtime what came off the H2D socket: a uint32 device tensor shaped
+    ``(sp, 1, chunk // sp)`` by the producer.  It is replicated across the TP devices, so one
+    shard carries the whole chunk.
+    """
+
+    if isinstance(input_tensor, (list, tuple)):
+        return [int(value) for value in input_tensor]
+    shards = ttnn.get_device_tensors(input_tensor)
+    host = ttnn.to_torch(shards[0] if shards else input_tensor)
+    ids = [int(value) for value in host.flatten().tolist()]
+    if len(ids) < rows:
+        raise ValueError(f"chunk tensor holds {len(ids)} ids, fewer than the {rows}-row form")
+    return ids[:rows]
+
+
 def _tensor_bytes(tensor) -> int:
     return int(tensor.volume() * tensor.element_size())
 
@@ -356,10 +374,7 @@ class Qwen38PrefillRuntime:
         if accepted <= 0 or accepted > rows:
             raise ValueError(f"chunk holds {accepted} real rows, outside (0,{rows}]")
 
-        tokens = list(input_tensor)
-        if len(tokens) > rows:
-            raise ValueError(f"chunk holds {len(tokens)} tokens, more than the {rows}-row form")
-        tokens += [0] * (rows - len(tokens))
+        tokens = _chunk_token_ids(input_tensor, rows)
 
         contexts = model.write_chunk_inputs(
             chunk_state,
