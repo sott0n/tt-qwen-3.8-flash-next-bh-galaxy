@@ -155,16 +155,16 @@ ALWI void l2_norm(uint32_t base, uint32_t out_cb) {
         copy_init(CB_STAT);
         if (step == 0) {
             binop_with_scalar_tile_init();
-        } else {
-            sqrt_tile_init();
-            recip_tile_init();
         }
         tile_regs_acquire();
         copy_tile(CB_STAT, 0, 0);
         if (step == 0) {
             add_unary_tile(0, EPS_1E6);
         } else {
+            // recip_tile_init overwrites the programmable constant sqrt_tile seeds from: init each just before its op.
+            sqrt_tile_init();
             sqrt_tile(0);
+            recip_tile_init();
             recip_tile(0);
         }
         tile_regs_commit();
@@ -500,14 +500,15 @@ ALWI void gated_norm() {
     reduce_init<PoolType::SUM, ReduceDim::REDUCE_ROW>(CB_SQO, CB_SCALER, CB_RS);
     pack_reconfig_data_format(CB_RS);
     binop_with_scalar_tile_init();
-    sqrt_tile_init();
-    recip_tile_init();
     tile_regs_acquire();
     for (uint32_t j = 0; j < HT; ++j) {
         reduce_tile<PoolType::SUM, ReduceDim::REDUCE_ROW>(CB_SQO, CB_SCALER, j, 1, 0);
     }
     add_unary_tile(0, EPS_1E6);
+    // recip_tile_init overwrites the programmable constant sqrt_tile seeds from: init each just before its op.
+    sqrt_tile_init();
     sqrt_tile(0);
+    recip_tile_init();
     recip_tile(0);
     tile_regs_commit();
     tile_regs_wait();

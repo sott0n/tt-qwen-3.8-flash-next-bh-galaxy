@@ -22,6 +22,7 @@
 #include <cstdint>
 
 #include "api/compute/compute_kernel_api.h"
+#include "api/compute/topk.h"
 
 // The compute source is built once per TRISC; the SFPU LLK (and so every name the copy uses) exists on the math
 // TRISC only, exactly as compute_kernel_api.h includes ckernel_sfpu_topk.h under TRISC_MATH.
