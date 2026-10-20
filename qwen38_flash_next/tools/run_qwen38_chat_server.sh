@@ -31,7 +31,7 @@
 #   --bf4-corpus DIR --bf4-corpus-verification FILE
 #                           a CPU-staged corpus (tools/stage_full_bf4_cpu.py) instead of the first-start conversion
 #   --serve-seconds N       stop after N seconds (default: until SIGTERM)
-#   --python PATH           the interpreter that imports ttnn (default: <checkout>/python_env/bin/python)
+#   --python PATH           the interpreter that imports ttnn (default: <tt-metal>/python_env/bin/python)
 #   --validate-only         run the checks and the CPU preparation, do not open the mesh
 #   --prefill-mode M        chunked (default) | teacher_forced (every prompt token through the decode step)
 #   --agreement-reference F --agreement-parts "P Q" --agreement-full-logits DIR
@@ -49,7 +49,9 @@ set -euo pipefail
 
 readonly HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 readonly MODEL_DIR="$(cd -- "$HERE/.." && pwd -P)"
-readonly REPO_ROOT="$(cd -- "$MODEL_DIR/../../../.." && pwd -P)"
+readonly REPO_ROOT="$(cd -- "$MODEL_DIR/.." && pwd -P)"
+# The tt-metal checkout whose build runs the model: TT_METAL_HOME when set, else the repository's submodule.
+readonly TT_METAL_ROOT="$(cd -- "${TT_METAL_HOME:-$REPO_ROOT/tt-metal}" && pwd -P)"
 readonly SERVER="$HERE/qwen38_chat_server.py"
 
 die() { printf 'run_qwen38_chat_server: %s\n' "$*" >&2; exit 2; }
@@ -103,14 +105,13 @@ done
 [[ -z "$bf4_corpus" && -z "$bf4_corpus_verification" || -n "$bf4_corpus" && -n "$bf4_corpus_verification" ]] \
     || die "--bf4-corpus and --bf4-corpus-verification go together"
 [[ -z "$acceptance" || -z "$acceptance_prompts" ]] || die "--acceptance and --acceptance-prompts are alternatives"
-[[ -z "${TT_METAL_HOME:-}" || "$(cd -- "$TT_METAL_HOME" && pwd -P)" == "$REPO_ROOT" ]] \
-    || die "TT_METAL_HOME=$TT_METAL_HOME is not this checkout ($REPO_ROOT); unset it or run that checkout's launcher"
+[[ -f "$TT_METAL_ROOT/ttnn/ttnn/__init__.py" ]] || die "$TT_METAL_ROOT is not a tt-metal checkout (git submodule update --init, or set TT_METAL_HOME)"
 for name in checkpoint cache_root acceptance_prompts bf4_corpus bf4_corpus_verification python agreement_reference agreement_full_logits; do
     [[ -z "${!name}" || "${!name}" == /* ]] || printf -v "$name" '%s/%s' "$PWD" "${!name}"
 done
 cd "$REPO_ROOT"  # from here on the real ttnn package comes first, not the model's own ttnn/
-python=${python:-$REPO_ROOT/python_env/bin/python}
-[[ -x "$python" ]] || die "no python at $python: build this checkout (build_metal.sh, create_venv.sh) or pass --python"
+python=${python:-$TT_METAL_ROOT/python_env/bin/python}
+[[ -x "$python" ]] || die "no python at $python: build $TT_METAL_ROOT (build_metal.sh, create_venv.sh) or pass --python"
 
 case "$profile" in
     tt-quietbox)
@@ -133,8 +134,8 @@ head=$(git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null) || die "$REPO_ROOT is not
 dirty=$(git -C "$REPO_ROOT" status --porcelain=v1 --untracked-files=no | wc -l | tr -d ' ')
 extension=$("$python" -c 'import ttnn._ttnn as m; print(m.__file__)') || die "$python cannot import ttnn"
 case "$(readlink -f -- "$extension")" in
-    "$REPO_ROOT"/*) ;;
-    *) die "$python imports ttnn from $extension, not from this checkout; build it or pass the checkout's --python" ;;
+    "$TT_METAL_ROOT"/*) ;;
+    *) die "$python imports ttnn from $extension, not from $TT_METAL_ROOT; build it or pass its --python" ;;
 esac
 
 # -- caches, run directory, environment ---------------------------------------------------------------------------------
@@ -143,7 +144,7 @@ caches="$cache_root/caches/$label"
 run_dir="$cache_root/runs/q38-chat-server-$hardware_profile-$(date -u +%Y%m%dT%H%M%SZ)-$$"
 mkdir -p "$caches/components" "$cache_root/caches/bf4-experts" "$caches/model-io" "$cache_root/jit-cache" "$run_dir/tmp"
 
-export TT_METAL_HOME="$REPO_ROOT"
+export TT_METAL_HOME="$TT_METAL_ROOT"
 export TT_VISIBLE_DEVICES="$visible_devices"
 [[ -z "$descriptor" ]] || export TT_MESH_GRAPH_DESC_PATH="$descriptor"
 export QWEN38_HARDWARE_MODE=diagnostic_non_promoting
@@ -151,7 +152,7 @@ export TT_METAL_TRACE_ALLOC_TRACKING=1
 export TT_METAL_CACHE="$cache_root/jit-cache"
 export TT_METAL_LOGS_PATH="$run_dir/metal-logs"
 export TMPDIR="$run_dir/tmp"
-export PYTHONPATH="$REPO_ROOT${PYTHONPATH:+:$PYTHONPATH}"
+export PYTHONPATH="$REPO_ROOT:$TT_METAL_ROOT${PYTHONPATH:+:$PYTHONPATH}"
 export PYTHONNOUSERSITE=1 PYTHONDONTWRITEBYTECODE=1
 export OMP_NUM_THREADS="${OMP_NUM_THREADS:-4}"
 
