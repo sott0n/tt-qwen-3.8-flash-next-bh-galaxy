@@ -8,6 +8,8 @@ this package so that TTNN work cannot accidentally reformat or mutate the
 golden implementation while the bring-up is in progress.
 """
 
+from qwen38_flash_next import ttnn_extensions  # noqa: F401  (fills the names upstream ttnn lacks)
+
 from .contracts import Qwen38MeshContract, TensorPlacement
 from .bf4 import (
     BF4CacheIdentity,

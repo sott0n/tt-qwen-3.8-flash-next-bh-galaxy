@@ -73,9 +73,9 @@ from pathlib import Path
 from typing import Any, Callable, Iterator, Mapping, Sequence
 
 import torch
-from ttnn.unsafe_allocation_tracker import UnsafeAllocationTracker
 
 import ttnn
+from qwen38_flash_next.ttnn_extensions import UnsafeAllocationTracker
 from qwen38_flash_next import vision_splice
 from qwen38_flash_next.chat import (
     EOS_TOKEN_IDS,

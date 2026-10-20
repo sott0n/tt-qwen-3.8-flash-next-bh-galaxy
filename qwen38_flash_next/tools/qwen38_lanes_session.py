@@ -36,9 +36,9 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Sequence
 
-from ttnn.unsafe_allocation_tracker import UnsafeAllocationTracker
 
 import ttnn
+from qwen38_flash_next.ttnn_extensions import UnsafeAllocationTracker
 from qwen38_flash_next.tools import resident_decode
 from qwen38_flash_next.tools.qwen38_chat_session import CHUNK_PREFILL_MIN_ROWS
 from qwen38_flash_next.tools.qwen38_lane_scheduler import (

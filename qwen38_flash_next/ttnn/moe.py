@@ -32,6 +32,7 @@ from ttnn.experimental.moe_compute_utils import auto_output_width_shard_dim, eff
 from ttnn.operations.ccl import MoEActivationFunction
 
 import ttnn
+from qwen38_flash_next import ttnn_extensions
 from qwen38_flash_next.checkpoint import INDEX_SHA256, Qwen38Checkpoint
 from qwen38_flash_next.config import EP_SIZE, EXPERT_SHARDS, TP_SIZE, Qwen38Placement
 from qwen38_flash_next.tt.moe import Qwen38MoEWeights
@@ -135,7 +136,8 @@ def moe_slab_one_call_enabled() -> bool:
     call is bitwise those blocks on the 4-chip line (the acceptance records, the agreement rows and the long-prompt
     completions identical at three heads). Scoped to slab rows: decode and the 32-/128-row chunks keep their forms."""
 
-    value = os.environ.get(MOE_SLAB_ONE_CALL_ENV, "1")
+    # The one call needs moe_compute's packed token lists, which come with its prefill_rings.
+    value = os.environ.get(MOE_SLAB_ONE_CALL_ENV, "1" if ttnn_extensions.moe_compute_has_prefill_rings() else "0")
     if value not in ("0", "1"):
         raise ValueError(f"{MOE_SLAB_ONE_CALL_ENV} must be 0 or 1, got {value!r}")
     return value == "1"
@@ -157,7 +159,8 @@ def moe_compute_output_height_shard_dim(rows: int, *, matmul_ring_size: int) -> 
 
     if is_slab_rows(rows):
         return 1
-    data_parallel_cores = max(d for d in range(1, 5) if MOE_COMPUTE_HIDDEN_TILES % d == 0 and matmul_ring_size % d == 0)
+    # The op's own pick: the largest d <= 4 dividing the hidden tile count, whatever the ring.
+    data_parallel_cores = max(d for d in range(1, 5) if MOE_COMPUTE_HIDDEN_TILES % d == 0)
     return -(-rows // (MOE_COMPUTE_TOKEN_SIZE * data_parallel_cores))
 
 
@@ -701,7 +704,7 @@ class Qwen38TTNNMoE:
             packer_l1_acc=False,
         )
         ring_size = effective_matmul_ring_size(mesh_device)
-        output_width_shard_dim = auto_output_width_shard_dim(HIDDEN_SIZE, matmul_ring_size=ring_size)
+        output_width_shard_dim = auto_output_width_shard_dim(HIDDEN_SIZE)
         # The launch form of this instance's row count (a constant per launch site): the one-tile rows, the 128-row
         # chunk, the slab (its one call; a slab in blocks launches through its 128-row worker).
         self.rows_form = moe_rows_form_for(self.rows)

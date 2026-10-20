@@ -49,9 +49,9 @@ from dataclasses import dataclass
 from typing import Any
 
 import torch
-from ttnn.unsafe_allocation_tracker import UnsafeAllocationTracker
 
 import ttnn
+from qwen38_flash_next.ttnn_extensions import UnsafeAllocationTracker
 from qwen38_flash_next import mrope, vision_splice
 from qwen38_flash_next.ttnn.contracts import CHUNK_ROWS, LONG_CHUNK_ROWS, is_slab_rows
 
