@@ -11,6 +11,8 @@ are left alone.
 from __future__ import annotations
 
 import functools
+import os
+import tempfile
 import types
 
 import ttnn
@@ -23,11 +25,17 @@ def _is_real_ttnn() -> bool:
 
 
 if _is_real_ttnn():
-    from ttnn.tools.trace_allocation_tracker import TRACE_ALLOC_TRACKING, TraceAllocationTracker, acknowledge_corruptible
+    from ttnn.tools.trace_allocation_tracker import (
+        TRACE_ALLOC_TRACKING,
+        TraceAllocationTracker,
+        acknowledge_corruptible,
+        corruptible_allocation_scope,
+    )
 else:  # a host fake
     TRACE_ALLOC_TRACKING = False
     TraceAllocationTracker = None
     acknowledge_corruptible = None
+    corruptible_allocation_scope = None
 
 
 class UnsafeAllocationTracker:
@@ -68,9 +76,14 @@ def _load_tensor_with_descriptors(load_tensor):
     @functools.wraps(load_tensor)
     def load(file_name, *, device=None):
         name = str(file_name)
-        if name.startswith(_PROC_SELF_FD):
-            return ttnn._ttnn.tensor.load_tensor_flatbuffer(name, device)
-        return load_tensor(file_name, device=device)
+        if not name.startswith(_PROC_SELF_FD):
+            return load_tensor(file_name, device=device)
+        # The native reader wants a .tensorbin name: a link to the descriptor opens the file it holds, not whatever
+        # sits at the artifact's path now.
+        with tempfile.TemporaryDirectory() as directory:
+            link = os.path.join(directory, "descriptor.tensorbin")
+            os.symlink(name, link)
+            return ttnn._ttnn.tensor.load_tensor_flatbuffer(link, device)
 
     return load
 
@@ -125,6 +138,8 @@ def apply() -> None:
     ttnn._qwen38_extensions = True
     if not hasattr(ttnn, "mark_corruptible"):
         ttnn.mark_corruptible = mark_corruptible
+    if not hasattr(ttnn, "corruptible_allocation_scope"):
+        ttnn.corruptible_allocation_scope = corruptible_allocation_scope
     if not hasattr(ttnn, "TRACE_ALLOC_TRACKING"):
         ttnn.TRACE_ALLOC_TRACKING = TRACE_ALLOC_TRACKING
     if not moe_compute_has_prefill_rings():
