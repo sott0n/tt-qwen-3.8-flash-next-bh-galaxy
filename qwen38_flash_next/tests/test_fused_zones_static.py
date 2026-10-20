@@ -62,7 +62,7 @@ def test_header_is_one_define_that_compiles_to_nothing_without_the_switch():
     assert "#pragma once" in text
     order = [
         text.index("#ifdef QWEN38_FUSED_ZONES"),
-        text.index('#include "tools/profiler/kernel_profiler.hpp"'),
+        text.index('#include "api/debug/kernel_profiler.hpp"'),
         text.index("#define FUSED_ZONE(name) DeviceZoneScopedN(name)"),
         text.index("#else"),
         text.index("#define FUSED_ZONE(name)\n#endif"),

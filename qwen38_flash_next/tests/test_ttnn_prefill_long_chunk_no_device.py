@@ -82,16 +82,11 @@ def test_long_chunk_contract() -> None:
     )
     assert moe_module.Qwen38TTNNMoERowContract(128).local_combine == (10, 128, 2560)
     assert moe_module.Qwen38TTNNRouting.__dataclass_fields__["tiles"].default is None
-    # moe_compute admits 32 x d x output_height_shard_dim tokens; d = 4 on an 8-bank part, 1 on a 7-bank part.
-    assert [moe_module.moe_compute_output_height_shard_dim(rows, matmul_ring_size=8) for rows in (1, 5, 32, 128)] == [
-        1
-    ] * 4
-    assert [moe_module.moe_compute_output_height_shard_dim(rows, matmul_ring_size=7) for rows in (1, 5, 32, 128)] == [
-        1,
-        1,
-        1,
-        4,
-    ]
+    # moe_compute admits 32 x d x output_height_shard_dim tokens; d = 4 on every part (the op's pick ignores the ring).
+    for ring in (7, 8):
+        assert [moe_module.moe_compute_output_height_shard_dim(rows, matmul_ring_size=ring) for rows in (1, 5, 32, 128)] == [
+            1
+        ] * 4
     assert qsa_module.chunk_blocks(32) == 8 and qsa_module.chunk_blocks(128) == 32
 
 

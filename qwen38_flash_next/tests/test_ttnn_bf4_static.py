@@ -1515,7 +1515,8 @@ class TTNNBF4ConverterIdentityTest(unittest.TestCase):
             ],
         )
         for relative, digest in identity:
-            self.assertEqual(digest, hashlib.sha256((bf4_module.REPO_ROOT / relative).read_bytes()).hexdigest())
+            root = bf4_module.MODEL_DIR.parent if relative.startswith("qwen38_flash_next/") else bf4_module.REPO_ROOT
+            self.assertEqual(digest, hashlib.sha256((root / relative).read_bytes()).hexdigest())
         accepted = replace(_identity(), converter_sources=identity)
         self.assertNotIn("tt_metal_revision", asdict(accepted))
         self.assertNotEqual(accepted.key, _identity().key)

@@ -15,19 +15,19 @@ import pytest
 from qwen38_flash_next.paths import TT_METAL_ROOT
 
 MODEL_DIR = Path(__file__).resolve().parents[1]
-REPO_ROOT = TT_METAL_ROOT
+REPO_ROOT = MODEL_DIR.parent
 LAUNCHER = MODEL_DIR / "tools" / "run_qwen38_chat_server.sh"
-# a stand-in for the venv interpreter: the extension probe (``-c``) answers with a file under the checkout, the server
+# a stand-in for the venv interpreter: the extension probe (``-c``) answers with a file under tt-metal, the server
 # run reports its working directory and its arguments
 STUB_PYTHON = f"""#!/usr/bin/env bash
-if [[ "$1" == -c ]]; then printf '%s\\n' "{REPO_ROOT}/ttnn/ttnn/__init__.py"; exit 0; fi
+if [[ "$1" == -c ]]; then printf '%s\\n' "{TT_METAL_ROOT}/ttnn/ttnn/__init__.py"; exit 0; fi
 printf 'cwd=%s\\n' "$PWD"
 printf 'arg=%s\\n' "$@"
 """
 
 
 def run_launcher(cwd: Path, *args: str) -> subprocess.CompletedProcess:
-    env = {**os.environ, "TT_METAL_HOME": str(REPO_ROOT)}  # the launcher refuses another checkout's TT_METAL_HOME
+    env = {**os.environ, "TT_METAL_HOME": str(TT_METAL_ROOT)}
     return subprocess.run(
         ["bash", str(LAUNCHER), *args],
         cwd=cwd,
