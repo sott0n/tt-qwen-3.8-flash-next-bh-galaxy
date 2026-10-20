@@ -18,7 +18,7 @@ from typing import Any, Iterable
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.config import EP_SIZE, EXPERT_MESH_AXIS, TP_SIZE
+from qwen38_flash_next.config import EP_SIZE, EXPERT_MESH_AXIS, TP_SIZE
 
 MESH_SHAPE = (EP_SIZE, TP_SIZE)
 POSITION_SCALAR_SHAPE = (1, 1, 1, 1)
@@ -531,7 +531,7 @@ class Qwen38TTNNDevicePosition:
             for tensor in uploaded:
                 ttnn.deallocate(tensor)
             raise
-        from models.demos.blackhole.qwen38_flash_next.ttnn import fused as fused_kernels
+        from qwen38_flash_next.ttnn import fused as fused_kernels
 
         fused_advance = None
         if fused_kernels.enabled("position_advance"):

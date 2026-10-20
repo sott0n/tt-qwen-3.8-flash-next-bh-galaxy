@@ -17,10 +17,10 @@ import pytest
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn import contracts, fused
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import moe_combine as mc
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import moe_post as mp
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import program as fp
+from qwen38_flash_next.ttnn import contracts, fused
+from qwen38_flash_next.ttnn.fused import moe_combine as mc
+from qwen38_flash_next.ttnn.fused import moe_post as mp
+from qwen38_flash_next.ttnn.fused import program as fp
 
 KERNELS = {name: (fp.REPO_ROOT / path).read_text() for name, path in mc.KERNELS.items()}
 CHAIN_COMPUTE = (
@@ -303,7 +303,7 @@ def test_public_files_are_in_the_release_manifest():
     import json
 
     manifest = json.loads(
-        (fp.REPO_ROOT / "models/demos/blackhole/qwen38_flash_next/tools/release/manifest.json").read_text()
+        (fp.MODEL_DIR / "tools/release/manifest.json").read_text()
     )
     public = set(manifest["public"])
     for path in (

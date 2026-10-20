@@ -152,7 +152,7 @@ def gr_write_composed(block_output, residual, injection, *, memory_config=ttnn.D
 def write_fused(module, block_output, state):
     """``Qwen38TTNNGatedResidual.write`` on the fused program (the module's checks around ``gr_write``)."""
 
-    from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import TensorPlacement
+    from qwen38_flash_next.ttnn.contracts import TensorPlacement
 
     module._validate_block(block_output)
     module._validate_residual(state.residual)
@@ -165,7 +165,7 @@ def write_fused(module, block_output, state):
 def write_rows_fused(module, block_rows, state):
     """``Qwen38TTNNGatedResidual.write_rows`` on the fused program for one tile row; more rows keep the chain."""
 
-    from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import TensorPlacement
+    from qwen38_flash_next.ttnn.contracts import TensorPlacement
 
     if int(state.residual.shape[2]) > fp.TILE:
         return type(module).write_rows(module, block_rows, state)
@@ -182,9 +182,9 @@ def _oracle(layer: int):
     root = os.environ.get("QWEN38_CHECKPOINT")
     if not root:
         raise RuntimeError("the gr_write gate computes the injection with the CPU oracle: set QWEN38_CHECKPOINT")
-    from models.demos.blackhole.qwen38_flash_next.checkpoint import Qwen38Checkpoint
-    from models.demos.blackhole.qwen38_flash_next.config import Qwen38Placement
-    from models.demos.blackhole.qwen38_flash_next.tt.gr import Qwen38GatedResidual, Qwen38GatedResidualWeights
+    from qwen38_flash_next.checkpoint import Qwen38Checkpoint
+    from qwen38_flash_next.config import Qwen38Placement
+    from qwen38_flash_next.tt.gr import Qwen38GatedResidual, Qwen38GatedResidualWeights
 
     checkpoint = Qwen38Checkpoint(root)
     placement = Qwen38Placement(checkpoint.config, mesh_shape=(1, 4), physical_ids=(0, 1, 2, 3))

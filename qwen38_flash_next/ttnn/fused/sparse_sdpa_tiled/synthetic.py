@@ -12,7 +12,7 @@ from dataclasses import dataclass
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import sparse_sdpa_tiled as sst
+from qwen38_flash_next.ttnn.fused import sparse_sdpa_tiled as sst
 
 PATTERNS = ("shared", "disjoint", "clustered", "random", "ranges")
 

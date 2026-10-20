@@ -76,8 +76,8 @@ import torch
 from ttnn.unsafe_allocation_tracker import UnsafeAllocationTracker
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next import vision_splice
-from models.demos.blackhole.qwen38_flash_next.chat import (
+from qwen38_flash_next import vision_splice
+from qwen38_flash_next.chat import (
     EOS_TOKEN_IDS,
     IM_START_ID,
     REASONING_EFFORTS,
@@ -85,37 +85,37 @@ from models.demos.blackhole.qwen38_flash_next.chat import (
     VOCAB_SIZE,
     Qwen38ChatFormatError,
 )
-from models.demos.blackhole.qwen38_flash_next.config import LAYER_PATTERN
-from models.demos.blackhole.qwen38_flash_next.tools import hardware_profiles, physical_route
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_protocol as protocol
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_sampling_step as sampling_step
-from models.demos.blackhole.qwen38_flash_next.tools import resident_decode
-from models.demos.blackhole.qwen38_flash_next.tools.evidence_records import Marker, utc_now
-from models.demos.blackhole.qwen38_flash_next.tools.hardware_profiles import ResidentHardwareProfile
-from models.demos.blackhole.qwen38_flash_next.tools.live_decode_diagnostic import (
+from qwen38_flash_next.config import LAYER_PATTERN
+from qwen38_flash_next.tools import hardware_profiles, physical_route
+from qwen38_flash_next.tools import qwen38_chat_protocol as protocol
+from qwen38_flash_next.tools import qwen38_sampling_step as sampling_step
+from qwen38_flash_next.tools import resident_decode
+from qwen38_flash_next.tools.evidence_records import Marker, utc_now
+from qwen38_flash_next.tools.hardware_profiles import ResidentHardwareProfile
+from qwen38_flash_next.tools.live_decode_diagnostic import (
     Qwen38LiveDecodeConstruction,
     construct_live_decode_diagnostic,
 )
-from models.demos.blackhole.qwen38_flash_next.tools.qwen38_prefill_driver import (
+from qwen38_flash_next.tools.qwen38_prefill_driver import (
     Qwen38ChunkPrefill,
     Qwen38PrefillResult,
     alignment_steps,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn import fused as fused_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import mtp_v2
-from models.demos.blackhole.qwen38_flash_next.ttnn.bf4 import (
+from qwen38_flash_next.ttnn import fused as fused_module
+from qwen38_flash_next.ttnn import gdn as gdn_module
+from qwen38_flash_next.ttnn import mtp_v2
+from qwen38_flash_next.ttnn.bf4 import (
     BF4_TILE_BYTES,
     BLACKHOLE_RING_SIZES,
     packed_bf4_bytes_per_device,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.builder import (
+from qwen38_flash_next.ttnn.builder import (
     RESIDENT_CONTEXT_HEADROOM,
     RESIDENT_MAX_QSA_CACHE_CAPACITY,
     RESIDENT_QSA_CACHE_CAPACITIES,
     Qwen38ResidentContext,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
+from qwen38_flash_next.ttnn.contracts import (
     CHUNK_ROWS,
     LONG_CHUNK_ROWS,
     MESH_SHAPE,
@@ -123,10 +123,10 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     Qwen38MeshContract,
     is_slab_rows,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import ZERO_EMBEDDING_TOKEN
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gdn_rows_scan as gdn_rows_scan_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import mtp_accept as mtp_accept_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.model import GENERIC_HEAD_LAYERS, Qwen38TTNNGenericTraceKey
+from qwen38_flash_next.ttnn.embedding import ZERO_EMBEDDING_TOKEN
+from qwen38_flash_next.ttnn.fused import gdn_rows_scan as gdn_rows_scan_module
+from qwen38_flash_next.ttnn.fused import mtp_accept as mtp_accept_module
+from qwen38_flash_next.ttnn.model import GENERIC_HEAD_LAYERS, Qwen38TTNNGenericTraceKey
 
 # The device position P must stay below allocated_context (RoPE table lookup, KV write); the consumed EOS step and a
 # little slack are the headroom.  CONTEXT_LIMIT is the default (32k) build's; a session derives its own from the
@@ -632,7 +632,7 @@ def lanes_capacity_admission(
     must fit the largest contiguous block.  The open measures the growth (states, traces) and refuses READY when it
     exceeds the required side: the estimate's margins are what the measurement is judged against."""
 
-    from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import require_lane_count
+    from qwen38_flash_next.ttnn.contracts import require_lane_count
 
     lanes = require_lane_count(lanes, label="lane count")
     if isinstance(drafts, bool) or type(drafts) is not int or drafts not in mtp_v2.SUPPORTED_DRAFTS:

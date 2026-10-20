@@ -54,7 +54,7 @@ _NORM_ROWS: dict[int, object] = {}
 
 
 def _mixer_module():
-    from models.demos.blackhole.qwen38_flash_next.ttnn import final_mixer
+    from qwen38_flash_next.ttnn import final_mixer
 
     return final_mixer
 
@@ -479,7 +479,7 @@ def final_mixer_fused(module, residual, *, merged: bool | None = None):
     (default: the QWEN38_FUSED_FINAL_MIXER_MERGED switch, on) runs normalize+down and low_rank+gate as one program
     each."""
 
-    from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import TensorPlacement
+    from qwen38_flash_next.ttnn.contracts import TensorPlacement
 
     fm = _mixer_module()
     if tuple(int(v) for v in residual.shape) != fm.RESIDUAL_LOCAL_SHAPE or residual.dtype != BF16:

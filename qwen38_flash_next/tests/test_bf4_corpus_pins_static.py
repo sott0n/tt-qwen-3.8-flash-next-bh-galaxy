@@ -10,8 +10,8 @@ from __future__ import annotations
 import importlib.util
 from pathlib import Path
 
-from models.demos.blackhole.qwen38_flash_next import diagnostic_bf4
-from models.demos.blackhole.qwen38_flash_next.ttnn import bf4
+from qwen38_flash_next import diagnostic_bf4
+from qwen38_flash_next.ttnn import bf4
 
 MESH_DEVICES = 4
 TENSORBIN_HEADER_BYTES = 1240  # the serialized header of a slot tensorbin, measured on the written cache (2026-09-25)

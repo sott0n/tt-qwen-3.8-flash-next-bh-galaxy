@@ -24,14 +24,14 @@ from types import SimpleNamespace
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.chat import EOS_TOKEN_IDS
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_session as session_module
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_sampling_step as step
-from models.demos.blackhole.qwen38_flash_next.tools.qwen38_chat_protocol import THINK_END_ID
-from models.demos.blackhole.qwen38_flash_next.ttnn import mtp_v2
-from models.demos.blackhole.qwen38_flash_next.ttnn import speculative_sampling as spec
-from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import VOCAB_SIZE, ZERO_EMBEDDING_TOKEN
-from models.demos.blackhole.qwen38_flash_next.ttnn.sampling import (
+from qwen38_flash_next.chat import EOS_TOKEN_IDS
+from qwen38_flash_next.tools import qwen38_chat_session as session_module
+from qwen38_flash_next.tools import qwen38_sampling_step as step
+from qwen38_flash_next.tools.qwen38_chat_protocol import THINK_END_ID
+from qwen38_flash_next.ttnn import mtp_v2
+from qwen38_flash_next.ttnn import speculative_sampling as spec
+from qwen38_flash_next.ttnn.embedding import VOCAB_SIZE, ZERO_EMBEDDING_TOKEN
+from qwen38_flash_next.ttnn.sampling import (
     Qwen38CandidateFallback,
     Qwen38CandidateRow,
     Qwen38SamplingParameters,

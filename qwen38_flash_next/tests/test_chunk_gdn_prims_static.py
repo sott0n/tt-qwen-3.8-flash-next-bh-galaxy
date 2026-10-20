@@ -8,9 +8,10 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from qwen38_flash_next.paths import TT_METAL_ROOT
 
 MODEL_DIR = Path(__file__).resolve().parents[1]
-REPO_ROOT = MODEL_DIR.parents[3]
+REPO_ROOT = TT_METAL_ROOT
 NANOBIND = "ttnn/cpp/ttnn/operations/transformer/chunk_gated_delta_rule/chunk_gated_delta_rule_nanobind.cpp"
 PRIMS = ("chunk_gdn_prep", "chunk_gdn_scan")
 

@@ -44,10 +44,10 @@ from loguru import logger
 
 import ttnn
 from models.demos.blackhole.qwen36.tt.attention.rope_tp import apply_partial_rope_prefill
-from models.demos.blackhole.qwen38_flash_next.checkpoint import INDEX_SHA256, Qwen38Checkpoint
-from models.demos.blackhole.qwen38_flash_next.config import EP_SIZE, TP_SIZE, Qwen38Placement
-from models.demos.blackhole.qwen38_flash_next.ttnn import prefill_glue
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
+from qwen38_flash_next.checkpoint import INDEX_SHA256, Qwen38Checkpoint
+from qwen38_flash_next.config import EP_SIZE, TP_SIZE, Qwen38Placement
+from qwen38_flash_next.ttnn import prefill_glue
+from qwen38_flash_next.ttnn.contracts import (
     CHUNK_ROW_COUNTS,
     CHUNK_ROWS,
     LONG_CHUNK_ROWS,
@@ -63,7 +63,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     same_buffer,
     tensor_metadata,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.decode_matmul import (
+from qwen38_flash_next.ttnn.decode_matmul import (
     dense_dtype_tag,
     dense_math_fidelity_name,
     dense_weight_name,
@@ -74,7 +74,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.decode_matmul import (
     validate_decode_dram_workers,
     validate_dram_sharded_weight,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.prefill_dense import (
+from qwen38_flash_next.ttnn.prefill_dense import (
     Qwen38TTNNPrefillDense,
     prefill_linear,
     slab_working_set_bytes,
@@ -3406,7 +3406,7 @@ class Qwen38TTNNQSA:
         self.slot_zero = self.uint32_rows["slot_zero"]
         # The fused index tail stands in for the chain after the two index linears in forward_decode_generic; the
         # chain methods below stay the composed reference it is gated against.
-        from models.demos.blackhole.qwen38_flash_next.ttnn import fused as fused_kernels
+        from qwen38_flash_next.ttnn import fused as fused_kernels
 
         if fused_kernels.enabled("qsa_index_tail"):
             self._index_tail_fused = fused_kernels.kernel("qsa_index_tail").fused
@@ -6113,7 +6113,7 @@ class Qwen38TTNNQSA:
         fit the compute grid one per core (the 4x p150 line: 128 tiles on 130 cores), else 32 (a smaller grid would
         put two 16-query tiles on some cores and double the layer time)."""
 
-        from models.demos.blackhole.qwen38_flash_next.ttnn.fused import sparse_sdpa_tiled
+        from qwen38_flash_next.ttnn.fused import sparse_sdpa_tiled
 
         grid = state.packed_kv_cache.device().compute_with_storage_grid_size()
         base = self._slab_attention_base_config or sparse_sdpa_tiled.DEFAULT
@@ -6122,7 +6122,7 @@ class Qwen38TTNNQSA:
     def _slab_attention_admits(self, rows: int, state) -> bool:
         """Whether the block-shared kernel serves this slab (its geometry contract on the shapes; the chain otherwise)."""
 
-        from models.demos.blackhole.qwen38_flash_next.ttnn.fused import sparse_sdpa_tiled
+        from qwen38_flash_next.ttnn.fused import sparse_sdpa_tiled
 
         if self._slab_attention_fused is None or not is_slab_rows(rows):
             return False

@@ -14,9 +14,9 @@ import pytest
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn import fused
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import program as fp
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import router_tail as rt
+from qwen38_flash_next.ttnn import fused
+from qwen38_flash_next.ttnn.fused import program as fp
+from qwen38_flash_next.ttnn.fused import router_tail as rt
 
 SOURCES = {name: (fp.REPO_ROOT / path).read_text() for name, path in rt.KERNELS.items()}
 
@@ -425,7 +425,7 @@ def test_index_template_is_the_transposed_topk_index_tile():
 
 
 def test_model_resolves_once_and_uses_it_for_one_tile_rows():
-    source = (fp.REPO_ROOT / "models/demos/blackhole/qwen38_flash_next/ttnn/moe.py").read_text()
+    source = (fp.MODEL_DIR / "ttnn/moe.py").read_text()
     assert source.count('fused.resolve("router_tail") if self.row_contract.row_tiles == 1 else None') == 1
     route = source[source.index("    def _route(") : source.index("    def _routed_partial(")]
     assert "self._route_tail(logits, top_k=TOP_K, compute_kernel_config=self.compute_config)" in route

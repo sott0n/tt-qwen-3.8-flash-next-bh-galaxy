@@ -29,7 +29,7 @@ from typing import Any
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
+from qwen38_flash_next.ttnn.contracts import (
     Qwen38MeshContract,
     TensorPlacement,
     replicate_tensor_2d_mesh_mapper,
@@ -64,7 +64,7 @@ def _mapper(mesh):
 
 
 def _device_sampler():
-    from models.demos.blackhole.qwen38_flash_next.ttnn import device_sampler
+    from qwen38_flash_next.ttnn import device_sampler
 
     return device_sampler
 

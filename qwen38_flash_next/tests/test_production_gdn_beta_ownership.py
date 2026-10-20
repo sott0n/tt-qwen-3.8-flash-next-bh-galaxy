@@ -62,7 +62,7 @@ def test_composed_step_transfers_beta_producer_ownership_explicitly() -> None:
 
     import inspect
 
-    from models.demos.blackhole.qwen38_flash_next.ttnn.fused.gdn_step import gdn_step_composed
+    from qwen38_flash_next.ttnn.fused.gdn_step import gdn_step_composed
 
     source = inspect.getsource(gdn_step_composed)
     make = source.index("q, k, v, beta, log_decay, producers = gdn._make_recurrent_inputs(conv, a, b)")

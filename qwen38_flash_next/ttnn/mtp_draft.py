@@ -28,10 +28,10 @@ from typing import Any, NoReturn, Sequence
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn.bf4 import Qwen38BF4ResidentSet
-from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import Qwen38TTNNLMHead, Qwen38TTNNTokenEmbedding
-from models.demos.blackhole.qwen38_flash_next.ttnn.final_mixer import Qwen38TTNNFinalMixer
-from models.demos.blackhole.qwen38_flash_next.ttnn.layer import (
+from qwen38_flash_next.ttnn.bf4 import Qwen38BF4ResidentSet
+from qwen38_flash_next.ttnn.embedding import Qwen38TTNNLMHead, Qwen38TTNNTokenEmbedding
+from qwen38_flash_next.ttnn.final_mixer import Qwen38TTNNFinalMixer
+from qwen38_flash_next.ttnn.layer import (
     LOCAL_HIDDEN_SIZE,
     Qwen38TTNNDecoderLayer,
     Qwen38TTNNDecoderLayerResult,
@@ -40,10 +40,10 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.layer import (
     Qwen38TTNNLayerNamespace,
     Qwen38TTNNLayerType,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.model import Qwen38TTNNRoPE
-from models.demos.blackhole.qwen38_flash_next.ttnn.moe import Qwen38TTNNRouting
-from models.demos.blackhole.qwen38_flash_next.ttnn.mtp import Qwen38TTNNMTPInput
-from models.demos.blackhole.qwen38_flash_next.ttnn.mtp_decode import (
+from qwen38_flash_next.ttnn.model import Qwen38TTNNRoPE
+from qwen38_flash_next.ttnn.moe import Qwen38TTNNRouting
+from qwen38_flash_next.ttnn.mtp import Qwen38TTNNMTPInput
+from qwen38_flash_next.ttnn.mtp_decode import (
     DRAFT_EXTENSION_CALLS,
     DRAFT_STEPS,
     MAX_CONTEXT,
@@ -59,7 +59,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.mtp_decode import (
     Qwen38MTPSeed,
     Qwen38StateRollback,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.qsa import (
+from qwen38_flash_next.ttnn.qsa import (
     COMPRESS_RATIO,
     MAX_SPECULATIVE_STEPS,
     TOKEN_BUDGET,
@@ -235,7 +235,7 @@ class Qwen38TTNNMTPDraftEngine(Qwen38MTPDraftEngine):
     """Exclusive concrete owner of the released one-layer MTP state."""
 
     def __init__(self, built_target: Any, mtp_components: Any) -> None:
-        from models.demos.blackhole.qwen38_flash_next.ttnn.builder import Qwen38TTNNBuiltTarget, Qwen38TTNNMTPComponents
+        from qwen38_flash_next.ttnn.builder import Qwen38TTNNBuiltTarget, Qwen38TTNNMTPComponents
 
         if not isinstance(built_target, Qwen38TTNNBuiltTarget):
             raise TypeError("MTP draft engine requires the exact Qwen38TTNNBuiltTarget")

@@ -26,16 +26,16 @@ import torch
 import torch.nn.functional as F
 
 from models.demos.blackhole.qwen36.tt.attention import rope_tp as rope_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import contracts as contracts_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import decode_matmul as decode_matmul_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import model as model_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import qsa as qsa_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
+from qwen38_flash_next.ttnn import contracts as contracts_module
+from qwen38_flash_next.ttnn import decode_matmul as decode_matmul_module
+from qwen38_flash_next.ttnn import model as model_module
+from qwen38_flash_next.ttnn import qsa as qsa_module
+from qwen38_flash_next.ttnn.contracts import (
     MAX_LANES,
     Qwen38TTNNDevicePosition,
     Qwen38TTNNDevicePositionRow,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.qsa import (
+from qwen38_flash_next.ttnn.qsa import (
     CACHE_WRITE_ROWS,
     COMPRESS_RATIO,
     HEAD_DIM,

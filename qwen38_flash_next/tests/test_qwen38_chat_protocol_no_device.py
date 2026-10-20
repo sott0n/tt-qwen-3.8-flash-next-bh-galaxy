@@ -16,9 +16,9 @@ from types import SimpleNamespace
 import jinja2
 import pytest
 
-from models.demos.blackhole.qwen38_flash_next.chat import IM_END_ID, IM_START_ID, Qwen38OfficialChatTemplate
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_protocol as protocol
-from models.demos.blackhole.qwen38_flash_next.tools.qwen38_chat_protocol import (
+from qwen38_flash_next.chat import IM_END_ID, IM_START_ID, Qwen38OfficialChatTemplate
+from qwen38_flash_next.tools import qwen38_chat_protocol as protocol
+from qwen38_flash_next.tools.qwen38_chat_protocol import (
     THINK_END_ID,
     THINK_START_ID,
     TOOL_CALL_END_ID,

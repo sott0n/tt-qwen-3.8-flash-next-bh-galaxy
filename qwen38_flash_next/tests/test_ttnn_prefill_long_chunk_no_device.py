@@ -21,17 +21,17 @@ from types import SimpleNamespace
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_prefill_driver as driver_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import contracts as contracts_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import decode_matmul as decode_matmul_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import gr as gr_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import layer as layer_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import model as model_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import moe as moe_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import ple as ple_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import qsa as qsa_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import CHUNK_ROW_COUNTS, CHUNK_ROWS, LONG_CHUNK_ROWS
+from qwen38_flash_next.tools import qwen38_prefill_driver as driver_module
+from qwen38_flash_next.ttnn import contracts as contracts_module
+from qwen38_flash_next.ttnn import decode_matmul as decode_matmul_module
+from qwen38_flash_next.ttnn import gdn as gdn_module
+from qwen38_flash_next.ttnn import gr as gr_module
+from qwen38_flash_next.ttnn import layer as layer_module
+from qwen38_flash_next.ttnn import model as model_module
+from qwen38_flash_next.ttnn import moe as moe_module
+from qwen38_flash_next.ttnn import ple as ple_module
+from qwen38_flash_next.ttnn import qsa as qsa_module
+from qwen38_flash_next.ttnn.contracts import CHUNK_ROW_COUNTS, CHUNK_ROWS, LONG_CHUNK_ROWS
 
 
 def _load(name: str):

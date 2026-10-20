@@ -15,7 +15,7 @@ from pathlib import Path
 
 import pytest
 
-from models.demos.blackhole.qwen38_flash_next.tools.ci import q38_ci as ci
+from qwen38_flash_next.tools.ci import q38_ci as ci
 
 MODEL_DIR = Path(ci.MODEL_DIR)
 DEFAULTS = {"default_tolerance": 0.15}

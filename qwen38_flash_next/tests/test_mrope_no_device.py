@@ -5,7 +5,7 @@
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.mrope import (
+from qwen38_flash_next.mrope import (
     IMAGE_TOKEN_ID,
     MROPE_AXIS_OF_COLUMN,
     MROPE_AXIS_OF_PAIR,

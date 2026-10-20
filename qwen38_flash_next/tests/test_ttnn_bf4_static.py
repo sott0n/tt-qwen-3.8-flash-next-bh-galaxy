@@ -12,15 +12,15 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-import models.demos.blackhole.qwen38_flash_next.ttnn.bf4 as bf4_module
-import models.demos.blackhole.qwen38_flash_next.ttnn.contracts as contracts_module
-from models.demos.blackhole.qwen38_flash_next.checkpoint import (
+import qwen38_flash_next.ttnn.bf4 as bf4_module
+import qwen38_flash_next.ttnn.contracts as contracts_module
+from qwen38_flash_next.checkpoint import (
     CHECKPOINT_FILE_MANIFEST_SHA256,
     CHECKPOINT_TENSOR_MANIFEST_SHA256,
     PINNED_CHECKPOINT_REVISION,
 )
-from models.demos.blackhole.qwen38_flash_next.config import CONFIG_SHA256
-from models.demos.blackhole.qwen38_flash_next.ttnn.bf4 import (
+from qwen38_flash_next.config import CONFIG_SHA256
+from qwen38_flash_next.ttnn.bf4 import (
     BF4Artifact,
     BF4CacheIdentity,
     BF4LayerRecord,
@@ -29,8 +29,8 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.bf4 import (
     packed_bf4_bytes_per_device,
     packed_bf4_model_bytes_per_device,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.builder import BACKBONE_LAYERS, Qwen38TTNNBuilder
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
+from qwen38_flash_next.ttnn.builder import BACKBONE_LAYERS, Qwen38TTNNBuilder
+from qwen38_flash_next.ttnn.contracts import (
     Qwen38MeshContract,
     TensorPlacement,
     replicate_tensor_2d_mesh_mapper,
@@ -41,7 +41,7 @@ RING7_ORDER = (6, 5, 4, 3, 2, 1, 0)  # RING7_WORKERS as the packing orders it: b
 EXPERT_RANGES = ((0, 128), (128, 256), (256, 384), (384, 512))
 _TEST_TENSORBIN_HEADER_BYTES = 64
 CONVERTER_SOURCES = (
-    ("models/demos/blackhole/qwen38_flash_next/ttnn/bf4.py", "1" * 64),
+    ("qwen38_flash_next/ttnn/bf4.py", "1" * 64),
     ("tt_metal/impl/data_format/bfloat4.cpp", "2" * 64),
 )
 
@@ -1507,7 +1507,7 @@ class TTNNBF4ConverterIdentityTest(unittest.TestCase):
         self.assertEqual(
             [path for path, _ in identity],
             [
-                "models/demos/blackhole/qwen38_flash_next/ttnn/bf4.py",
+                "qwen38_flash_next/ttnn/bf4.py",
                 "tt_metal/impl/data_format/bfloat4.cpp",
                 "tt_metal/impl/data_format/blockfloat_common.cpp",
                 "tt_metal/impl/data_format/blockfloat_common.hpp",
@@ -1523,8 +1523,8 @@ class TTNNBF4ConverterIdentityTest(unittest.TestCase):
             (),
             tuple(reversed(CONVERTER_SOURCES)),
             (CONVERTER_SOURCES[0], CONVERTER_SOURCES[0]),
-            (("models/demos/blackhole/qwen38_flash_next/ttnn/bf4.py", "X" * 64),),
-            (("models/demos/blackhole/qwen38_flash_next/ttnn/bf4.py", "1" * 40),),
+            (("qwen38_flash_next/ttnn/bf4.py", "X" * 64),),
+            (("qwen38_flash_next/ttnn/bf4.py", "1" * 40),),
             [tuple(CONVERTER_SOURCES[0])],
         ):
             with self.subTest(malformed=malformed):

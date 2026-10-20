@@ -20,11 +20,11 @@ import pytest
 import torch
 import ttnn
 
-from models.demos.blackhole.qwen38_flash_next.ttnn import contracts as contracts_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import model as model_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import qsa as qsa_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import CHUNK_ROWS
-from models.demos.blackhole.qwen38_flash_next.ttnn.qsa import (
+from qwen38_flash_next.ttnn import contracts as contracts_module
+from qwen38_flash_next.ttnn import model as model_module
+from qwen38_flash_next.ttnn import qsa as qsa_module
+from qwen38_flash_next.ttnn.contracts import CHUNK_ROWS
+from qwen38_flash_next.ttnn.qsa import (
     ALL_ONES_U32,
     BLOCK_TOPK,
     CHUNK_BLOCKS,
@@ -38,9 +38,10 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.qsa import (
     emulate_qsa_position_inputs,
     qsa_chunk_constant_rows,
 )
+from qwen38_flash_next.paths import TT_METAL_ROOT
 
 RESIDENT_BLOCKS = 32768 // COMPRESS_RATIO
-REPOSITORY = Path(inspect.getfile(qsa_module)).resolve().parents[5]
+REPOSITORY = TT_METAL_ROOT
 CHUNK_POSITIONS = (0, 32, 64, 2016, 2048, 2080, 8160, 32736)
 CHUNK_INPUT_FIELDS = ("kv_block_start", "block_index_i32", "indexer_neg_mask", "row_keep_bits", "row_fill")
 

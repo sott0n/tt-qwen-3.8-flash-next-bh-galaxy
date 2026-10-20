@@ -24,8 +24,8 @@ import pytest
 import torch
 import ttnn
 
-from models.demos.blackhole.qwen38_flash_next.ttnn import qsa as qsa_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.qsa import (
+from qwen38_flash_next.ttnn import qsa as qsa_module
+from qwen38_flash_next.ttnn.qsa import (
     BLOCK_TOPK,
     COMPRESS_RATIO,
     EXPANSION_GATHER_WIDTH,

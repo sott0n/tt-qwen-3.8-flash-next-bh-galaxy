@@ -55,14 +55,14 @@ from typing import Any, Callable
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.checkpoint import (
+from qwen38_flash_next.checkpoint import (
     CHECKPOINT_FILE_MANIFEST_SHA256,
     CHECKPOINT_TENSOR_MANIFEST_SHA256,
     PINNED_CHECKPOINT_REVISION,
     Qwen38Checkpoint,
 )
-from models.demos.blackhole.qwen38_flash_next.config import CONFIG_SHA256, EP_SIZE, TP_SIZE, Qwen38Placement
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
+from qwen38_flash_next.config import CONFIG_SHA256, EP_SIZE, TP_SIZE, Qwen38Placement
+from qwen38_flash_next.ttnn.contracts import (
     CHUNK_ROWS,
     MESH_SHAPE,
     Qwen38MeshContract,
@@ -71,7 +71,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     replicate_tensor_2d_mesh_mapper,
     require_lane_count,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.decode_matmul import (
+from qwen38_flash_next.ttnn.decode_matmul import (
     dense_dtype_tag,
     dense_math_fidelity_name,
     dram_sharded_matmul_configs,
@@ -1846,10 +1846,10 @@ class Qwen38TTNNLMHead:
         self.hidden_act_memory_config = chunk_configs[0][0]
         self.chunk_program_configs = tuple(program_config for _, program_config in chunk_configs)
         # QWEN38_FUSED=greedy_tail: candidates and the device resolve bind to ttnn/fused/greedy_tail at construction.
-        from models.demos.blackhole.qwen38_flash_next.ttnn import fused as fused_kernels
+        from qwen38_flash_next.ttnn import fused as fused_kernels
 
         if fused_kernels.enabled("greedy_tail"):
-            from models.demos.blackhole.qwen38_flash_next.ttnn.fused import greedy_tail as fused_greedy_tail
+            from qwen38_flash_next.ttnn.fused import greedy_tail as fused_greedy_tail
 
             self.greedy_candidates = functools.partial(fused_greedy_tail.greedy_candidates_fused, self)
             self.resolve_greedy_on_device = functools.partial(fused_greedy_tail.resolve_greedy_on_device_fused, self)

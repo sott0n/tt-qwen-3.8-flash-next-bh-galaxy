@@ -49,17 +49,17 @@ from typing import Any, Literal, NoReturn
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.config import EP_SIZE, SUPPORTED_TP_SIZES
-from models.demos.blackhole.qwen38_flash_next.ttnn.builder import (
+from qwen38_flash_next.config import EP_SIZE, SUPPORTED_TP_SIZES
+from qwen38_flash_next.ttnn.builder import (
     Qwen38BuildProvenance,
     Qwen38LiveBuildIdentity,
     Qwen38TTNNBuilder,
     Qwen38TTNNBuiltTarget,
     Qwen38TTNNTargetComponents,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import MESH_SHAPE, TP_SIZE, Qwen38MeshContract
-from models.demos.blackhole.qwen38_flash_next.ttnn.layer import BACKBONE_LAYERS
-from models.demos.blackhole.qwen38_flash_next.ttnn.model import (
+from qwen38_flash_next.ttnn.contracts import MESH_SHAPE, TP_SIZE, Qwen38MeshContract
+from qwen38_flash_next.ttnn.layer import BACKBONE_LAYERS
+from qwen38_flash_next.ttnn.model import (
     MAX_CONTEXT,
     VOCAB_SIZE,
     DecodePhaseObserver,

@@ -34,8 +34,8 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Mapping, Sequence
 
-from models.demos.blackhole.qwen38_flash_next.tools.checkpoint_budget import vision_resident_layout
-from models.demos.blackhole.qwen38_flash_next.vision_reference import VisionTowerConfig
+from qwen38_flash_next.tools.checkpoint_budget import vision_resident_layout
+from qwen38_flash_next.vision_reference import VisionTowerConfig
 
 # Rows per bucket: powers of two to the stock maximum image (65,536 patches = 4096 x 4096 px).  The eight-bucket ladder
 # pads at most 2x the rows, the four-bucket ladder at most 4x (the padded patches are windowed out of attention, so
@@ -377,7 +377,7 @@ class Qwen38VisionResidency:
             self.shortfall = shortfall_reason(admission)
             return
         self.shortfall = None
-        from models.demos.blackhole.qwen38_flash_next.ttnn.vision import VisionTower
+        from qwen38_flash_next.ttnn.vision import VisionTower
 
         started = time.perf_counter()
         self.tower = VisionTower(self.mesh_device, self.state_dict, self.config)

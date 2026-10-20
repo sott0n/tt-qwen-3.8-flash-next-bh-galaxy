@@ -23,15 +23,15 @@ import pytest
 import torch
 import torch.nn.functional as F
 
-from models.demos.blackhole.qwen38_flash_next.ttnn import contracts as contracts_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import embedding as embedding_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import gr as gr_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import model as model_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import moe as moe_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import ple as ple_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import qsa as qsa_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
+from qwen38_flash_next.ttnn import contracts as contracts_module
+from qwen38_flash_next.ttnn import embedding as embedding_module
+from qwen38_flash_next.ttnn import gdn as gdn_module
+from qwen38_flash_next.ttnn import gr as gr_module
+from qwen38_flash_next.ttnn import model as model_module
+from qwen38_flash_next.ttnn import moe as moe_module
+from qwen38_flash_next.ttnn import ple as ple_module
+from qwen38_flash_next.ttnn import qsa as qsa_module
+from qwen38_flash_next.ttnn.contracts import (
     GDN_RESIDUE_CLASSES,
     MAX_LANES,
     POSITION_INDEX_ROW_SHAPE,
@@ -39,14 +39,14 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     admission_wait_steps,
     require_lane_count,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import (
+from qwen38_flash_next.ttnn.embedding import (
     LOCAL_VOCAB_SIZE,
     TOKEN_ROW_SHAPE,
     Qwen38GreedyCandidates,
     Qwen38TTNNTokenRowConstants,
     resolve_greedy_lanes_on_device,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.qsa import (
+from qwen38_flash_next.ttnn.qsa import (
     ALL_ONES_U32,
     COMPRESS_RATIO,
     SPARSE_INDEX_CAPACITY,

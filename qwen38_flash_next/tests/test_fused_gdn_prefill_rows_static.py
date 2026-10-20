@@ -17,12 +17,13 @@ from types import SimpleNamespace
 import pytest
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gdn_prefill_rows as module
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import registry
+from qwen38_flash_next.ttnn import gdn as gdn_module
+from qwen38_flash_next.ttnn.fused import gdn_prefill_rows as module
+from qwen38_flash_next.ttnn.fused import registry
+from qwen38_flash_next.paths import TT_METAL_ROOT
 
 MODEL_DIR = Path(__file__).resolve().parents[1]
-REPO_ROOT = MODEL_DIR.parents[3]
+REPO_ROOT = TT_METAL_ROOT
 COMPOSITE = "ttnn/cpp/ttnn/operations/transformer/chunk_gated_delta_rule/chunk_gated_delta_rule.cpp"
 NANOBIND = "ttnn/cpp/ttnn/operations/transformer/chunk_gated_delta_rule/chunk_gated_delta_rule_nanobind.cpp"
 PREP_KERNEL = "ttnn/cpp/ttnn/operations/transformer/chunk_gated_delta_rule/device/kernels/compute/chunk_gdn_prep.cpp"
@@ -76,7 +77,7 @@ def test_the_switch_picks_the_pair_by_default_and_the_chain_when_switched_off():
 
 
 def test_the_name_is_reachable_from_the_package():
-    from models.demos.blackhole.qwen38_flash_next.ttnn import fused
+    from qwen38_flash_next.ttnn import fused
 
     assert fused.gdn_prefill_rows is module
     assert NAME in fused.kernels()
@@ -100,7 +101,7 @@ def test_the_buffer_layouts_are_the_prims_pages_and_the_pairs_hand_offs():
 
 
 def test_the_q_layout_is_what_the_pre_program_allocates_and_the_rows_state_takes():
-    from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gdn_pre_rows
+    from qwen38_flash_next.ttnn.fused import gdn_pre_rows
 
     chunks = SLAB // module.CHUNK
     # the pre program's own q_c / beta_c shapes (allocate_outputs) and the rows state's
@@ -119,7 +120,7 @@ def test_the_extra_field_names_are_the_states_fused_fields():
 
 
 def test_the_slab_row_predicate_matches_the_models():
-    from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import is_slab_rows
+    from qwen38_flash_next.ttnn.contracts import is_slab_rows
 
     for rows in (1, 5, 32, 128, 255, 129, 4224, "2048", True, None):
         assert module.is_slab_rows(rows) == is_slab_rows(rows), rows
@@ -314,7 +315,7 @@ def test_the_fused_branch_sits_under_a_slab_condition():
     assert _squash("return Qwen38TTNNGDNRowsResult(output, final_state, state, rows_state)") in _squash(
         source[call:rows_body]
     )
-    from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gdn_rows_wrap
+    from qwen38_flash_next.ttnn.fused import gdn_rows_wrap
 
     assert (
         _squash(

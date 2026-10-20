@@ -7,7 +7,7 @@ The routed experts are the BF4 cache's, so the PCC floor is below the BF16 block
 
 test_moe_component.py proves ``Qwen38MoE`` against the pinned Transformers module on the CPU; this is the device side.
 
-Run:  pytest models/demos/blackhole/qwen38_flash_next/tests/test_moe_tp.py -v -s
+Run:  pytest qwen38_flash_next/tests/test_moe_tp.py -v -s
 Env:  MODEL_WEIGHTS_DIR, MESH_DEVICE="(1, 4)", QWEN38_CACHE_ROOT (skipped without it); QWEN38_BF4_CORPUS with
       QWEN38_BF4_CORPUS_VERIFICATION when the experts come from the CPU-staged corpus
 """
@@ -20,9 +20,9 @@ from loguru import logger
 
 import ttnn
 from models.common.utility_functions import run_for_blackhole
-from models.demos.blackhole.qwen38_flash_next.tests.tp_harness import DEVICE_PARAMS, HIDDEN_SIZE, pcc
-from models.demos.blackhole.qwen38_flash_next.tt.moe import Qwen38MoE, Qwen38MoEWeights
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import MESH_SHAPE
+from qwen38_flash_next.tests.tp_harness import DEVICE_PARAMS, HIDDEN_SIZE, pcc
+from qwen38_flash_next.tt.moe import Qwen38MoE, Qwen38MoEWeights
+from qwen38_flash_next.ttnn.contracts import MESH_SHAPE
 
 pytestmark = pytest.mark.skipif(
     os.environ.get("QWEN38_FUSED_DEVICE_TEST") != "1",

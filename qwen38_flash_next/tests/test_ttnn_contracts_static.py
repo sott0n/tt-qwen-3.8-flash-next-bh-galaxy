@@ -12,8 +12,8 @@ import pytest
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn import contracts as contracts_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
+from qwen38_flash_next.ttnn import contracts as contracts_module
+from qwen38_flash_next.ttnn.contracts import (
     BLOCK_START_LANE_MASK,
     POSITION_INDEX_ROW_SHAPE,
     POSITION_SCALAR_SHAPE,

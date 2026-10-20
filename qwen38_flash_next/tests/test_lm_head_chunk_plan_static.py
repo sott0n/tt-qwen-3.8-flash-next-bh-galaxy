@@ -26,8 +26,8 @@ from types import SimpleNamespace
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn import embedding as embedding_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.decode_matmul import (
+from qwen38_flash_next.ttnn import embedding as embedding_module
+from qwen38_flash_next.ttnn.decode_matmul import (
     dram_sharded_matmul_configs,
     dram_sharded_weight_memory_config,
 )

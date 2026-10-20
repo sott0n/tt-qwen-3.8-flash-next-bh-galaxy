@@ -46,11 +46,11 @@ from typing import Any, Literal
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.checkpoint import INDEX_SHA256, Qwen38Checkpoint
-from models.demos.blackhole.qwen38_flash_next.config import TP_SIZE, Qwen38Placement
-from models.demos.blackhole.qwen38_flash_next.tt.gr import Qwen38GatedResidualWeights
-from models.demos.blackhole.qwen38_flash_next.ttnn import prefill_glue
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
+from qwen38_flash_next.checkpoint import INDEX_SHA256, Qwen38Checkpoint
+from qwen38_flash_next.config import TP_SIZE, Qwen38Placement
+from qwen38_flash_next.tt.gr import Qwen38GatedResidualWeights
+from qwen38_flash_next.ttnn import prefill_glue
+from qwen38_flash_next.ttnn.contracts import (
     CHUNK_ROW_COUNTS,
     CHUNK_ROWS,
     MESH_SHAPE,
@@ -61,13 +61,13 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     require_lane_count,
     same_buffer,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.decode_matmul import (
+from qwen38_flash_next.ttnn.decode_matmul import (
     dram_sharded_matmul_configs,
     dram_sharded_row_tiles,
     dram_sharded_weight_memory_config,
     prefill_matmul_program_config,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.prefill_dense import Qwen38TTNNPrefillDense, prefill_linear
+from qwen38_flash_next.ttnn.prefill_dense import Qwen38TTNNPrefillDense, prefill_linear
 
 TP_AXIS = 1
 HIDDEN_SIZE = 2560
@@ -493,7 +493,7 @@ class Qwen38TTNNGatedResidual:
         # The read resolves through the fused registry at construction (ttnn/fused/gr_read when it is on: in
         # registry.DEFAULT_ON or QWEN38_FUSED=gr_read; QWEN38_FUSED_OFF keeps the chain) and stays so through trace capture; the class body of
         # read() is the composed chain the fused kernel is gated against.
-        from models.demos.blackhole.qwen38_flash_next.ttnn import fused as fused_kernels
+        from qwen38_flash_next.ttnn import fused as fused_kernels
 
         self._read_fused = None
         if fused_kernels.enabled("gr_read"):
@@ -512,7 +512,7 @@ class Qwen38TTNNGatedResidual:
         # QWEN38_FUSED=gr_write: write and write_rows (one tile row) resolve to ttnn/fused/gr_write the same way.
         self._write_fused = None
         if fused_kernels.enabled("gr_write"):
-            from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gr_write as fused_gr_write
+            from qwen38_flash_next.ttnn.fused import gr_write as fused_gr_write
 
             self._write_fused = fused_gr_write.gr_write
             self.write = functools.partial(fused_gr_write.write_fused, self)

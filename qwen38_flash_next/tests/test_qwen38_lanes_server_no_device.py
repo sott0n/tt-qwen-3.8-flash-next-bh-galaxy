@@ -17,13 +17,13 @@ from types import SimpleNamespace
 
 import pytest
 
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_server as server
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_session as session_module
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_lane_scheduler as scheduler_module
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_lanes_session as lanes_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import fused as fused_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gdn_rows_scan
-from models.demos.blackhole.qwen38_flash_next.ttnn import mtp_lanes, mtp_v2
+from qwen38_flash_next.tools import qwen38_chat_server as server
+from qwen38_flash_next.tools import qwen38_chat_session as session_module
+from qwen38_flash_next.tools import qwen38_lane_scheduler as scheduler_module
+from qwen38_flash_next.tools import qwen38_lanes_session as lanes_module
+from qwen38_flash_next.ttnn import fused as fused_module
+from qwen38_flash_next.ttnn.fused import gdn_rows_scan
+from qwen38_flash_next.ttnn import mtp_lanes, mtp_v2
 
 ROOT = Path(__file__).resolve().parents[1]
 SERVER_SOURCE = ROOT / "tools" / "qwen38_chat_server.py"

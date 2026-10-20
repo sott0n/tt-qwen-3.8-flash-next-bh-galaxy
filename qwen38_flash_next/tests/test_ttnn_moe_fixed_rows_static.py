@@ -15,11 +15,11 @@ from unittest import mock
 import pytest
 import torch
 
-import models.demos.blackhole.qwen38_flash_next.ttnn.builder as builder_module
-import models.demos.blackhole.qwen38_flash_next.ttnn.moe as moe_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import decode_matmul as decode_matmul_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import TensorPlacement
-from models.demos.blackhole.qwen38_flash_next.ttnn.moe import (
+import qwen38_flash_next.ttnn.builder as builder_module
+import qwen38_flash_next.ttnn.moe as moe_module
+from qwen38_flash_next.ttnn import decode_matmul as decode_matmul_module
+from qwen38_flash_next.ttnn.contracts import TensorPlacement
+from qwen38_flash_next.ttnn.moe import (
     BLACKHOLE_MOE_NUMERIC_ISSUE,
     EXPERTS_PER_DEVICE,
     HIDDEN_SIZE,
@@ -38,8 +38,9 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.moe import (
     Qwen38TTNNRouting,
     _expert_owner_mapping,
 )
+from qwen38_flash_next.paths import TT_METAL_ROOT
 
-REPO_ROOT = Path(__file__).resolve().parents[5]
+REPO_ROOT = TT_METAL_ROOT
 
 
 class _FakeTensor:

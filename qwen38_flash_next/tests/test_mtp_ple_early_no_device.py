@@ -25,16 +25,16 @@ from pathlib import Path
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.tests.test_ple_resident_lookup_no_device import (
+from qwen38_flash_next.tests.test_ple_resident_lookup_no_device import (
     EOS,
     _SyntheticCheckpoint,
     _synthetic_corpus,
     _synthetic_host_embedding,
 )
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_server as server_module
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_session as session_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import mtp_v2
-from models.demos.blackhole.qwen38_flash_next.ttnn.ple import Qwen38ResidentPLELookup
+from qwen38_flash_next.tools import qwen38_chat_server as server_module
+from qwen38_flash_next.tools import qwen38_chat_session as session_module
+from qwen38_flash_next.ttnn import mtp_v2
+from qwen38_flash_next.ttnn.ple import Qwen38ResidentPLELookup
 
 ROOT = Path(__file__).resolve().parents[1]
 MTP_V2_SOURCE = ROOT / "ttnn" / "mtp_v2.py"

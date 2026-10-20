@@ -16,10 +16,10 @@ import threading
 
 import pytest
 
-from models.demos.blackhole.qwen38_flash_next.chat import EOS_TOKEN_IDS, IM_END_ID, TOKENIZER_SIZE
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_lane_scheduler as scheduler_module
-from models.demos.blackhole.qwen38_flash_next.tools.qwen38_chat_protocol import THINK_END_ID
-from models.demos.blackhole.qwen38_flash_next.tools.qwen38_lane_scheduler import (
+from qwen38_flash_next.chat import EOS_TOKEN_IDS, IM_END_ID, TOKENIZER_SIZE
+from qwen38_flash_next.tools import qwen38_lane_scheduler as scheduler_module
+from qwen38_flash_next.tools.qwen38_chat_protocol import THINK_END_ID
+from qwen38_flash_next.tools.qwen38_lane_scheduler import (
     PLACEHOLDER_DRAFT_TOKEN,
     Qwen38LaneAdmitted,
     Qwen38LaneScheduler,
@@ -654,7 +654,7 @@ def test_an_image_ticket_carries_its_images_to_the_admission_and_takes_the_tower
 
 
 def test_stall_budget_is_none_or_a_non_negative_number() -> None:
-    from models.demos.blackhole.qwen38_flash_next.tools.qwen38_lane_scheduler import (
+    from qwen38_flash_next.tools.qwen38_lane_scheduler import (
         DEFAULT_STALL_BUDGET_SECONDS,
         stall_budget_seconds_admitted,
     )

@@ -11,9 +11,9 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn import fused
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import moe_post
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import program as fp
+from qwen38_flash_next.ttnn import fused
+from qwen38_flash_next.ttnn.fused import moe_post
+from qwen38_flash_next.ttnn.fused import program as fp
 
 FUSED = Path(fp.__file__).parent
 MODULES = sorted(FUSED.glob("*/__init__.py"))

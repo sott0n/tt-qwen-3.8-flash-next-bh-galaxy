@@ -14,42 +14,42 @@ import pytest
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.checkpoint import (
+from qwen38_flash_next.checkpoint import (
     CHECKPOINT_FILE_MANIFEST_SHA256,
     CHECKPOINT_TENSOR_MANIFEST_SHA256,
     INDEX_SHA256,
     PINNED_CHECKPOINT_REVISION,
 )
-from models.demos.blackhole.qwen38_flash_next.config import CONFIG_SHA256
-from models.demos.blackhole.qwen38_flash_next.ttnn import final_mixer as final_mixer_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import gr as gr_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import moe as moe_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import mtp as mtp_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import ple as ple_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import qsa as qsa_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.builder import (
+from qwen38_flash_next.config import CONFIG_SHA256
+from qwen38_flash_next.ttnn import final_mixer as final_mixer_module
+from qwen38_flash_next.ttnn import gdn as gdn_module
+from qwen38_flash_next.ttnn import gr as gr_module
+from qwen38_flash_next.ttnn import moe as moe_module
+from qwen38_flash_next.ttnn import mtp as mtp_module
+from qwen38_flash_next.ttnn import ple as ple_module
+from qwen38_flash_next.ttnn import qsa as qsa_module
+from qwen38_flash_next.ttnn.builder import (
     BACKBONE_PLAN,
     TARGET_OBJECT_GRAPH,
     Qwen38BuildProvenance,
     validate_builder_constructor_contract,
     validate_builder_static_contract,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import Qwen38IOCacheIdentity
-from models.demos.blackhole.qwen38_flash_next.ttnn.gdn import validate_gdn_static_contract
-from models.demos.blackhole.qwen38_flash_next.ttnn import layer as layer_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.gdn import Qwen38TTNNGDN
-from models.demos.blackhole.qwen38_flash_next.ttnn.layer import (
+from qwen38_flash_next.ttnn.embedding import Qwen38IOCacheIdentity
+from qwen38_flash_next.ttnn.gdn import validate_gdn_static_contract
+from qwen38_flash_next.ttnn import layer as layer_module
+from qwen38_flash_next.ttnn.gdn import Qwen38TTNNGDN
+from qwen38_flash_next.ttnn.layer import (
     Qwen38TTNNDecoderLayer,
     Qwen38TTNNDecoderLayerGenericState,
     Qwen38TTNNDecoderLayerSnapshot,
     Qwen38TTNNLayerNamespace,
     Qwen38TTNNLayerType,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.layer import Qwen38TTNNPLEResult as LayerPLEResult
-from models.demos.blackhole.qwen38_flash_next.ttnn.layer import validate_layer_static_contract
-from models.demos.blackhole.qwen38_flash_next.ttnn import model as model_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.model import (
+from qwen38_flash_next.ttnn.layer import Qwen38TTNNPLEResult as LayerPLEResult
+from qwen38_flash_next.ttnn.layer import validate_layer_static_contract
+from qwen38_flash_next.ttnn import model as model_module
+from qwen38_flash_next.ttnn.model import (
     EXPECTED_CONFIG_SHA256,
     Qwen38TTNNGenericDecodeOutput,
     Qwen38TTNNModelPoisonedError,
@@ -62,7 +62,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.model import (
     _inverse_frequency,
     validate_model_static_contract,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.ple import (
+from qwen38_flash_next.ttnn.ple import (
     EMBEDDING_WIDTH,
     HIDDEN_SIZE,
     LOCAL_HIDDEN_SIZE,
@@ -73,7 +73,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.ple import (
     _prepare_key_weight,
     validate_ple_static_contract,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.qsa import (
+from qwen38_flash_next.ttnn.qsa import (
     MAX_SELECTED_TOKENS,
     SPARSE_INDEX_CAPACITY,
     Qwen38TTNNQSA,
@@ -368,8 +368,8 @@ def test_qsa_flat_zero_topology_rejects_unexpected_distribution_and_coordinates(
 
 
 def test_gated_residual_uses_the_runtime_stats_dtype_contract() -> None:
-    from models.demos.blackhole.qwen38_flash_next.ttnn.builder import Qwen38TTNNBuilder
-    from models.demos.blackhole.qwen38_flash_next.ttnn.gr import Qwen38TTNNGatedResidual
+    from qwen38_flash_next.ttnn.builder import Qwen38TTNNBuilder
+    from qwen38_flash_next.ttnn.gr import Qwen38TTNNGatedResidual
 
     source = inspect.getsource(Qwen38TTNNGatedResidual._normalize)
     assert "dtype=ttnn.bfloat16" in source
@@ -392,7 +392,7 @@ def test_gated_residual_uses_the_runtime_stats_dtype_contract() -> None:
 
 
 def test_final_mixer_avoids_one_page_standard_all_gather_stats() -> None:
-    from models.demos.blackhole.qwen38_flash_next.ttnn.final_mixer import Qwen38TTNNFinalMixer
+    from qwen38_flash_next.ttnn.final_mixer import Qwen38TTNNFinalMixer
 
     source = inspect.getsource(Qwen38TTNNFinalMixer._normalize)
     assert "dtype=ttnn.bfloat16" in source

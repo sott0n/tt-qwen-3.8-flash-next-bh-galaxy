@@ -7,8 +7,8 @@ from __future__ import annotations
 
 import pytest
 
-from models.demos.blackhole.qwen38_flash_next.ttnn import diagnostic_decode
-from models.demos.blackhole.qwen38_flash_next.ttnn.decode import (
+from qwen38_flash_next.ttnn import diagnostic_decode
+from qwen38_flash_next.ttnn.decode import (
     Qwen38OrdinaryEmissionTiming,
     Qwen38OrdinaryInvocationTiming,
     Qwen38OrdinarySessionStatus,

@@ -48,14 +48,14 @@ from pathlib import Path
 from typing import Any, Mapping
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.config import TP_SIZE
-from models.demos.blackhole.qwen38_flash_next.ttnn import decode_matmul
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
+from qwen38_flash_next.config import TP_SIZE
+from qwen38_flash_next.ttnn import decode_matmul
+from qwen38_flash_next.ttnn.contracts import (
     MESH_SHAPE,
     is_slab_rows,
     replicate_tensor_2d_mesh_mapper,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.decode_matmul import prefill_matmul_program_config
+from qwen38_flash_next.ttnn.decode_matmul import prefill_matmul_program_config
 
 DTYPE_ENV = "QWEN38_PREFILL_DENSE_DTYPE"
 FIDELITY_ENV = "QWEN38_PREFILL_DENSE_FIDELITY"
@@ -599,15 +599,15 @@ def _host_blocks(module: str, checkpoint, placement, *, layer_index: int, block:
     import torch
 
     if module == "gr":
-        from models.demos.blackhole.qwen38_flash_next.tt.gr import Qwen38GatedResidualWeights
-        from models.demos.blackhole.qwen38_flash_next.ttnn import gr
+        from qwen38_flash_next.tt.gr import Qwen38GatedResidualWeights
+        from qwen38_flash_next.ttnn import gr
 
         source = Qwen38GatedResidualWeights.from_checkpoint(checkpoint, placement, layer_index=layer_index, block=block)
         prepared = gr._prepare_host_weights(source)
         return {"down_inject": prepared["down_inject"], "up": prepared["up"]}
     if module == "gdn":
-        from models.demos.blackhole.qwen38_flash_next.tt.gdn import Qwen38GDNWeights
-        from models.demos.blackhole.qwen38_flash_next.ttnn import gdn
+        from qwen38_flash_next.tt.gdn import Qwen38GDNWeights
+        from qwen38_flash_next.ttnn import gdn
 
         source = Qwen38GDNWeights.from_checkpoint(checkpoint, layer_index)
         shards = tuple(source.device_shard(device) for device in range(gdn.TP_SIZE))
@@ -617,7 +617,7 @@ def _host_blocks(module: str, checkpoint, placement, *, layer_index: int, block:
             "out": out.reshape(1, 1, gdn.VALUE_WIDTH, gdn.HIDDEN_SIZE),
         }
     if module == "qsa":
-        from models.demos.blackhole.qwen38_flash_next.ttnn import qsa
+        from qwen38_flash_next.ttnn import qsa
 
         prefix = f"model.language_model.layers.{layer_index}.self_attn."
         qg = checkpoint.tensor(prefix + "q_proj.weight").transpose(0, 1)
@@ -642,8 +642,8 @@ def _host_blocks(module: str, checkpoint, placement, *, layer_index: int, block:
             "out": out.reshape(1, 1, qsa.QUERY_WIDTH, HIDDEN),
         }
     if module == "moe":
-        from models.demos.blackhole.qwen38_flash_next.tt.moe import Qwen38MoEWeights
-        from models.demos.blackhole.qwen38_flash_next.ttnn import moe
+        from qwen38_flash_next.tt.moe import Qwen38MoEWeights
+        from qwen38_flash_next.ttnn import moe
 
         source = Qwen38MoEWeights(checkpoint, placement, layer_index=layer_index)
         gate = moe._pad_shared_columns(source.shared_gate_proj.transpose(0, 1))
@@ -674,18 +674,18 @@ def _cache_dir(
     """The module's own per-layer cache directory (the decode weights' tensorbins live there under other names)."""
 
     if module == "gr":
-        from models.demos.blackhole.qwen38_flash_next.ttnn import gr
+        from qwen38_flash_next.ttnn import gr
 
         return gr._cache_dir(cache_root, checkpoint, mesh_contract, tt_metal_sha, "backbone", layer_index, block)
     if module == "gdn":
-        from models.demos.blackhole.qwen38_flash_next.ttnn import gdn
+        from qwen38_flash_next.ttnn import gdn
 
         return gdn._cache_directory(cache_root, checkpoint, mesh_contract, layer_index, tt_metal_sha)
     if module == "qsa":
-        from models.demos.blackhole.qwen38_flash_next.ttnn import qsa
+        from qwen38_flash_next.ttnn import qsa
 
         return qsa._cache_dir(cache_root, checkpoint, mesh_contract, tt_metal_sha, "backbone", layer_index)
-    from models.demos.blackhole.qwen38_flash_next.ttnn import moe
+    from qwen38_flash_next.ttnn import moe
 
     return moe._layer_cache_dir(cache_root, checkpoint, mesh_contract, tt_metal_sha, "backbone", layer_index)
 

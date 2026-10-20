@@ -29,8 +29,8 @@ from typing import Any, Callable
 import torch
 import torch.nn.functional as F
 
-from models.demos.blackhole.qwen38_flash_next.reference import qsa_selected_token_mask, zero_centered_rms_norm
-from models.demos.blackhole.qwen38_flash_next.tt.qsa import Qwen38QSA, Qwen38QSAState, Qwen38QSAWeights, _partial_rope
+from qwen38_flash_next.reference import qsa_selected_token_mask, zero_centered_rms_norm
+from qwen38_flash_next.tt.qsa import Qwen38QSA, Qwen38QSAState, Qwen38QSAWeights, _partial_rope
 
 E4M3_MAX = 448.0
 E4M3_MIN_NORMAL = 2.0**-6

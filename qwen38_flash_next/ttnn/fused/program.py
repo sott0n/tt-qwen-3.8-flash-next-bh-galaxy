@@ -28,6 +28,7 @@ from pathlib import Path
 from typing import Iterable, Sequence
 
 import ttnn
+from qwen38_flash_next.paths import MODEL_DIR, TT_METAL_ROOT
 
 TILE = ttnn.TILE_SIZE
 FACE = 16
@@ -35,8 +36,9 @@ ROWS_MAX = TILE
 CB_COUNT = (
     64  # NUM_CIRCULAR_BUFFERS, the maximum over architectures; the JIT wants unpack_to_dest_mode at least that long
 )
-REPO_ROOT = Path(__file__).resolve().parents[6]
-KERNEL_ROOT = "models/demos/blackhole/qwen38_flash_next/ttnn/fused"
+REPO_ROOT = TT_METAL_ROOT
+# Absolute, so the JIT reads the kernels from the model package and not from under TT_METAL_HOME.
+KERNEL_ROOT = str(MODEL_DIR / "ttnn" / "fused")
 # The data-movement descriptors' processors and NoCs (tt_metal/impl/kernels/kernel_types.cpp: Reader = RISCV_1 +
 # preferred_noc_for_dram_read = NOC_0, Writer = RISCV_0 + preferred_noc_for_dram_write = NOC_1, on every arch per
 # tt_metal/api/tt-metalium/kernel_types.hpp).  A NOC_1 multicast takes the bottom-right corner as its start.
@@ -68,12 +70,12 @@ def multicast_corners(x0: int, y0: int, x1: int, y1: int, *, noc: int) -> tuple[
 
 
 def kernel_source(name: str, file: str) -> str:
-    """``ttnn/fused/<name>/kernels/<file>`` relative to the repository root; the file must exist."""
+    """The absolute path of ``ttnn/fused/<name>/kernels/<file>``; the file must exist."""
 
-    relative = f"{KERNEL_ROOT}/{name}/kernels/{file}"
-    if not (REPO_ROOT / relative).is_file():
-        raise FileNotFoundError(f"fused kernel source {relative} is absent under {REPO_ROOT}")
-    return relative
+    source = f"{KERNEL_ROOT}/{name}/kernels/{file}"
+    if not Path(source).is_file():
+        raise FileNotFoundError(f"fused kernel source {source} is absent")
+    return source
 
 
 def _padded_shape(tensor) -> tuple[int, ...]:

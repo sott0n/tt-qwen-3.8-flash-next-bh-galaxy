@@ -25,7 +25,7 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
-from models.demos.blackhole.qwen38_flash_next.ttnn.sampling import Qwen38RowDistribution
+from qwen38_flash_next.ttnn.sampling import Qwen38RowDistribution
 
 
 @dataclass(frozen=True)

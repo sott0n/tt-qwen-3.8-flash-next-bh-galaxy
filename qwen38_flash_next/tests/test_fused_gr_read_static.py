@@ -10,9 +10,9 @@ from pathlib import Path
 
 import pytest
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn import fused
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gr_read, registry
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import program as fp
+from qwen38_flash_next.ttnn import fused
+from qwen38_flash_next.ttnn.fused import gr_read, registry
+from qwen38_flash_next.ttnn.fused import program as fp
 
 KERNELS = fp.REPO_ROOT / fp.KERNEL_ROOT / "gr_read" / "kernels"
 GR_SOURCE = Path(__file__).resolve().parents[1] / "ttnn" / "gr.py"

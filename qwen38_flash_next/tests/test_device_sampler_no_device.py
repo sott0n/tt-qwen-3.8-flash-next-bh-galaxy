@@ -14,15 +14,15 @@ from types import SimpleNamespace
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.ttnn import device_sampler as ds
-from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import (
+from qwen38_flash_next.ttnn import device_sampler as ds
+from qwen38_flash_next.ttnn.embedding import (
     SAMPLING_CANDIDATE_ROW_SHAPE,
     SAMPLING_CANDIDATES_PER_DEVICE,
     TOKEN_ROW_SHAPE,
     TP_SIZE,
     VOCAB_SIZE,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.sampling import (
+from qwen38_flash_next.ttnn.sampling import (
     Qwen38CandidateFallback,
     Qwen38CandidateRow,
     Qwen38SamplingParameters,
@@ -632,7 +632,7 @@ def test_composite_op_list_is_pinned_and_every_fpu_stage_reads_small_integers() 
         "ttnn.multiply(total_top_k, constants.top_p" in body and "ttnn.multiply(total_kept, constants.uniform" in body
     )
     # The greedy resolve and the candidate row do not know the sampler exists.
-    from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import Qwen38TTNNLMHead
+    from qwen38_flash_next.ttnn.embedding import Qwen38TTNNLMHead
 
     for name in ("greedy_candidates", "resolve_greedy_on_device", "sampling_candidates"):
         assert "device_sampler" not in inspect.getsource(getattr(Qwen38TTNNLMHead, name))

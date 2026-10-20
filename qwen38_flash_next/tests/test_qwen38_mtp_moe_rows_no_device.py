@@ -7,9 +7,9 @@ import inspect
 
 import pytest
 
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_server as server
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_session as session
-from models.demos.blackhole.qwen38_flash_next.ttnn import mtp_v2
+from qwen38_flash_next.tools import qwen38_chat_server as server
+from qwen38_flash_next.tools import qwen38_chat_session as session
+from qwen38_flash_next.ttnn import mtp_v2
 
 
 def test_switch_parsing():

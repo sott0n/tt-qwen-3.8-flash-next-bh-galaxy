@@ -13,7 +13,7 @@ from dataclasses import dataclass
 
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.vision_reference import VisionTowerConfig, preprocess_image, smart_resize
+from qwen38_flash_next.vision_reference import VisionTowerConfig, preprocess_image, smart_resize
 
 
 @dataclass(frozen=True)

@@ -6,9 +6,9 @@ from pathlib import Path
 
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.checkpoint import Qwen38Checkpoint
-from models.demos.blackhole.qwen38_flash_next.config import Qwen38Placement
-from models.demos.blackhole.qwen38_flash_next.tt.layer import Qwen38DecoderLayer
+from qwen38_flash_next.checkpoint import Qwen38Checkpoint
+from qwen38_flash_next.config import Qwen38Placement
+from qwen38_flash_next.tt.layer import Qwen38DecoderLayer
 
 CHECKPOINT = Path(os.environ.get("QWEN38_CHECKPOINT", "/nonexistent/Qwen3.8-Flash-Next"))
 

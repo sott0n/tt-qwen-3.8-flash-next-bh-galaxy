@@ -14,11 +14,11 @@ from types import SimpleNamespace
 import torch
 import pytest
 
-import models.demos.blackhole.qwen38_flash_next.ttnn.hybrid_decode as hybrid_module
-from models.demos.blackhole.qwen38_flash_next.checkpoint import CHECKPOINT_FILE_MANIFEST_SHA256, INDEX_SHA256
-from models.demos.blackhole.qwen38_flash_next.config import CONFIG_SHA256
-from models.demos.blackhole.qwen38_flash_next.ttnn.bf4 import Qwen38BF4ResidentSet
-from models.demos.blackhole.qwen38_flash_next.ttnn.builder import (
+import qwen38_flash_next.ttnn.hybrid_decode as hybrid_module
+from qwen38_flash_next.checkpoint import CHECKPOINT_FILE_MANIFEST_SHA256, INDEX_SHA256
+from qwen38_flash_next.config import CONFIG_SHA256
+from qwen38_flash_next.ttnn.bf4 import Qwen38BF4ResidentSet
+from qwen38_flash_next.ttnn.builder import (
     Qwen38BuildProvenance,
     Qwen38LiveBuildIdentity,
     Qwen38TTNNBuilder,
@@ -26,13 +26,13 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.builder import (
     Qwen38TTNNMTPComponents,
     Qwen38TTNNTargetComponents,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import (
+from qwen38_flash_next.ttnn.embedding import (
     PINNED_CHECKPOINT_REVISION,
     PINNED_TENSOR_MANIFEST_SHA256,
     Qwen38ShardedLogits,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.fixed_five import Qwen38TTNNFixedFiveTarget
-from models.demos.blackhole.qwen38_flash_next.ttnn.hybrid_decode import (
+from qwen38_flash_next.ttnn.fixed_five import Qwen38TTNNFixedFiveTarget
+from qwen38_flash_next.ttnn.hybrid_decode import (
     Qwen38HybridCacheMismatchError,
     Qwen38HybridCachePolicy,
     Qwen38HybridConstructionError,
@@ -47,13 +47,13 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.hybrid_decode import (
     Qwen38TTNNHybridDecodeSession,
     validate_hybrid_decode_static_contract,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.layer import BACKBONE_LAYERS, Qwen38TTNNDecoderLayerAux
-from models.demos.blackhole.qwen38_flash_next.ttnn.model import (
+from qwen38_flash_next.ttnn.layer import BACKBONE_LAYERS, Qwen38TTNNDecoderLayerAux
+from qwen38_flash_next.ttnn.model import (
     Qwen38TTNNTextModel,
     Qwen38TTNNTextModelOutput,
     Qwen38TTNNTextModelState,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.mtp_decode import (
+from qwen38_flash_next.ttnn.mtp_decode import (
     Qwen38MTPQSASelectionProof,
     Qwen38MTPSeed,
     Qwen38SpeculativeEmission,
@@ -63,9 +63,9 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.mtp_decode import (
     Qwen38SpeculativeTokenSource,
     Qwen38TargetCommitMode,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.mtp_draft import Qwen38TTNNMTPDraftEngine
-from models.demos.blackhole.qwen38_flash_next.ttnn.mtp_mechanics import execute_one_mtp_round
-from models.demos.blackhole.qwen38_flash_next.ttnn.sampling import (
+from qwen38_flash_next.ttnn.mtp_draft import Qwen38TTNNMTPDraftEngine
+from qwen38_flash_next.ttnn.mtp_mechanics import execute_one_mtp_round
+from qwen38_flash_next.ttnn.sampling import (
     Qwen38SampledTokens,
     Qwen38SamplingParameters,
     Qwen38SamplingTiming,

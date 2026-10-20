@@ -92,13 +92,13 @@ _TEMPLATES: dict[tuple[int, int], tuple] = {}
 
 
 def _qsa():
-    from models.demos.blackhole.qwen38_flash_next.ttnn import qsa as qsa_module
+    from qwen38_flash_next.ttnn import qsa as qsa_module
 
     return qsa_module
 
 
 def _contracts():
-    from models.demos.blackhole.qwen38_flash_next.ttnn import contracts
+    from qwen38_flash_next.ttnn import contracts
 
     return contracts
 
@@ -335,8 +335,8 @@ def derive_lanes_fused(model, state):
     """The lane body's position derive on the fused program: ``(Qwen38TTNNRoPEInputs, Qwen38TTNNQSAFusedLaneInputs)``
     -- the fused QSA lane body's inputs (the chain-only selection tiles and scalars are not derived)."""
 
-    from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import TensorPlacement
-    from models.demos.blackhole.qwen38_flash_next.ttnn.model import Qwen38TTNNRoPEInputs
+    from qwen38_flash_next.ttnn.contracts import TensorPlacement
+    from qwen38_flash_next.ttnn.model import Qwen38TTNNRoPEInputs
 
     qsa = _qsa()
     outs = position_derive_lanes(
@@ -360,7 +360,7 @@ def derive_lanes_composed(model, state):
     """The lane body's chain (model.py forward_decode_lanes: the index rows, the RoPE row tiles,
     ``derive_qsa_lane_inputs``)."""
 
-    from models.demos.blackhole.qwen38_flash_next.ttnn.model import _deallocate_unique
+    from qwen38_flash_next.ttnn.model import _deallocate_unique
 
     index_row = state.position.index_row()
     rope_index_row = state.position.rope_index_row(index_row)
@@ -447,8 +447,8 @@ def position_derive_composed(
 def derive_fused(model, state):
     """The decode body's position derive on the fused program: ``(Qwen38TTNNRoPEInputs, Qwen38TTNNQSAPositionInputs)``."""
 
-    from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import TensorPlacement
-    from models.demos.blackhole.qwen38_flash_next.ttnn.model import Qwen38TTNNRoPEInputs
+    from qwen38_flash_next.ttnn.contracts import TensorPlacement
+    from qwen38_flash_next.ttnn.model import Qwen38TTNNRoPEInputs
 
     qsa = _qsa()
     outs = position_derive(
@@ -478,7 +478,7 @@ def derive_fused(model, state):
 def derive_composed(model, state):
     """The decode body's chain (model.py: index rows, RoPE rows, ``derive_qsa_position_inputs``)."""
 
-    from models.demos.blackhole.qwen38_flash_next.ttnn.model import _deallocate_unique
+    from qwen38_flash_next.ttnn.model import _deallocate_unique
 
     index_row = state.position.index_row()
     rope_index_row = state.position.rope_index_row(index_row)

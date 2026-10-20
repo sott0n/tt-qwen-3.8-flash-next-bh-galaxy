@@ -16,12 +16,12 @@ from typing import Any
 import pytest
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn import fused
-from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gdn_post_rows as post
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gdn_pre_rows as pre
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gdn_rows_prims_direct as prims
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gdn_rows_wrap as module
+from qwen38_flash_next.ttnn import fused
+from qwen38_flash_next.ttnn import gdn as gdn_module
+from qwen38_flash_next.ttnn.fused import gdn_post_rows as post
+from qwen38_flash_next.ttnn.fused import gdn_pre_rows as pre
+from qwen38_flash_next.ttnn.fused import gdn_rows_prims_direct as prims
+from qwen38_flash_next.ttnn.fused import gdn_rows_wrap as module
 
 NAME = module.NAME
 TILE, HEADS, HEAD_DIM = module.TILE, module.HEADS, module.HEAD_DIM
@@ -273,7 +273,7 @@ def test_the_prim_call_is_spelled_as_the_prefill_slabs_form_spells_it():
     (g BEFORE beta), and to the scan the seven hand-offs then the state view, positional.  ``scale`` is a compile-time
     argument of the prep kernel, so both pass the composite's ``128 ** -0.5`` although ``qk_norm`` is off."""
 
-    from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gdn_prefill_rows as slab
+    from qwen38_flash_next.ttnn.fused import gdn_prefill_rows as slab
 
     keywords = {"eye", "tril", "ones", "masks", "chunk_size", "scale", "v_flat", "HV", "qk_flat", "Hk", "qk_norm"}
     for function, names in ((module.chunk, module), (prims.chunk_rows_prims, prims), (slab.chunk_prims, slab)):
@@ -306,7 +306,7 @@ def test_the_slab_and_verify_admissions_never_both_admit():
     tile with the wrap's buffers) dispatch from the same ``forward_rows``; their contracts are disjoint by row count,
     so no rows state can be admitted by both."""
 
-    from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gdn_prefill_rows as slab
+    from qwen38_flash_next.ttnn.fused import gdn_prefill_rows as slab
 
     state = SimpleNamespace(recurrent=_Fake((1, HEADS, HEAD_DIM, HEAD_DIM), ttnn.float32))
     verify = _RowsState()

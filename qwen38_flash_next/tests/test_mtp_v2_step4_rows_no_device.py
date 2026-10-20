@@ -26,19 +26,19 @@ import pytest
 import torch
 import torch.nn.functional as F
 
-from models.demos.blackhole.qwen38_flash_next.tools.mtp_v2_verify_reference import row_serial_torch
-from models.demos.blackhole.qwen38_flash_next.tt.gdn import (
+from qwen38_flash_next.tools.mtp_v2_verify_reference import row_serial_torch
+from qwen38_flash_next.tt.gdn import (
     Qwen38GDN,
     Qwen38GDNDimensions,
     Qwen38GDNState,
     Qwen38GDNWeights,
 )
-from models.demos.blackhole.qwen38_flash_next.tt.ple import Qwen38PLEWeights
-from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gdn_rows_wrap
-from models.demos.blackhole.qwen38_flash_next.ttnn import layer as layer_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import mtp_v2
-from models.demos.blackhole.qwen38_flash_next.ttnn import ple as ple_module
+from qwen38_flash_next.tt.ple import Qwen38PLEWeights
+from qwen38_flash_next.ttnn import gdn as gdn_module
+from qwen38_flash_next.ttnn.fused import gdn_rows_wrap
+from qwen38_flash_next.ttnn import layer as layer_module
+from qwen38_flash_next.ttnn import mtp_v2
+from qwen38_flash_next.ttnn import ple as ple_module
 from models.experimental.gated_attention_gated_deltanet.torch_functional.delta_rule_ops import chunk_gated_delta_rule
 
 ROOT = Path(__file__).resolve().parents[1]

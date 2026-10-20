@@ -11,8 +11,9 @@ ttnn import).
 """
 
 from pathlib import Path
+from qwen38_flash_next.paths import TT_METAL_ROOT
 
-REPO_ROOT = Path(__file__).resolve().parents[5]
+REPO_ROOT = TT_METAL_ROOT
 OP = REPO_ROOT / "ttnn/cpp/ttnn/operations/experimental/reduction/deepseek_moe_fast_reduce_nc_fused"
 KERNELS = OP / "device/kernels"
 

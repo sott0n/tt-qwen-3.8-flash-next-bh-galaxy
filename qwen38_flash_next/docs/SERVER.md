@@ -10,7 +10,7 @@ Every decode token reads sixteen 320-byte rows of the PLE n-gram table, which st
 shards of layer 1) and is read by the host through the page cache; on a cold cache each row is an NVMe page-in, so on a
 host whose RAM holds the table (the QuietBox has 503 GB) read it once before the start:
 
-    python_env/bin/python -m models.demos.blackhole.qwen38_flash_next.tools.prewarm_ple_table --checkpoint /data/Qwen3.8-Flash-Next
+    python_env/bin/python -m qwen38_flash_next.tools.prewarm_ple_table --checkpoint /data/Qwen3.8-Flash-Next
 
 It prints the residency before and after (`fincore`, util-linux) and the read rate; nothing is written.  On the
 QuietBox the pass over the 104 GB took 13 s from a warm cache (7.8 GB/s); a cold NVMe cache is 35-60 s at 2-3 GB/s.
@@ -429,7 +429,7 @@ served (no CORS headers); a body needs `Content-Length`.
 `tools/qwen38_asgi.py` is this server as an ASGI application, the form a container that starts its model with uvicorn
 runs:
 
-    python -m uvicorn --lifespan on models.demos.blackhole.qwen38_flash_next.tools.qwen38_asgi:app
+    python -m uvicorn --lifespan on qwen38_flash_next.tools.qwen38_asgi:app
 
 The lifespan startup composes the server's arguments from the environment, starts `qwen38_chat_server` as a child
 process (`python -m`, the composed arguments and environment: the server keeps its own main thread, signal handlers and
@@ -483,7 +483,7 @@ this server's own loader (`chat.load_checkpoint_tokenizer`) is not on vLLM's pat
     export TT_VISIBLE_DEVICES=0,1,2,3 MESH_DEVICE="(1, 4)" TT_METAL_TRACE_ALLOC_TRACKING=1
     export MODEL_WEIGHTS_DIR=$CKPT QWEN38_CACHE_ROOT=<cache-root> TT_METAL_CACHE=<cache-root>/jit-cache
     export EXTRA_MODELS_DIR=$REPO/models/demos/blackhole/qwen38_flash_next/tools/vllm_bundle
-    python -m models.demos.blackhole.qwen38_flash_next.tools.prewarm_ple_table --checkpoint $CKPT
+    python -m qwen38_flash_next.tools.prewarm_ple_table --checkpoint $CKPT
     python <plugin>/examples/server_example_tt.py --model $CKPT --served-model-name Qwen/Qwen3.8-Flash-Next \
         --max_num_seqs 1 --block_size 64 --max-model-len 32704 \
         --hf-overrides '{"architectures": ["TTQwen4ExpForConditionalGeneration"]}' \

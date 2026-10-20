@@ -20,15 +20,15 @@ from types import SimpleNamespace
 import pytest
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn import builder as builder_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import decode_matmul
-from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import gr as gr_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import layer as layer_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import moe as moe_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import prefill_dense as pd
-from models.demos.blackhole.qwen38_flash_next.ttnn import qsa as qsa_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import shared_expert
+from qwen38_flash_next.ttnn import builder as builder_module
+from qwen38_flash_next.ttnn import decode_matmul
+from qwen38_flash_next.ttnn import gdn as gdn_module
+from qwen38_flash_next.ttnn import gr as gr_module
+from qwen38_flash_next.ttnn import layer as layer_module
+from qwen38_flash_next.ttnn import moe as moe_module
+from qwen38_flash_next.ttnn import prefill_dense as pd
+from qwen38_flash_next.ttnn import qsa as qsa_module
+from qwen38_flash_next.ttnn.fused import shared_expert
 
 MODEL_DIR = Path(__file__).resolve().parents[1]
 SLAB = 2048
@@ -571,7 +571,7 @@ def test_every_other_slab_linear_takes_the_policy() -> None:
         for name in names:
             assert f'.resident("{name}")' in source, (module.__name__, name)
         assert (
-            "from models.demos.blackhole.qwen38_flash_next.ttnn.prefill_dense import Qwen38TTNNPrefillDense, prefill_linear"
+            "from qwen38_flash_next.ttnn.prefill_dense import Qwen38TTNNPrefillDense, prefill_linear"
             in source
         )
         assert "    prefill_linear,\n" not in source.split("decode_matmul import (", 1)[1].split(")", 1)[0]

@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 import pytest
 
-from models.demos.blackhole.qwen38_flash_next.ttnn.mtp_decode import (
+from qwen38_flash_next.ttnn.mtp_decode import (
     MAX_CONTEXT,
     Qwen38FixedFiveTarget,
     Qwen38MTPAlignmentCommit,

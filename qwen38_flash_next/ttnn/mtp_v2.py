@@ -52,10 +52,10 @@ from typing import Any
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next import vision_splice
-from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import qsa as qsa_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
+from qwen38_flash_next import vision_splice
+from qwen38_flash_next.ttnn import gdn as gdn_module
+from qwen38_flash_next.ttnn import qsa as qsa_module
+from qwen38_flash_next.ttnn.contracts import (
     CHUNK_ROW_COUNTS,
     CHUNK_ROWS,
     LONG_CHUNK_ROWS,
@@ -67,16 +67,16 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     same_buffer,
     tensor_metadata,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import (
+from qwen38_flash_next.ttnn.embedding import (
     SAMPLING_CANDIDATE_ROW_SHAPE,
     TOKEN_ROW_SHAPE,
     ZERO_EMBEDDING_TOKEN,
     Qwen38TTNNSamplingCandidateConstants,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.final_mixer import Qwen38TTNNFinalMixer
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import mtp_accept as mtp_accept_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.gdn import Qwen38TTNNGDN, Qwen38TTNNGDNRowsState
-from models.demos.blackhole.qwen38_flash_next.ttnn.layer import (
+from qwen38_flash_next.ttnn.final_mixer import Qwen38TTNNFinalMixer
+from qwen38_flash_next.ttnn.fused import mtp_accept as mtp_accept_module
+from qwen38_flash_next.ttnn.gdn import Qwen38TTNNGDN, Qwen38TTNNGDNRowsState
+from qwen38_flash_next.ttnn.layer import (
     BACKBONE_LAYERS,
     LOCAL_HIDDEN_SIZE,
     PLE_CHECKPOINT_LAYER,
@@ -86,14 +86,14 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.layer import (
     Qwen38TTNNLayerNamespace,
     Qwen38TTNNLayerType,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.model import (
+from qwen38_flash_next.ttnn.model import (
     Qwen38TTNNRoPEInputs,
     Qwen38TTNNTextModel,
     Qwen38TTNNTextModelGenericState,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.moe import SUPPORTED_ROWS, TARGET_VERIFIER_ROWS, Qwen38TTNNMoE
-from models.demos.blackhole.qwen38_flash_next.ttnn.mtp import Qwen38TTNNMTPInput
-from models.demos.blackhole.qwen38_flash_next.ttnn.ple import (
+from qwen38_flash_next.ttnn.moe import SUPPORTED_ROWS, TARGET_VERIFIER_ROWS, Qwen38TTNNMoE
+from qwen38_flash_next.ttnn.mtp import Qwen38TTNNMTPInput
+from qwen38_flash_next.ttnn.ple import (
     Qwen38TTNNPLE,
     Qwen38TTNNPLERowsPreparedInput,
     Qwen38TTNNPLERowsState,

@@ -18,16 +18,16 @@ import pytest
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn import fused
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import position_derive as pd
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import program as fp
+from qwen38_flash_next.ttnn import fused
+from qwen38_flash_next.ttnn.fused import position_derive as pd
+from qwen38_flash_next.ttnn.fused import program as fp
 
 
 def _qsa():
     """The QSA module, or a skip where only the ttnn import stub is present (no-runtime hosts)."""
 
     try:
-        from models.demos.blackhole.qwen38_flash_next.ttnn import qsa
+        from qwen38_flash_next.ttnn import qsa
     except (AttributeError, RecursionError) as error:  # the import stub has no device-only attributes
         pytest.skip(f"needs the real ttnn: {error}")
     return qsa

@@ -15,7 +15,7 @@ from types import SimpleNamespace
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.tests.test_mtp_v2_step4_rows_no_device import (
+from qwen38_flash_next.tests.test_mtp_v2_step4_rows_no_device import (
     BF16,
     TILE,
     TP,
@@ -23,17 +23,17 @@ from models.demos.blackhole.qwen38_flash_next.tests.test_mtp_v2_step4_rows_no_de
     _bf16,
     _cat,
 )
-from models.demos.blackhole.qwen38_flash_next.tests.test_mtp_v2_step5_verify_no_device import (  # noqa: F401
+from qwen38_flash_next.tests.test_mtp_v2_step5_verify_no_device import (  # noqa: F401
     _mtp_input,
     fake,
 )
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_session as session_module
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_prefill_driver as driver_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import embedding as embedding_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import model as model_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import mtp as mtp_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import mtp_v2
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import CHUNK_ROW_COUNTS, CHUNK_ROWS, LONG_CHUNK_ROWS
+from qwen38_flash_next.tools import qwen38_chat_session as session_module
+from qwen38_flash_next.tools import qwen38_prefill_driver as driver_module
+from qwen38_flash_next.ttnn import embedding as embedding_module
+from qwen38_flash_next.ttnn import model as model_module
+from qwen38_flash_next.ttnn import mtp as mtp_module
+from qwen38_flash_next.ttnn import mtp_v2
+from qwen38_flash_next.ttnn.contracts import CHUNK_ROW_COUNTS, CHUNK_ROWS, LONG_CHUNK_ROWS
 
 
 def _shard(host: torch.Tensor) -> FakeTensor:
@@ -224,8 +224,8 @@ def test_extension_128_row_twin_writes_128_tokens_runs_128_row_roots_and_refuses
     assert copies[-1][0].shape == (1, 1, 1, 32)
     # an image prompt's tokens ahead: the pads embed the zero sentinel and the feature rows carry the tower's rows
     # there (the backbone chunk's form one position ahead); the next text chunk restores the clean rows once
-    from models.demos.blackhole.qwen38_flash_next.mrope import IMAGE_TOKEN_ID
-    from models.demos.blackhole.qwen38_flash_next.vision_splice import (
+    from qwen38_flash_next.mrope import IMAGE_TOKEN_ID
+    from qwen38_flash_next.vision_splice import (
         IMAGE_LANE_SENTINEL_TOKEN,
         NEGATIVE_ZERO_BF16_BITS,
     )

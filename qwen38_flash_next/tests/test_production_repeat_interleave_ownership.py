@@ -5,8 +5,8 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-from models.demos.blackhole.qwen38_flash_next.ttnn import model as model_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.model import Qwen38TTNNModelPoisonedError, Qwen38TTNNTextModel
+from qwen38_flash_next.ttnn import model as model_module
+from qwen38_flash_next.ttnn.model import Qwen38TTNNModelPoisonedError, Qwen38TTNNTextModel
 
 
 class _Tensor:

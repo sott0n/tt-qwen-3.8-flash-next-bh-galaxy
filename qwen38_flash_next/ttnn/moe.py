@@ -32,11 +32,11 @@ from ttnn.experimental.moe_compute_utils import auto_output_width_shard_dim, eff
 from ttnn.operations.ccl import MoEActivationFunction
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.checkpoint import INDEX_SHA256, Qwen38Checkpoint
-from models.demos.blackhole.qwen38_flash_next.config import EP_SIZE, EXPERT_SHARDS, TP_SIZE, Qwen38Placement
-from models.demos.blackhole.qwen38_flash_next.tt.moe import Qwen38MoEWeights
-from models.demos.blackhole.qwen38_flash_next.ttnn import fused
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
+from qwen38_flash_next.checkpoint import INDEX_SHA256, Qwen38Checkpoint
+from qwen38_flash_next.config import EP_SIZE, EXPERT_SHARDS, TP_SIZE, Qwen38Placement
+from qwen38_flash_next.tt.moe import Qwen38MoEWeights
+from qwen38_flash_next.ttnn import fused
+from qwen38_flash_next.ttnn.contracts import (
     CHUNK_ROWS,
     LONG_CHUNK_ROWS,
     MAX_LANES,
@@ -47,7 +47,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     replicate_tensor_2d_mesh_mapper,
     same_buffer,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.decode_matmul import (
+from qwen38_flash_next.ttnn.decode_matmul import (
     dense_dtype_tag,
     dense_math_fidelity_name,
     dense_weight_name,
@@ -56,7 +56,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.decode_matmul import (
     dram_sharded_weight_memory_config,
     prefill_matmul_program_config,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.prefill_dense import Qwen38TTNNPrefillDense, prefill_linear
+from qwen38_flash_next.ttnn.prefill_dense import Qwen38TTNNPrefillDense, prefill_linear
 from models.tt_transformers.tt.ccl import tt_all_reduce
 
 HIDDEN_SIZE = 2560

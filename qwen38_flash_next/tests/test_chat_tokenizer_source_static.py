@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pytest
 
-from models.demos.blackhole.qwen38_flash_next.chat import (
+from qwen38_flash_next.chat import (
     TOKENIZER_COMPONENTS,
     Qwen38ChatFormatError,
     Qwen38OfficialChatTemplate,

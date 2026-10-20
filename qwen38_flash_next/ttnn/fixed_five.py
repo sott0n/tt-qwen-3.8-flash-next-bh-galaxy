@@ -37,9 +37,9 @@ from typing import Any, NoReturn
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn.builder import Qwen38TTNNBuiltTarget, Qwen38TTNNTargetComponents
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import TensorPlacement
-from models.demos.blackhole.qwen38_flash_next.ttnn.layer import (
+from qwen38_flash_next.ttnn.builder import Qwen38TTNNBuiltTarget, Qwen38TTNNTargetComponents
+from qwen38_flash_next.ttnn.contracts import TensorPlacement
+from qwen38_flash_next.ttnn.layer import (
     BACKBONE_LAYERS,
     BLOCK_LOCAL_SHAPE,
     LOCAL_HIDDEN_SIZE,
@@ -47,7 +47,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.layer import (
     Qwen38TTNNDecoderLayerState,
     Qwen38TTNNLayerType,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.model import (
+from qwen38_flash_next.ttnn.model import (
     MAX_CONTEXT,
     VOCAB_SIZE,
     Qwen38TTNNModelPoisonedError,
@@ -56,8 +56,8 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.model import (
     Qwen38TTNNTextModelSnapshot,
     Qwen38TTNNTextModelState,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.moe import Qwen38TTNNMoE, Qwen38TTNNMoEResult
-from models.demos.blackhole.qwen38_flash_next.ttnn.mtp_decode import (
+from qwen38_flash_next.ttnn.moe import Qwen38TTNNMoE, Qwen38TTNNMoEResult
+from qwen38_flash_next.ttnn.mtp_decode import (
     VERIFY_POSITIONS,
     Qwen38FixedFiveTarget,
     Qwen38StateRollback,

@@ -39,11 +39,11 @@ from loguru import logger
 
 import ttnn
 from models.common.utility_functions import run_for_blackhole
-from models.demos.blackhole.qwen38_flash_next.checkpoint import Qwen38Checkpoint
-from models.demos.blackhole.qwen38_flash_next.tests.fixtures import vision_fixture
-from models.demos.blackhole.qwen38_flash_next.tests.tp_harness import DEVICE_PARAMS, checkpoint_root, pcc
-from models.demos.blackhole.qwen38_flash_next.ttnn.vision import VisionTower
-from models.demos.blackhole.qwen38_flash_next.vision_reference import VisionTowerConfig, VisionTowerReference
+from qwen38_flash_next.checkpoint import Qwen38Checkpoint
+from qwen38_flash_next.tests.fixtures import vision_fixture
+from qwen38_flash_next.tests.tp_harness import DEVICE_PARAMS, checkpoint_root, pcc
+from qwen38_flash_next.ttnn.vision import VisionTower
+from qwen38_flash_next.vision_reference import VisionTowerConfig, VisionTowerReference
 
 pytestmark = pytest.mark.skipif(
     os.environ.get("QWEN38_FUSED_DEVICE_TEST") != "1",

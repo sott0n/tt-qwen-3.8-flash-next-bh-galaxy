@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from models.demos.blackhole.qwen38_flash_next.chat import (
+from qwen38_flash_next.chat import (
     EOS_TOKEN_IDS,
     PINNED_TOKENIZER_ARTIFACTS,
     Qwen38AssistantCompletion,

@@ -24,14 +24,14 @@ from typing import Any, Sequence
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.checkpoint import (
+from qwen38_flash_next.checkpoint import (
     INDEX_SHA256,
     Qwen38Checkpoint,
     Qwen38CheckpointRowReader,
 )
-from models.demos.blackhole.qwen38_flash_next.reference import ngram_token_ids
-from models.demos.blackhole.qwen38_flash_next.tt.ple import Qwen38HostPLEEmbedding, Qwen38PLEWeights
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
+from qwen38_flash_next.reference import ngram_token_ids
+from qwen38_flash_next.tt.ple import Qwen38HostPLEEmbedding, Qwen38PLEWeights
+from qwen38_flash_next.ttnn.contracts import (
     LONG_CHUNK_ROWS,
     MESH_SHAPE,
     Qwen38MeshContract,
@@ -40,10 +40,10 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     replicate_tensor_2d_mesh_mapper,
     require_lane_count,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.gdn import Qwen38TTNNRowsSelectors, Qwen38TTNNRowsSelectorsLanes
+from qwen38_flash_next.ttnn.gdn import Qwen38TTNNRowsSelectors, Qwen38TTNNRowsSelectorsLanes
 
 TP_AXIS = 1
-from models.demos.blackhole.qwen38_flash_next.config import TP_SIZE
+from qwen38_flash_next.config import TP_SIZE
 
 HIDDEN_SIZE = 2560
 LOCAL_HIDDEN_SIZE = HIDDEN_SIZE // TP_SIZE
@@ -979,7 +979,7 @@ class Qwen38TTNNPLE:
             packer_l1_acc=False,
         )
         # QWEN38_FUSED=ple: the fused device body (ttnn/fused/ple) binds at construction; forward_prepared's chain stays.
-        from models.demos.blackhole.qwen38_flash_next.ttnn import fused as fused_kernels
+        from qwen38_flash_next.ttnn import fused as fused_kernels
 
         if fused_kernels.enabled("ple"):
             self._fused_forward_prepared = functools.partial(fused_kernels.kernel("ple").fused, self)

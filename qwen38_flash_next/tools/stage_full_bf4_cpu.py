@@ -40,16 +40,16 @@ from ttnn.experimental.moe_compute_utils import (
     prepare_w2_tensor_for_moe_compute,
 )
 
-from models.demos.blackhole.qwen38_flash_next.checkpoint import (
+from qwen38_flash_next.checkpoint import (
     CHECKPOINT_FILE_MANIFEST_SHA256,
     CHECKPOINT_TENSOR_MANIFEST_SHA256,
     INDEX_SHA256,
     PINNED_CHECKPOINT_REVISION,
     Qwen38Checkpoint,
 )
-from models.demos.blackhole.qwen38_flash_next.config import CONFIG_SHA256, Qwen38Placement
-from models.demos.blackhole.qwen38_flash_next.tt.moe import Qwen38MoEWeights
-from models.demos.blackhole.qwen38_flash_next.ttnn.bf4 import canonical_packed_shapes
+from qwen38_flash_next.config import CONFIG_SHA256, Qwen38Placement
+from qwen38_flash_next.tt.moe import Qwen38MoEWeights
+from qwen38_flash_next.ttnn.bf4 import canonical_packed_shapes
 
 MODE = "diagnostic_non_promoting_cpu_bf4_staging"
 PHYSICAL_IDS = (1, 0, 2, 3)

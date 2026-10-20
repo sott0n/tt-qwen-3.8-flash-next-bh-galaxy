@@ -16,10 +16,10 @@ from types import SimpleNamespace
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn import decode_matmul as dm
-from models.demos.blackhole.qwen38_flash_next.ttnn import qsa
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import program as fp
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import qsa_block
+from qwen38_flash_next.ttnn import decode_matmul as dm
+from qwen38_flash_next.ttnn import qsa
+from qwen38_flash_next.ttnn.fused import program as fp
+from qwen38_flash_next.ttnn.fused import qsa_block
 
 TILE = ttnn.TILE_SIZE
 KERNELS = fp.REPO_ROOT / fp.KERNEL_ROOT / "qsa_block" / "kernels"

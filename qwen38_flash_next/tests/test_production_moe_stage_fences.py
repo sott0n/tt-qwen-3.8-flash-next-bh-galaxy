@@ -10,8 +10,8 @@ from unittest import mock
 
 import pytest
 
-import models.demos.blackhole.qwen38_flash_next.ttnn.moe as moe_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.moe import (
+import qwen38_flash_next.ttnn.moe as moe_module
+from qwen38_flash_next.ttnn.moe import (
     HIDDEN_SIZE,
     MOE_STAGE_FENCES,
     ROUTED_EXPERTS,

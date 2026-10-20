@@ -66,9 +66,9 @@ runtime identity, load average, item ids, every observed value, one verdict per 
 side by side) lands under `<out>/<date>/<stamp>-<lane>-<head12>/<job>/`, with `summary.json`, `summary.txt` and
 `progress.log` beside them.
 
-    python -m models.demos.blackhole.qwen38_flash_next.tools.ci.q38_ci run --jobs JOBS.json --out RESULTS
-    python -m models.demos.blackhole.qwen38_flash_next.tools.ci.q38_ci report --run RESULTS/<date>/<run>
-    python -m models.demos.blackhole.qwen38_flash_next.tools.ci.q38_ci seed --runs RESULTS/<date>/<run>... --write
+    python -m qwen38_flash_next.tools.ci.q38_ci run --jobs JOBS.json --out RESULTS
+    python -m qwen38_flash_next.tools.ci.q38_ci report --run RESULTS/<date>/<run>
+    python -m qwen38_flash_next.tools.ci.q38_ci seed --runs RESULTS/<date>/<run>... --write
 
 `seed` promotes `todo` pins whose last three idle runs agree within the pin's tolerance: the target becomes the
 median (`band`, `ceiling`), the minimum or the preset proposal (`floor`) or the common value, the run ids are

@@ -13,8 +13,8 @@ from __future__ import annotations
 
 import pytest
 
-from models.demos.blackhole.qwen38_flash_next.tools.hardware_profiles import HARDWARE_PROFILES
-from models.demos.blackhole.qwen38_flash_next.tools.physical_route import (
+from qwen38_flash_next.tools.hardware_profiles import HARDWARE_PROFILES
+from qwen38_flash_next.tools.physical_route import (
     PhysicalRouteError,
     derive_fabric_line_route,
     derive_ring_walk_route,

@@ -6,14 +6,14 @@ device, no checkpoint."""
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.mrope import (
+from qwen38_flash_next.mrope import (
     IMAGE_TOKEN_ID,
     VISION_END_TOKEN_ID,
     VISION_START_TOKEN_ID,
     Qwen38ImageGrid,
     mrope_positions,
 )
-from models.demos.blackhole.qwen38_flash_next.vision_splice import (
+from qwen38_flash_next.vision_splice import (
     HIDDEN_SIZE,
     IMAGE_LANE_SENTINEL_TOKEN,
     NEGATIVE_ZERO_BF16_BITS,

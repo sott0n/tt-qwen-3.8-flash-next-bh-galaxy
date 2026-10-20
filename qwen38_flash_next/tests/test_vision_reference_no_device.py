@@ -15,10 +15,10 @@ import pytest
 import torch
 import torch.nn.functional as F
 
-from models.demos.blackhole.qwen38_flash_next.tests.fixtures import vision_fixture
-from models.demos.blackhole.qwen38_flash_next.tools.checkpoint_budget import vision_resident_layout
-from models.demos.blackhole.qwen38_flash_next.ttnn import vision_layout
-from models.demos.blackhole.qwen38_flash_next.vision_reference import (
+from qwen38_flash_next.tests.fixtures import vision_fixture
+from qwen38_flash_next.tools.checkpoint_budget import vision_resident_layout
+from qwen38_flash_next.ttnn import vision_layout
+from qwen38_flash_next.vision_reference import (
     VISION_TENSOR_BYTES,
     VISION_TENSOR_COUNT,
     VisionTowerConfig,
@@ -56,7 +56,7 @@ def test_pinned_configuration_and_inventory():
 
 @pytest.mark.skipif(not CHECKPOINT.is_dir(), reason="set QWEN38_CHECKPOINT to the pinned checkpoint directory")
 def test_checkpoint_vision_domain_reads_the_tower_from_shard_one():
-    from models.demos.blackhole.qwen38_flash_next.checkpoint import VISION_SHARD, Qwen38Checkpoint
+    from qwen38_flash_next.checkpoint import VISION_SHARD, Qwen38Checkpoint
 
     checkpoint = Qwen38Checkpoint(CHECKPOINT)
     names = checkpoint.vision_tensor_names()

@@ -20,9 +20,9 @@ import pytest
 import torch
 import torch.nn.functional as F
 
-from models.demos.blackhole.qwen38_flash_next.reference import _l2_norm, causal_depthwise_conv1d, gated_delta_recurrent
-from models.demos.blackhole.qwen38_flash_next.tools.mtp_v2_verify_reference import row_serial_torch, ulp_distance
-from models.demos.blackhole.qwen38_flash_next.tt.gdn import (
+from qwen38_flash_next.reference import _l2_norm, causal_depthwise_conv1d, gated_delta_recurrent
+from qwen38_flash_next.tools.mtp_v2_verify_reference import row_serial_torch, ulp_distance
+from qwen38_flash_next.tt.gdn import (
     Qwen38GDN,
     Qwen38GDNDimensions,
     Qwen38GDNState,

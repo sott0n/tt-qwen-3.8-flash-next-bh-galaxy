@@ -18,9 +18,9 @@ from pathlib import Path
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.ttnn import fused
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import greedy_tail as gt
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import program as fp
+from qwen38_flash_next.ttnn import fused
+from qwen38_flash_next.ttnn.fused import greedy_tail as gt
+from qwen38_flash_next.ttnn.fused import program as fp
 
 HERE = Path(__file__).resolve().parents[1]
 EMBEDDING_SOURCE = (HERE / "ttnn" / "embedding.py").read_text()

@@ -19,8 +19,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from models.demos.blackhole.qwen38_flash_next.ttnn import vision_residency as residency
-from models.demos.blackhole.qwen38_flash_next.ttnn.vision_layout import padded_rows
+from qwen38_flash_next.ttnn import vision_residency as residency
+from qwen38_flash_next.ttnn.vision_layout import padded_rows
 
 ROOT = Path(__file__).resolve().parents[1]
 VISION_SOURCE = ROOT / "ttnn" / "vision.py"
@@ -241,7 +241,7 @@ class _FakeTower:
 
 
 def _residency(monkeypatch, live, **kwargs):
-    import models.demos.blackhole.qwen38_flash_next.ttnn.vision as vision_module
+    import qwen38_flash_next.ttnn.vision as vision_module
 
     monkeypatch.setattr(vision_module, "VisionTower", _FakeTower)
     _FakeTower.instances.clear()
@@ -425,7 +425,7 @@ def test_server_makes_the_residency_in_the_composed_warm_hook_and_records_it() -
 
 
 def test_parser_takes_an_image_part_and_refuses_undecodable_bytes() -> None:
-    from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_server as server_module
+    from qwen38_flash_next.tools import qwen38_chat_server as server_module
 
     pytest.importorskip("PIL")
     import base64

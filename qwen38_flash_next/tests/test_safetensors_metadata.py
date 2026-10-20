@@ -4,7 +4,7 @@
 import json
 import unittest
 
-from models.demos.blackhole.qwen38_flash_next.tools.safetensors_metadata import (
+from qwen38_flash_next.tools.safetensors_metadata import (
     RangeResponseError,
     fetch_safetensors_header,
     read_exact_http_range,

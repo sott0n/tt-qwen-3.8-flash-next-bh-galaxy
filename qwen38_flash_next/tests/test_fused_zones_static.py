@@ -10,8 +10,8 @@ import re
 from pathlib import Path
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import program as fp
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import router_tail
+from qwen38_flash_next.ttnn.fused import program as fp
+from qwen38_flash_next.ttnn.fused import router_tail
 
 FUSED = Path(fp.__file__).parent
 HEADER = FUSED / "kernels" / "zones.h"

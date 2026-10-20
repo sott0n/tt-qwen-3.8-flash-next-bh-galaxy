@@ -12,9 +12,9 @@ import pytest
 import torch
 
 import ttnn
-import models.demos.blackhole.qwen38_flash_next.ttnn.layer as layer_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.gdn import Qwen38TTNNGDN, Qwen38TTNNGDNSnapshot, Qwen38TTNNGDNState
-from models.demos.blackhole.qwen38_flash_next.ttnn.layer import (
+import qwen38_flash_next.ttnn.layer as layer_module
+from qwen38_flash_next.ttnn.gdn import Qwen38TTNNGDN, Qwen38TTNNGDNSnapshot, Qwen38TTNNGDNState
+from qwen38_flash_next.ttnn.layer import (
     BACKBONE_LAYERS,
     Qwen38TTNNDecoderLayer,
     Qwen38TTNNDecoderLayerAux,
@@ -24,7 +24,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.layer import (
     Qwen38TTNNLayerNamespace,
     Qwen38TTNNLayerType,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.model import (
+from qwen38_flash_next.ttnn.model import (
     Qwen38TTNNCleanupError,
     Qwen38TTNNModelPoisonedError,
     Qwen38TTNNRoPE,
@@ -34,8 +34,8 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.model import (
     Qwen38TTNNTextModelState,
     _host_rope,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.ple import Qwen38TTNNPLE
-from models.demos.blackhole.qwen38_flash_next.ttnn.qsa import Qwen38TTNNQSA, Qwen38TTNNQSAState
+from qwen38_flash_next.ttnn.ple import Qwen38TTNNPLE
+from qwen38_flash_next.ttnn.qsa import Qwen38TTNNQSA, Qwen38TTNNQSAState
 
 
 class _FakeTensor:
@@ -348,7 +348,7 @@ def test_post_preflight_speculative_setup_failure_consumes_snapshot_and_poisons(
 
 
 def test_real_qsa_view_tracker_restores_then_commits_one_protected_branch(monkeypatch) -> None:
-    import models.demos.blackhole.qwen38_flash_next.ttnn.qsa as qsa_module
+    import qwen38_flash_next.ttnn.qsa as qsa_module
 
     qsa = Qwen38TTNNQSA.__new__(Qwen38TTNNQSA)
     qsa.layer_index = 3

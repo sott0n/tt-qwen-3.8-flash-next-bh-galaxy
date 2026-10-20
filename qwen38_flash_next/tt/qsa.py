@@ -17,9 +17,9 @@ from dataclasses import dataclass
 import torch
 import torch.nn.functional as F
 
-from models.demos.blackhole.qwen38_flash_next.checkpoint import Qwen38Checkpoint
-from models.demos.blackhole.qwen38_flash_next.config import TP_SIZE
-from models.demos.blackhole.qwen38_flash_next.reference import qsa_selected_token_mask, zero_centered_rms_norm
+from qwen38_flash_next.checkpoint import Qwen38Checkpoint
+from qwen38_flash_next.config import TP_SIZE
+from qwen38_flash_next.reference import qsa_selected_token_mask, zero_centered_rms_norm
 
 
 def _rotate_half(tensor: torch.Tensor) -> torch.Tensor:

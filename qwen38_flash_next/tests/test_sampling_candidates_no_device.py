@@ -11,7 +11,7 @@ import re
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import (
+from qwen38_flash_next.ttnn.embedding import (
     LOCAL_VOCAB_SIZE,
     SAMPLING_CANDIDATE_ROW_SHAPE,
     SAMPLING_CANDIDATES_PER_DEVICE,
@@ -21,7 +21,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import (
     Qwen38TTNNLMHead,
     Qwen38TTNNSamplingCandidateConstants,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.sampling import (
+from qwen38_flash_next.ttnn.sampling import (
     CANDIDATE_TOP_K_LIMIT,
     Qwen38CandidateFallback,
     Qwen38CandidateRow,
@@ -226,7 +226,7 @@ def test_filters_match_transformers_logits_processors() -> None:
             scores = lp.MinPLogitsWarper(min_p=min_p)(input_ids, scores)
         reference = torch.softmax(scores.reshape(-1), dim=-1)
         # Our filtered distribution, placed on the vocabulary axis.
-        from models.demos.blackhole.qwen38_flash_next.ttnn import sampling
+        from qwen38_flash_next.ttnn import sampling
 
         penalized = sampling._penalize(full.clone(), None, history, parameters)
         positions, _scaled, probabilities = sampling._filter(penalized, parameters)
@@ -253,7 +253,7 @@ def test_filters_match_transformers_logits_processors() -> None:
 
 
 def test_presence_and_frequency_penalize_the_output_only_and_repetition_the_prompt_too() -> None:
-    from models.demos.blackhole.qwen38_flash_next.ttnn import sampling
+    from qwen38_flash_next.ttnn import sampling
 
     full = _logits(60).to(torch.float32)
     prompt = tuple(full.topk(6).indices.tolist())  # the prompt holds the six strongest peaks
@@ -499,7 +499,7 @@ def test_candidate_constants_are_a_vocab_sharded_start_scalar_and_a_replicated_r
 def test_sampling_candidates_rejects_foreign_vocabulary_ownership(expect_error) -> None:
     from types import SimpleNamespace
 
-    from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import Qwen38ShardedLogits
+    from qwen38_flash_next.ttnn.embedding import Qwen38ShardedLogits
 
     shell = object.__new__(Qwen38TTNNLMHead)
     shell.weights = SimpleNamespace(

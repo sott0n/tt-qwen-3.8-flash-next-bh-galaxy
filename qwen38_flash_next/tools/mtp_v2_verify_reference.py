@@ -17,7 +17,7 @@ from unittest import mock
 import torch
 import torch.nn.functional as F
 
-from models.demos.blackhole.qwen38_flash_next import reference
+from qwen38_flash_next import reference
 
 TF32_SIGNIFICANT_BITS = 11
 

@@ -52,8 +52,8 @@ import torch
 from ttnn.unsafe_allocation_tracker import UnsafeAllocationTracker
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next import mrope, vision_splice
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import CHUNK_ROWS, LONG_CHUNK_ROWS, is_slab_rows
+from qwen38_flash_next import mrope, vision_splice
+from qwen38_flash_next.ttnn.contracts import CHUNK_ROWS, LONG_CHUNK_ROWS, is_slab_rows
 
 # Rows past the prompt in the padded tail chunk: any in-vocabulary id; their state is never read after the hand-off.
 CHUNK_PAD_TOKEN_ID = 0

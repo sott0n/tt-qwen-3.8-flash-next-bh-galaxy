@@ -865,8 +865,8 @@ def gr_read_fused(
     ``[4, 1, rows, 384]`` fp32 tiles.  ``read_front(residual, gamma_rows, down_inject)`` replaces all four (stats,
     all_gather, normalize_down, all_gather_async) with one program and returns ``(normalized, gathered_partials)``."""
 
-    from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import TensorPlacement
-    from models.demos.blackhole.qwen38_flash_next.ttnn.gr import Qwen38TTNNGatedResidualState
+    from qwen38_flash_next.ttnn.contracts import TensorPlacement
+    from qwen38_flash_next.ttnn.gr import Qwen38TTNNGatedResidualState
 
     rows = residual_rows(residual)
     module.mesh_contract.validate_tensor(residual, placement=TensorPlacement.HIDDEN_SHARDED, shard_dim=3)

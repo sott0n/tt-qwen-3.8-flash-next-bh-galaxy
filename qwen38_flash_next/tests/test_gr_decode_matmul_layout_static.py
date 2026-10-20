@@ -21,11 +21,11 @@ import torch
 import torch.nn.functional as F
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.tt.gr import Qwen38GatedResidual, Qwen38GatedResidualWeights
-from models.demos.blackhole.qwen38_flash_next.tt.model import Qwen38FinalMixerWeights
-from models.demos.blackhole.qwen38_flash_next.ttnn import final_mixer as final_mixer_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import gr as gr_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.decode_matmul import (
+from qwen38_flash_next.tt.gr import Qwen38GatedResidual, Qwen38GatedResidualWeights
+from qwen38_flash_next.tt.model import Qwen38FinalMixerWeights
+from qwen38_flash_next.ttnn import final_mixer as final_mixer_module
+from qwen38_flash_next.ttnn import gr as gr_module
+from qwen38_flash_next.ttnn.decode_matmul import (
     dram_sharded_matmul_configs,
     dram_sharded_weight_memory_config,
 )

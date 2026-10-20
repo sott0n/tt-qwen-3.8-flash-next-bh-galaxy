@@ -46,9 +46,9 @@ from typing import Any
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn import qsa as qsa_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.bf4 import Qwen38BF4Streamer
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
+from qwen38_flash_next.ttnn import qsa as qsa_module
+from qwen38_flash_next.ttnn.bf4 import Qwen38BF4Streamer
+from qwen38_flash_next.ttnn.contracts import (
     CHUNK_ROW_COUNTS,
     CHUNK_ROWS,
     LONG_CHUNK_ROWS,
@@ -59,7 +59,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     require_lane_count,
     tensor_metadata,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.gdn import (
+from qwen38_flash_next.ttnn.gdn import (
     CONV_KERNEL_SIZE,
     Qwen38TTNNGDN,
     Qwen38TTNNGDNRowsConstants,
@@ -69,13 +69,13 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.gdn import (
     Qwen38TTNNGDNState,
     Qwen38TTNNRowsSelectors,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.gr import (
+from qwen38_flash_next.ttnn.gr import (
     Qwen38TTNNGatedResidual,
     block_rows_shape,
     residual_rows_shape,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.moe import SUPPORTED_ROWS, Qwen38TTNNMoE, Qwen38TTNNRouting
-from models.demos.blackhole.qwen38_flash_next.ttnn.ple import (
+from qwen38_flash_next.ttnn.moe import SUPPORTED_ROWS, Qwen38TTNNMoE, Qwen38TTNNRouting
+from qwen38_flash_next.ttnn.ple import (
     Qwen38TTNNPLE,
     Qwen38TTNNPLELanesPreparedInput,
     Qwen38TTNNPLELanesState,
@@ -86,12 +86,12 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.ple import (
     Qwen38TTNNPLESnapshot,
     Qwen38TTNNPLEState,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.qsa import Qwen38TTNNQSA, Qwen38TTNNQSASelection, Qwen38TTNNQSAState
+from qwen38_flash_next.ttnn.qsa import Qwen38TTNNQSA, Qwen38TTNNQSASelection, Qwen38TTNNQSAState
 
 BACKBONE_LAYERS = 48
 MTP_LAYERS = 1
 HIDDEN_SIZE = 2560
-from models.demos.blackhole.qwen38_flash_next.config import TP_SIZE
+from qwen38_flash_next.config import TP_SIZE
 
 LOCAL_HIDDEN_SIZE = HIDDEN_SIZE // TP_SIZE
 RESIDUAL_BRANCHES = 4
@@ -376,10 +376,10 @@ class Qwen38TTNNDecoderLayer:
         self.expert_streamer = expert_streamer
         self.ple = ple
         # QWEN38_FUSED=ple: the fused PLE body with the layer's output permute + residual add folded into its conv program.
-        from models.demos.blackhole.qwen38_flash_next.ttnn import fused as fused_kernels
+        from qwen38_flash_next.ttnn import fused as fused_kernels
 
         if ple is not None and fused_kernels.enabled("ple"):
-            from models.demos.blackhole.qwen38_flash_next.ttnn.fused import ple as fused_ple
+            from qwen38_flash_next.ttnn.fused import ple as fused_ple
 
             self._fused_apply_ple = functools.partial(fused_ple.ple_layer_fused, self)
 

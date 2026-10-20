@@ -9,8 +9,8 @@ import pytest
 import torch
 from torch import nn
 
-from models.demos.blackhole.qwen38_flash_next.checkpoint import Qwen38Checkpoint
-from models.demos.blackhole.qwen38_flash_next.tt.ple import Qwen38HostPLEEmbedding, Qwen38PLE, Qwen38PLEWeights
+from qwen38_flash_next.checkpoint import Qwen38Checkpoint
+from qwen38_flash_next.tt.ple import Qwen38HostPLEEmbedding, Qwen38PLE, Qwen38PLEWeights
 
 CHECKPOINT = Path(os.environ.get("QWEN38_CHECKPOINT", "/nonexistent/Qwen3.8-Flash-Next"))
 TRANSFORMERS_SRC = os.environ.get("QWEN38_TRANSFORMERS_SRC")

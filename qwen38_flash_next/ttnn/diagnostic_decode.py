@@ -24,15 +24,15 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from typing import Literal
 
-from models.demos.blackhole.qwen38_flash_next.ttnn.builder import Qwen38BuildProvenance, Qwen38TTNNBuiltTarget
-from models.demos.blackhole.qwen38_flash_next.ttnn.decode import (
+from qwen38_flash_next.ttnn.builder import Qwen38BuildProvenance, Qwen38TTNNBuiltTarget
+from qwen38_flash_next.ttnn.decode import (
     Qwen38OrdinaryDecodeSession,
     Qwen38OrdinarySessionStatus,
     Qwen38OrdinaryStopReason,
     Qwen38OrdinaryToken,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.layer import BACKBONE_LAYERS
-from models.demos.blackhole.qwen38_flash_next.ttnn.model import VOCAB_SIZE
+from qwen38_flash_next.ttnn.layer import BACKBONE_LAYERS
+from qwen38_flash_next.ttnn.model import VOCAB_SIZE
 
 NONQUALIFYING = "NONQUALIFYING"
 GREEDY_MECHANIC = "tp4_vocab_sharded_sparse_argmax"

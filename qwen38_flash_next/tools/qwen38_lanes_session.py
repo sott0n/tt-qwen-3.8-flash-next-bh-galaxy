@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """The lanes server's device side (``--lanes B``): the MTP lane chain beside the single-lane traced chain, and the
-device protocol :class:`~models.demos.blackhole.qwen38_flash_next.tools.qwen38_lane_scheduler.Qwen38LaneScheduler`
+device protocol :class:`~qwen38_flash_next.tools.qwen38_lane_scheduler.Qwen38LaneScheduler`
 drives from its one device thread.
 
 The single-lane chain stays resident: it is the prefill engine (its chunk traces, the forced last step, the generic
@@ -39,22 +39,22 @@ from typing import Any, Callable, Sequence
 from ttnn.unsafe_allocation_tracker import UnsafeAllocationTracker
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.tools import resident_decode
-from models.demos.blackhole.qwen38_flash_next.tools.qwen38_chat_session import CHUNK_PREFILL_MIN_ROWS
-from models.demos.blackhole.qwen38_flash_next.tools.qwen38_lane_scheduler import (
+from qwen38_flash_next.tools import resident_decode
+from qwen38_flash_next.tools.qwen38_chat_session import CHUNK_PREFILL_MIN_ROWS
+from qwen38_flash_next.tools.qwen38_lane_scheduler import (
     Qwen38LaneAdmitted,
     Qwen38LaneTicket,
     lane_geometry,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import mtp_lanes, mtp_v2
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import LONG_CHUNK_ROWS
-from models.demos.blackhole.qwen38_flash_next.ttnn.lanes import (
+from qwen38_flash_next.ttnn import gdn as gdn_module
+from qwen38_flash_next.ttnn import mtp_lanes, mtp_v2
+from qwen38_flash_next.ttnn.contracts import LONG_CHUNK_ROWS
+from qwen38_flash_next.ttnn.lanes import (
     Qwen38LaneHostPool,
     Qwen38LaneLayout,
     Qwen38TTNNLanePager,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.layer import PLE_CHECKPOINT_LAYER
+from qwen38_flash_next.ttnn.layer import PLE_CHECKPOINT_LAYER
 
 # The residue variants an import compiles: the GDN ring phase and the QSA raw-history slot rows are ``position % 4``.
 IMPORT_RESIDUES = gdn_module.CONV_KERNEL_SIZE

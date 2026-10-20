@@ -17,19 +17,19 @@ from collections.abc import Sequence
 
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.ttnn.hybrid_decode import (
+from qwen38_flash_next.ttnn.hybrid_decode import (
     Qwen38HybridCachePolicy,
     Qwen38HybridMode,
     Qwen38HybridSessionStatus,
     Qwen38HybridStep,
     Qwen38TTNNHybridDecodeSession,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.mtp_decode import (
+from qwen38_flash_next.ttnn.mtp_decode import (
     DRAFT_EXTENSION_CALLS,
     VERIFY_POSITIONS,
     Qwen38SpeculativeRound,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.sampling import Qwen38SamplingParameters
+from qwen38_flash_next.ttnn.sampling import Qwen38SamplingParameters
 
 
 def execute_one_mtp_round(

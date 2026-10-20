@@ -21,7 +21,7 @@ from pathlib import Path
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn import decode_matmul as dm
+from qwen38_flash_next.ttnn import decode_matmul as dm
 
 
 def main() -> int:

@@ -29,7 +29,7 @@ from types import SimpleNamespace
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.tests.test_mtp_v2_step4_rows_no_device import (
+from qwen38_flash_next.tests.test_mtp_v2_step4_rows_no_device import (
     BF16,
     FP32,
     ROW_MAJOR,
@@ -45,14 +45,14 @@ from models.demos.blackhole.qwen38_flash_next.tests.test_mtp_v2_step4_rows_no_de
     _DType,
     make_fake_ttnn,
 )
-from models.demos.blackhole.qwen38_flash_next.tools.mtp_v2_verify_reference import accept_select
-from models.demos.blackhole.qwen38_flash_next.ttnn import embedding as embedding_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import final_mixer as final_mixer_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import moe as moe_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import mtp as mtp_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import mtp_v2
-from models.demos.blackhole.qwen38_flash_next.ttnn import qsa as qsa_module
+from qwen38_flash_next.tools.mtp_v2_verify_reference import accept_select
+from qwen38_flash_next.ttnn import embedding as embedding_module
+from qwen38_flash_next.ttnn import final_mixer as final_mixer_module
+from qwen38_flash_next.ttnn import gdn as gdn_module
+from qwen38_flash_next.ttnn import moe as moe_module
+from qwen38_flash_next.ttnn import mtp as mtp_module
+from qwen38_flash_next.ttnn import mtp_v2
+from qwen38_flash_next.ttnn import qsa as qsa_module
 
 ROOT = Path(__file__).resolve().parents[1]
 QSA_SOURCE = ROOT / "ttnn" / "qsa.py"

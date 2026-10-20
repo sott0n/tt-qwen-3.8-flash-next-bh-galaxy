@@ -13,10 +13,10 @@ from types import SimpleNamespace
 import pytest
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn import fused
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import program as fp
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import registry
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused.untilize_rows import untilize_rows, untilize_rows_composed
+from qwen38_flash_next.ttnn import fused
+from qwen38_flash_next.ttnn.fused import program as fp
+from qwen38_flash_next.ttnn.fused import registry
+from qwen38_flash_next.ttnn.fused.untilize_rows import untilize_rows, untilize_rows_composed
 
 NAME = "untilize_rows"
 DEFAULT_ON = registry.DEFAULT_ON  # the one list that decides what serves by default

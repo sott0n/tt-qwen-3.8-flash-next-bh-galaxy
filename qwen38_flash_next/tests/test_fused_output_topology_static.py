@@ -19,7 +19,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import program as fp
+from qwen38_flash_next.ttnn.fused import program as fp
 
 FUSED = Path(fp.__file__).resolve().parent
 MODULES = sorted(FUSED.glob("*/__init__.py")) + sorted(p for p in FUSED.glob("*.py") if p.name != "__init__.py")

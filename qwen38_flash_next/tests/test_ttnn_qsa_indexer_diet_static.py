@@ -19,9 +19,10 @@ import pytest
 import torch
 import ttnn
 
-from models.demos.blackhole.qwen38_flash_next.reference import qsa_selected_token_mask
-from models.demos.blackhole.qwen38_flash_next.ttnn import qsa as qsa_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.qsa import (
+from qwen38_flash_next.paths import TT_METAL_ROOT
+from qwen38_flash_next.reference import qsa_selected_token_mask
+from qwen38_flash_next.ttnn import qsa as qsa_module
+from qwen38_flash_next.ttnn.qsa import (
     BLOCK_TOPK,
     COMPRESS_RATIO,
     EXPANSION_GATHER_WIDTH,
@@ -41,7 +42,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.qsa import (
     qsa_selection_geometry,
 )
 
-REPOSITORY = Path(inspect.getfile(Qwen38TTNNQSA)).resolve().parents[5]
+REPOSITORY = TT_METAL_ROOT
 UINT32_LIMIT = 2**32
 
 

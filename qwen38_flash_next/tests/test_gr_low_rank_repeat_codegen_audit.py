@@ -15,9 +15,10 @@ from pathlib import Path
 
 import pytest
 import torch
+from qwen38_flash_next.paths import MODEL_DIR, TT_METAL_ROOT
 
-REPO_ROOT = Path(__file__).resolve().parents[5]
-GR_SOURCE = REPO_ROOT / "models/demos/blackhole/qwen38_flash_next/ttnn/gr.py"
+REPO_ROOT = TT_METAL_ROOT
+GR_SOURCE = MODEL_DIR / "ttnn/gr.py"
 REPEAT_SOURCE = REPO_ROOT / "ttnn/cpp/ttnn/operations/data_movement/repeat/repeat.cpp"
 REPEAT_HEADER = REPO_ROOT / "ttnn/cpp/ttnn/operations/data_movement/repeat/repeat.hpp"
 CODEGEN_SUPPORT = REPO_ROOT / "ttnn/cpp/ttnn/operations/data_movement/repeat/codegen/repeat_codegen_supported.cpp"

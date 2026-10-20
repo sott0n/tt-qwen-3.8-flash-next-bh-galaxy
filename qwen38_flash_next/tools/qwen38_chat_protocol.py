@@ -27,7 +27,7 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 import jinja2
-from models.demos.blackhole.qwen38_flash_next.chat import (
+from qwen38_flash_next.chat import (
     EOS_TOKEN_IDS,
     VOCAB_SIZE,
     Qwen38ChatFormatError,
@@ -396,7 +396,7 @@ def render_prompt(
     ids = encode_chat(tokenizer, text)
     grids = list(image_grids)
     if grids or images:
-        from models.demos.blackhole.qwen38_flash_next import mrope
+        from qwen38_flash_next import mrope
 
         if images is not None and len(grids) != len(images):
             raise Qwen38ChatFormatError(f"{len(images)} image parts but {len(grids)} image grids")

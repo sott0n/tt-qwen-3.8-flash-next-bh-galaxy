@@ -16,10 +16,10 @@ from typing import Callable
 import torch
 import torch.nn.functional as F
 
-from models.demos.blackhole.qwen38_flash_next.checkpoint import Qwen38Checkpoint, TensorMetadata
-from models.demos.blackhole.qwen38_flash_next.config import TP_SIZE, Qwen38Config, Qwen38Placement
-from models.demos.blackhole.qwen38_flash_next.reference import gated_residual_read
-from models.demos.blackhole.qwen38_flash_next.tt.layer import (
+from qwen38_flash_next.checkpoint import Qwen38Checkpoint, TensorMetadata
+from qwen38_flash_next.config import TP_SIZE, Qwen38Config, Qwen38Placement
+from qwen38_flash_next.reference import gated_residual_read
+from qwen38_flash_next.tt.layer import (
     Qwen38DecoderLayer,
     Qwen38DecoderLayerAux,
     Qwen38DecoderLayerState,

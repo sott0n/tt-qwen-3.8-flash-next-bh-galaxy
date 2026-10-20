@@ -14,10 +14,10 @@ from types import SimpleNamespace
 
 import pytest
 
-from models.demos.blackhole.qwen38_flash_next.ttnn import contracts as contracts_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import lanes as lanes_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import model as model_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.lanes import (
+from qwen38_flash_next.ttnn import contracts as contracts_module
+from qwen38_flash_next.ttnn import lanes as lanes_module
+from qwen38_flash_next.ttnn import model as model_module
+from qwen38_flash_next.ttnn.lanes import (
     FILL_FAMILIES,
     GDN_LAYERS,
     LANE_AXIS,

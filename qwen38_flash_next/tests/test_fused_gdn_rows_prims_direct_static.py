@@ -20,12 +20,13 @@ from typing import Any
 import pytest
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn import fused
-from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gdn_rows_prims_direct as module
+from qwen38_flash_next.ttnn import fused
+from qwen38_flash_next.ttnn import gdn as gdn_module
+from qwen38_flash_next.ttnn.fused import gdn_rows_prims_direct as module
+from qwen38_flash_next.paths import TT_METAL_ROOT
 
 MODEL_DIR = Path(__file__).resolve().parents[1]
-REPO_ROOT = MODEL_DIR.parents[3]
+REPO_ROOT = TT_METAL_ROOT
 COMPOSITE = REPO_ROOT / "ttnn/cpp/ttnn/operations/transformer/chunk_gated_delta_rule/chunk_gated_delta_rule.cpp"
 GDN_SOURCE = MODEL_DIR / "ttnn" / "gdn.py"
 NAME = module.NAME

@@ -12,9 +12,9 @@ from types import SimpleNamespace
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.checkpoint import CHECKPOINT_FILE_MANIFEST_SHA256, INDEX_SHA256
-from models.demos.blackhole.qwen38_flash_next.config import CONFIG_SHA256
-from models.demos.blackhole.qwen38_flash_next.ttnn.builder import (
+from qwen38_flash_next.checkpoint import CHECKPOINT_FILE_MANIFEST_SHA256, INDEX_SHA256
+from qwen38_flash_next.config import CONFIG_SHA256
+from qwen38_flash_next.ttnn.builder import (
     Qwen38BuildProvenance,
     Qwen38LiveBuildIdentity,
     Qwen38TTNNBuilder,
@@ -22,7 +22,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.builder import (
     Qwen38TTNNTargetComponents,
     RESIDENT_MAX_QSA_CACHE_CAPACITY,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.decode import (
+from qwen38_flash_next.ttnn.decode import (
     Qwen38OrdinaryDecodeError,
     Qwen38OrdinaryDecodePoisonedError,
     Qwen38OrdinaryDecodeSession,
@@ -31,17 +31,17 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.decode import (
     Qwen38OrdinaryTimingPhase,
     validate_decode_static_contract,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import (
+from qwen38_flash_next.ttnn.embedding import (
     PINNED_CHECKPOINT_REVISION,
     PINNED_TENSOR_MANIFEST_SHA256,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.layer import (
+from qwen38_flash_next.ttnn.layer import (
     BACKBONE_LAYERS,
     Qwen38TTNNDecoderLayerAux,
     Qwen38TTNNDecoderLayerState,
     Qwen38TTNNLayerNamespace,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.model import (
+from qwen38_flash_next.ttnn.model import (
     MAX_CONTEXT,
     LayerObserver,
     Qwen38TTNNGreedyStep,
@@ -239,7 +239,7 @@ def _target(
     )
     mesh = _FakeMesh()
     contract = __import__(
-        "models.demos.blackhole.qwen38_flash_next.ttnn.contracts", fromlist=["Qwen38MeshContract"]
+        "qwen38_flash_next.ttnn.contracts", fromlist=["Qwen38MeshContract"]
     ).Qwen38MeshContract(PHYSICAL_IDS)
     streamer = object()
     layers = tuple(SimpleNamespace(expert_streamer=streamer) for _ in range(BACKBONE_LAYERS))

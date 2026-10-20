@@ -11,9 +11,9 @@ from typing import Literal
 import torch
 import torch.nn.functional as F
 
-from models.demos.blackhole.qwen38_flash_next.checkpoint import Qwen38Checkpoint
-from models.demos.blackhole.qwen38_flash_next.config import TP_SIZE, Qwen38Placement
-from models.demos.blackhole.qwen38_flash_next.reference import gated_residual_read
+from qwen38_flash_next.checkpoint import Qwen38Checkpoint
+from qwen38_flash_next.config import TP_SIZE, Qwen38Placement
+from qwen38_flash_next.reference import gated_residual_read
 
 
 @dataclass(frozen=True)

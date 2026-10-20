@@ -35,30 +35,30 @@ import pytest
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.chat import TOKENIZER_SIZE, VOCAB_SIZE
-from models.demos.blackhole.qwen38_flash_next.checkpoint import PINNED_CHECKPOINT_REVISION
-from models.demos.blackhole.qwen38_flash_next.tests import test_qwen38_prefill_driver_no_device as driver_tests
-from models.demos.blackhole.qwen38_flash_next.tests import test_qwen38_sampling_step_no_device as sampling_tests
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_prefill_driver as driver_module
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_vllm as vllm_module
-from models.demos.blackhole.qwen38_flash_next.tools.live_decode_diagnostic import MODE
-from models.demos.blackhole.qwen38_flash_next.tools.qwen38_chat_session import (
+from qwen38_flash_next.chat import TOKENIZER_SIZE, VOCAB_SIZE
+from qwen38_flash_next.checkpoint import PINNED_CHECKPOINT_REVISION
+from qwen38_flash_next.tests import test_qwen38_prefill_driver_no_device as driver_tests
+from qwen38_flash_next.tests import test_qwen38_sampling_step_no_device as sampling_tests
+from qwen38_flash_next.tools import qwen38_prefill_driver as driver_module
+from qwen38_flash_next.tools import qwen38_vllm as vllm_module
+from qwen38_flash_next.tools.live_decode_diagnostic import MODE
+from qwen38_flash_next.tools.qwen38_chat_session import (
     CHUNK_PREFILL_MIN_ROWS,
     RESIDUE_CLASSES,
     SEED_TOKEN_ID,
     WARM_CHUNK_TOKEN_IDS,
     Qwen38ChatChainError,
 )
-from models.demos.blackhole.qwen38_flash_next.tools.qwen38_prefill_driver import (
+from qwen38_flash_next.tools.qwen38_prefill_driver import (
     CHUNK_PAD_TOKEN_ID,
     Qwen38ChunkPrefill,
     chunk_accepts,
 )
-from models.demos.blackhole.qwen38_flash_next.tools.qwen38_vllm import HF_REPO_ID, Qwen38ForCausalLM, Qwen38VLLMSlot
-from models.demos.blackhole.qwen38_flash_next.tools.runtime_admission import RuntimeAdmissionError
-from models.demos.blackhole.qwen38_flash_next.ttnn import prefill_dense
-from models.demos.blackhole.qwen38_flash_next.ttnn.builder import RESIDENT_CONTEXT_HEADROOM, Qwen38CacheRoots
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import CHUNK_ROWS, DEFAULT_SLAB_ROWS
+from qwen38_flash_next.tools.qwen38_vllm import HF_REPO_ID, Qwen38ForCausalLM, Qwen38VLLMSlot
+from qwen38_flash_next.tools.runtime_admission import RuntimeAdmissionError
+from qwen38_flash_next.ttnn import prefill_dense
+from qwen38_flash_next.ttnn.builder import RESIDENT_CONTEXT_HEADROOM, Qwen38CacheRoots
+from qwen38_flash_next.ttnn.contracts import CHUNK_ROWS, DEFAULT_SLAB_ROWS
 
 HF_ARCHITECTURE = "Qwen4ExpForConditionalGeneration"
 TT_ARCHITECTURE = "TT" + HF_ARCHITECTURE

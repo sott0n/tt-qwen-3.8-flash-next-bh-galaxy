@@ -25,26 +25,26 @@ from types import MappingProxyType
 from typing import Any
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.checkpoint import (
+from qwen38_flash_next.checkpoint import (
     CHECKPOINT_FILE_MANIFEST_SHA256,
     INDEX_SHA256,
     Qwen38Checkpoint,
 )
-from models.demos.blackhole.qwen38_flash_next.config import CONFIG_SHA256, EP_SIZE, TP_SIZE, Qwen38Placement
-from models.demos.blackhole.qwen38_flash_next.diagnostic_bf4 import (
+from qwen38_flash_next.config import CONFIG_SHA256, EP_SIZE, TP_SIZE, Qwen38Placement
+from qwen38_flash_next.diagnostic_bf4 import (
     EXPECTED_SLOTS,
     DiagnosticBF4Artifact,
     DiagnosticBF4Corpus,
     bind_diagnostic_bf4_corpus,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.bf4 import (
+from qwen38_flash_next.ttnn.bf4 import (
     BF4Artifact,
     BF4LayerRecord,
     Qwen38BF4Cache,
     Qwen38BF4ResidentSet,
     qualify_live_bf4_ring,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.builder import (
+from qwen38_flash_next.ttnn.builder import (
     BACKBONE_LAYERS,
     RESIDENT_MAX_QSA_CACHE_CAPACITY,
     RESIDENT_QSA_CACHE_CAPACITIES,
@@ -52,19 +52,19 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.builder import (
     Qwen38CacheRoots,
     Qwen38TTNNBuilder,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import Qwen38MeshContract, TensorPlacement
-from models.demos.blackhole.qwen38_flash_next.ttnn.decode import (
+from qwen38_flash_next.ttnn.contracts import Qwen38MeshContract, TensorPlacement
+from qwen38_flash_next.ttnn.decode import (
     Qwen38OrdinaryDecodeSession,
     Qwen38OrdinarySessionStatus,
     Qwen38OrdinaryStopReason,
     Qwen38OrdinaryToken,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.diagnostic_decode import Qwen38NonqualifyingDecodedToken
-from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import (
+from qwen38_flash_next.ttnn.diagnostic_decode import Qwen38NonqualifyingDecodedToken
+from qwen38_flash_next.ttnn.embedding import (
     PINNED_CHECKPOINT_REVISION,
     PINNED_TENSOR_MANIFEST_SHA256,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.model import LayerObserver
+from qwen38_flash_next.ttnn.model import LayerObserver
 
 MODE = "diagnostic_non_promoting"
 EXPECTED_MESH_SHAPE = (EP_SIZE, TP_SIZE)

@@ -19,7 +19,7 @@ from typing import Mapping
 
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.vision_reference import VisionTowerConfig
+from qwen38_flash_next.vision_reference import VisionTowerConfig
 
 TILE = 32
 PADDED_HEAD_DIM = 96

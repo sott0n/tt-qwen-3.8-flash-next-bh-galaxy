@@ -21,12 +21,12 @@ import pytest
 import torch
 from loguru import logger as loguru_logger
 
-from models.demos.blackhole.qwen38_flash_next.tests import test_ttnn_qsa_chunk_no_device as qsa_test
-from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import gr as gr_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import prefill_glue
-from models.demos.blackhole.qwen38_flash_next.ttnn import qsa as qsa_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import DEFAULT_SLAB_ROWS
+from qwen38_flash_next.tests import test_ttnn_qsa_chunk_no_device as qsa_test
+from qwen38_flash_next.ttnn import gdn as gdn_module
+from qwen38_flash_next.ttnn import gr as gr_module
+from qwen38_flash_next.ttnn import prefill_glue
+from qwen38_flash_next.ttnn import qsa as qsa_module
+from qwen38_flash_next.ttnn.contracts import DEFAULT_SLAB_ROWS
 
 SLAB = DEFAULT_SLAB_ROWS
 ENV = prefill_glue.ENV

@@ -8,7 +8,7 @@ which is the layer's own contribution.  Layer 1 (the PLE layer) needs token ids 
 
 test_layer_component.py runs ``Qwen38DecoderLayer`` on the CPU; this is the device side.
 
-Run:  pytest models/demos/blackhole/qwen38_flash_next/tests/test_layer_tp.py -v -s
+Run:  pytest qwen38_flash_next/tests/test_layer_tp.py -v -s
 Env:  MODEL_WEIGHTS_DIR, MESH_DEVICE="(1, 4)", QWEN38_CACHE_ROOT (skipped without it); QWEN38_BF4_CORPUS with
       QWEN38_BF4_CORPUS_VERIFICATION when the experts come from the CPU-staged corpus
 """
@@ -21,11 +21,11 @@ from loguru import logger
 
 import ttnn
 from models.common.utility_functions import run_for_blackhole
-from models.demos.blackhole.qwen38_flash_next.tests.tp_harness import DEVICE_PARAMS, HIDDEN_SIZE, RESIDUAL_BRANCHES, pcc
-from models.demos.blackhole.qwen38_flash_next.tt.layer import Qwen38DecoderLayer
-from models.demos.blackhole.qwen38_flash_next.tt.model import text_rope
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import MESH_SHAPE
-from models.demos.blackhole.qwen38_flash_next.ttnn.layer import Qwen38TTNNLayerType
+from qwen38_flash_next.tests.tp_harness import DEVICE_PARAMS, HIDDEN_SIZE, RESIDUAL_BRANCHES, pcc
+from qwen38_flash_next.tt.layer import Qwen38DecoderLayer
+from qwen38_flash_next.tt.model import text_rope
+from qwen38_flash_next.ttnn.contracts import MESH_SHAPE
+from qwen38_flash_next.ttnn.layer import Qwen38TTNNLayerType
 
 pytestmark = pytest.mark.skipif(
     os.environ.get("QWEN38_FUSED_DEVICE_TEST") != "1",

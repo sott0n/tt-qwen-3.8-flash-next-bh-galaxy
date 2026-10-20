@@ -16,7 +16,7 @@ from types import SimpleNamespace
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.mrope import (
+from qwen38_flash_next.mrope import (
     IMAGE_TOKEN_ID,
     ROPE_DIM,
     ROPE_THETA,

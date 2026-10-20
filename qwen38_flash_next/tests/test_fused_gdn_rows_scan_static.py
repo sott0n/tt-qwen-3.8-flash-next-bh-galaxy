@@ -18,12 +18,12 @@ from types import SimpleNamespace
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn import fused
-from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gdn_rows_scan as module
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gdn_rows_wrap as wrap
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gdn_step
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import program as fp
+from qwen38_flash_next.ttnn import fused
+from qwen38_flash_next.ttnn import gdn as gdn_module
+from qwen38_flash_next.ttnn.fused import gdn_rows_scan as module
+from qwen38_flash_next.ttnn.fused import gdn_rows_wrap as wrap
+from qwen38_flash_next.ttnn.fused import gdn_step
+from qwen38_flash_next.ttnn.fused import program as fp
 
 NAME = module.NAME
 KERNELS = Path(module.__file__).parent / "kernels"
@@ -351,7 +351,7 @@ def test_the_served_admission_charges_the_prefix_states_when_the_fold_is_on():
     k + 1 and the GDN layer count, when QWEN38_FUSED names the kernel: the 4x p150 line measured 87,394,112 bytes per
     bank at k = 4 with the fold (states 31,093,824) where the estimate without the term was 77,095,515."""
 
-    from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_session as session
+    from qwen38_flash_next.tools import qwen38_chat_session as session
 
     assert session.fold_prefix_states_bytes_per_bank(4) == 36 * -(-(5 * HEADS * (HEAD_DIM // TILE) ** 2) // 8) * 4096
     assert session.fold_prefix_states_bytes_per_bank(module.MAX_ROWS) == 0

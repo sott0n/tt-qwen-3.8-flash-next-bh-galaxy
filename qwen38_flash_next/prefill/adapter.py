@@ -93,7 +93,7 @@ class Qwen38FlashNextPrefillAdapter(PrefillModelAdapter):
     l1_small_size = 0
 
     def load_hf_config(self):
-        from models.demos.blackhole.qwen38_flash_next.config import Qwen38Config
+        from qwen38_flash_next.config import Qwen38Config
 
         return HFConfigCarrier(Qwen38Config.from_checkpoint(Path(_checkpoint_root())))
 
@@ -109,11 +109,11 @@ class Qwen38FlashNextPrefillAdapter(PrefillModelAdapter):
         return path
 
     def allocate_kv_cache(self, *, mesh_device, hf_config, params: PrefillRunParams):
-        from models.demos.blackhole.qwen38_flash_next.prefill.runtime import allocate_slot_caches
+        from qwen38_flash_next.prefill.runtime import allocate_slot_caches
 
         return allocate_slot_caches(mesh_device=mesh_device, hf_config=hf_config, params=params)
 
     def build_runtime(self, *, mesh_device, hf_config, params: PrefillRunParams):
-        from models.demos.blackhole.qwen38_flash_next.prefill.runtime import Qwen38PrefillRuntime
+        from qwen38_flash_next.prefill.runtime import Qwen38PrefillRuntime
 
         return Qwen38PrefillRuntime(mesh_device=mesh_device, hf_config=hf_config, params=params)

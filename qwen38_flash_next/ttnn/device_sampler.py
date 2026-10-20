@@ -48,7 +48,7 @@ so on the same read row it agrees with ``sample_candidates`` up to the quantizat
 full vocabulary it can also differ by exchanging tokens of equal bf16 logit at a shard's 32nd value.  Top-k is
 limited to the 32 candidates the row carries per shard.
 
-Deviations from the host sampler (:func:`~models.demos.blackhole.qwen38_flash_next.ttnn.sampling.sample_candidates`),
+Deviations from the host sampler (:func:`~qwen38_flash_next.ttnn.sampling.sample_candidates`),
 stated: the weights are quantized (relative error at most ``2**-10`` from the 1/1024 grid plus ``0.5 / W`` from the
 rounding, far below the bf16 rounding of the logits themselves); the top-p boundary compares exact integer
 prefixes to one rounded product; a token with ``p / p_max < 2**-19`` gets weight 0.  The device path serves
@@ -63,12 +63,12 @@ from typing import Any
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
+from qwen38_flash_next.ttnn.contracts import (
     Qwen38MeshContract,
     TensorPlacement,
     replicate_tensor_2d_mesh_mapper,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import (
+from qwen38_flash_next.ttnn.embedding import (
     SAMPLING_CANDIDATE_ROW_SHAPE,
     SAMPLING_CANDIDATES_PER_DEVICE,
     TOKEN_ROW_SHAPE,
@@ -77,7 +77,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import (
     _metadata,
     _shape,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.sampling import UNIFORM_BITS, Qwen38SamplingParameters, UniformStream
+from qwen38_flash_next.ttnn.sampling import UNIFORM_BITS, Qwen38SamplingParameters, UniformStream
 
 LANES = TP_SIZE * SAMPLING_CANDIDATES_PER_DEVICE  # 128 candidates per row
 LANE_SHAPE = (1, 1, 1, LANES)

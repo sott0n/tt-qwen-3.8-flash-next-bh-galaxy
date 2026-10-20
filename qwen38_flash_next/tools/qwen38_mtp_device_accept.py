@@ -24,10 +24,10 @@ from typing import Any
 
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.ttnn.device_sampler import Qwen38DeviceSamplerPolicy, weight_table
-from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import ZERO_EMBEDDING_TOKEN
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import mtp_accept, sampler_tail
-from models.demos.blackhole.qwen38_flash_next.ttnn.sampling import UniformStream
+from qwen38_flash_next.ttnn.device_sampler import Qwen38DeviceSamplerPolicy, weight_table
+from qwen38_flash_next.ttnn.embedding import ZERO_EMBEDDING_TOKEN
+from qwen38_flash_next.ttnn.fused import mtp_accept, sampler_tail
+from qwen38_flash_next.ttnn.sampling import UniformStream
 
 SWITCH = "QWEN38_MTP_DEVICE_ACCEPT"
 ARITHMETIC_DEVICE = "device-theta"

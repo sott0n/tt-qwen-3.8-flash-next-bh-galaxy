@@ -12,7 +12,7 @@ from types import MappingProxyType
 
 import pytest
 
-from models.demos.blackhole.qwen38_flash_next import diagnostic_bf4
+from qwen38_flash_next import diagnostic_bf4
 
 PHYSICAL_IDS = (1, 0, 2, 3)
 PRODUCER = {

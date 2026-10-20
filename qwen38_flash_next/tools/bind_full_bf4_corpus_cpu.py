@@ -13,7 +13,7 @@ import socket
 from datetime import datetime, timezone
 from pathlib import Path
 
-from models.demos.blackhole.qwen38_flash_next.diagnostic_bf4 import bind_diagnostic_bf4_corpus
+from qwen38_flash_next.diagnostic_bf4 import bind_diagnostic_bf4_corpus
 
 
 def _utc_now() -> str:

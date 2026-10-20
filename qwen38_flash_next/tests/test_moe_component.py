@@ -10,9 +10,9 @@ import pytest
 import torch
 import torch.nn.functional as F
 
-from models.demos.blackhole.qwen38_flash_next.checkpoint import Qwen38Checkpoint
-from models.demos.blackhole.qwen38_flash_next.config import Qwen38Placement
-from models.demos.blackhole.qwen38_flash_next.tt.moe import (
+from qwen38_flash_next.checkpoint import Qwen38Checkpoint
+from qwen38_flash_next.config import Qwen38Placement
+from qwen38_flash_next.tt.moe import (
     Qwen38MoE,
     Qwen38MoEWeights,
     admit_moe_compute_global_batch,

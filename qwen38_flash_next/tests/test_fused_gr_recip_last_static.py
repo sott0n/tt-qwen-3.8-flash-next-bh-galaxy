@@ -13,9 +13,9 @@ import inspect
 import re
 from pathlib import Path
 
-from models.demos.blackhole.qwen38_flash_next.ttnn import fused
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gr_fold, gr_read, gr_recip_last as gl
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import program as fp
+from qwen38_flash_next.ttnn import fused
+from qwen38_flash_next.ttnn.fused import gr_fold, gr_read, gr_recip_last as gl
+from qwen38_flash_next.ttnn.fused import program as fp
 
 SRC = {name: (fp.REPO_ROOT / path).read_text() for name, path in gl.KERNELS.items()}
 GR_KERNELS = fp.REPO_ROOT / fp.KERNEL_ROOT / "gr_read" / "kernels"

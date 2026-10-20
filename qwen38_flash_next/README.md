@@ -83,7 +83,7 @@ resolves inside the checkout; the launcher uses that interpreter and sets `TT_ME
 
 ## 3. The checkpoint
 
-    python_env/bin/python -m models.demos.blackhole.qwen38_flash_next.tools.download_checkpoint --out /data/Qwen3.8-Flash-Next
+    python_env/bin/python -m qwen38_flash_next.tools.download_checkpoint --out /data/Qwen3.8-Flash-Next
 
 fetches `Qwen/Qwen3.8-Flash-Next` from ModelScope at the release commit `2741eec155d03a8ce151b993ccce1a7b1e398d6b`
 (145 files, 360,023,351,829 bytes) as parallel 128 MiB range requests (`--threads`, default 32), verifies every file's
@@ -106,7 +106,7 @@ shards of layer 1: 51.2B parameters, over 100 GB at BF16) and is read through th
 whose RAM holds it (performance with the table on disk is not measured).  Read it once before the start (13 s from a
 warm cache on the QuietBox; `docs/SERVER.md`):
 
-    python_env/bin/python -m models.demos.blackhole.qwen38_flash_next.tools.prewarm_ple_table --checkpoint /data/Qwen3.8-Flash-Next
+    python_env/bin/python -m qwen38_flash_next.tools.prewarm_ple_table --checkpoint /data/Qwen3.8-Flash-Next
 
 Then the server; `--profile` is `tt-quietbox`, `p150-line` or `qb2` (section 7), and `tools/` in this README is
 `models/demos/blackhole/qwen38_flash_next/tools/`:
@@ -160,7 +160,7 @@ OpenAI-compatible HTTP on the port you chose:
 
 The command-line client:
 
-    python_env/bin/python -m models.demos.blackhole.qwen38_flash_next.tools.qwen38_chat_cli --url http://<host>:8000/v1 --thinking --tools
+    python_env/bin/python -m qwen38_flash_next.tools.qwen38_chat_cli --url http://<host>:8000/v1 --thinking --tools
 
 `POST /v1/chat/completions` (streaming or one document), `GET /v1/models` and `GET /v1/models/<id>`, `GET /health`.  The request rules in short
 (`docs/SERVER.md` has them in full):

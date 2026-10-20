@@ -30,11 +30,11 @@ from typing import Any
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.checkpoint import INDEX_SHA256, Qwen38Checkpoint
-from models.demos.blackhole.qwen38_flash_next.config import EP_SIZE, TP_SIZE
-from models.demos.blackhole.qwen38_flash_next.tt.gdn import Qwen38GDNWeights
-from models.demos.blackhole.qwen38_flash_next.ttnn import fused, prefill_glue
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
+from qwen38_flash_next.checkpoint import INDEX_SHA256, Qwen38Checkpoint
+from qwen38_flash_next.config import EP_SIZE, TP_SIZE
+from qwen38_flash_next.tt.gdn import Qwen38GDNWeights
+from qwen38_flash_next.ttnn import fused, prefill_glue
+from qwen38_flash_next.ttnn.contracts import (
     LONG_CHUNK_ROWS,
     MESH_SHAPE,
     Qwen38MeshContract,
@@ -43,7 +43,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     replicate_tensor_2d_mesh_mapper,
     require_lane_count,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.decode_matmul import (
+from qwen38_flash_next.ttnn.decode_matmul import (
     DENSE_DTYPE_TAGS,
     TWO_READER_QUALIFIED_DTYPES,
     dense_dtype_tag,
@@ -56,7 +56,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.decode_matmul import (
     validate_dram_sharded_weight,
     weight_layout_tag,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.prefill_dense import Qwen38TTNNPrefillDense, prefill_linear
+from qwen38_flash_next.ttnn.prefill_dense import Qwen38TTNNPrefillDense, prefill_linear
 
 TP_AXIS = 1
 HIDDEN_SIZE = 2560

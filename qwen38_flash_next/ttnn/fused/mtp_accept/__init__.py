@@ -215,7 +215,7 @@ def accept_reference(
         raise ValueError(f"{k} drafts take {k + 1} uniforms (u_0 .. u_{k - 1}, v), got {len(uniforms)}")
     uniforms = [_check_uniform(u) for u in uniforms]
     if table is None:
-        from models.demos.blackhole.qwen38_flash_next.ttnn.device_sampler import weight_table
+        from qwen38_flash_next.ttnn.device_sampler import weight_table
 
         table = weight_table(policy.temperature)
     packs = candidate_rows.reshape(k + 1, LANES // SHARD_LANES, 2, SHARD_LANES)

@@ -21,8 +21,9 @@ import pytest
 import torch
 import ttnn
 
-from models.demos.blackhole.qwen38_flash_next.ttnn import qsa as qsa_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.qsa import (
+from qwen38_flash_next.paths import TT_METAL_ROOT
+from qwen38_flash_next.ttnn import qsa as qsa_module
+from qwen38_flash_next.ttnn.qsa import (
     ALL_ONES_U32,
     BLOCK_TOPK,
     CACHE_WRITE_ROWS,
@@ -43,7 +44,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.qsa import (
 )
 
 RESIDENT_BLOCKS = 32768 // COMPRESS_RATIO
-REPOSITORY = Path(inspect.getfile(Qwen38TTNNQSA)).resolve().parents[5]
+REPOSITORY = TT_METAL_ROOT
 POSITION_INPUT_FIELDS = (
     "kv_block_start",
     "kv_row_hit",

@@ -53,32 +53,32 @@ from typing import Any, Callable, Mapping, Sequence
 from urllib.parse import unquote, urlsplit
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next import mrope, vision_splice
-from models.demos.blackhole.qwen38_flash_next.chat import (
+from qwen38_flash_next import mrope, vision_splice
+from qwen38_flash_next.chat import (
     EOS_TOKEN_IDS,
     PINNED_TOKENIZER_ARTIFACTS,
     VOCAB_SIZE,
     Qwen38OfficialChatTemplate,
 )
-from models.demos.blackhole.qwen38_flash_next.tools import hardware_profiles
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_protocol as protocol
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_reference_corpus as reference_corpus
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_sampling_step as sampling_step
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_vision_inputs as vision_inputs
-from models.demos.blackhole.qwen38_flash_next.tools import resident_decode, runtime_admission
-from models.demos.blackhole.qwen38_flash_next.tools.checkpoint_budget import vision_resident_layout
-from models.demos.blackhole.qwen38_flash_next.tools.evidence_records import (
+from qwen38_flash_next.tools import hardware_profiles
+from qwen38_flash_next.tools import qwen38_chat_protocol as protocol
+from qwen38_flash_next.tools import qwen38_reference_corpus as reference_corpus
+from qwen38_flash_next.tools import qwen38_sampling_step as sampling_step
+from qwen38_flash_next.tools import qwen38_vision_inputs as vision_inputs
+from qwen38_flash_next.tools import resident_decode, runtime_admission
+from qwen38_flash_next.tools.checkpoint_budget import vision_resident_layout
+from qwen38_flash_next.tools.evidence_records import (
     append_marker,
     append_phase_record,
     utc_now,
     write_result,
 )
-from models.demos.blackhole.qwen38_flash_next.tools.live_decode_diagnostic import (
+from qwen38_flash_next.tools.live_decode_diagnostic import (
     construct_live_decode_diagnostic,
     missing_bf4_layers,
 )
-from models.demos.blackhole.qwen38_flash_next.tools.qwen38_chat_protocol import Qwen38ChatRequestRejected
-from models.demos.blackhole.qwen38_flash_next.tools.qwen38_chat_session import (
+from qwen38_flash_next.tools.qwen38_chat_protocol import Qwen38ChatRequestRejected
+from qwen38_flash_next.tools.qwen38_chat_session import (
     CHUNK_PREFILL_MIN_ROWS,
     DEFAULT_PREFILL_MODE,
     LONG_CHUNKS_BYTES_PER_BANK_AFTER_CAPTURES,
@@ -97,32 +97,32 @@ from models.demos.blackhole.qwen38_flash_next.tools.qwen38_chat_session import (
     resolve_route,
     template_decoder,
 )
-from models.demos.blackhole.qwen38_flash_next.tools.qwen38_lane_scheduler import (
+from qwen38_flash_next.tools.qwen38_lane_scheduler import (
     DEFAULT_STALL_BUDGET_SECONDS,
     Qwen38LaneScheduler,
     Qwen38LaneSchedulerBusy,
     Qwen38LaneTicket,
     lane_geometry,
 )
-from models.demos.blackhole.qwen38_flash_next.tools.qwen38_mtp_device_accept import SWITCH as DEVICE_ACCEPT_SWITCH
-from models.demos.blackhole.qwen38_flash_next.tools.qwen38_mtp_device_accept import device_accept_switch
-from models.demos.blackhole.qwen38_flash_next.ttnn import fused
-from models.demos.blackhole.qwen38_flash_next.ttnn import fused as fused_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import mtp_v2
-from models.demos.blackhole.qwen38_flash_next.ttnn.builder import (
+from qwen38_flash_next.tools.qwen38_mtp_device_accept import SWITCH as DEVICE_ACCEPT_SWITCH
+from qwen38_flash_next.tools.qwen38_mtp_device_accept import device_accept_switch
+from qwen38_flash_next.ttnn import fused
+from qwen38_flash_next.ttnn import fused as fused_module
+from qwen38_flash_next.ttnn import mtp_v2
+from qwen38_flash_next.ttnn.builder import (
     RESIDENT_MAX_QSA_CACHE_CAPACITY,
     RESIDENT_QSA_CACHE_CAPACITIES,
     Qwen38ResidentContext,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import is_slab_rows
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gdn_rows_scan as gdn_rows_scan_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.moe import (
+from qwen38_flash_next.ttnn.contracts import is_slab_rows
+from qwen38_flash_next.ttnn.fused import gdn_rows_scan as gdn_rows_scan_module
+from qwen38_flash_next.ttnn.moe import (
     MOE_CHUNK_ROWS_FORM,
     MOE_ROWS_FORM,
     MOE_SLAB_ROWS_FORM,
     admit_slab_moe_switches,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.vision_residency import (
+from qwen38_flash_next.ttnn.vision_residency import (
     PEAK_ACTIVATION_BYTES_PER_ROW_PER_DIE,
     VISION_ROW_BUCKETS,
     compose_warm_hooks,
@@ -2706,7 +2706,7 @@ def main() -> int:
     lanes_session = None
     scheduler = None
     if lanes_switch is not None:
-        from models.demos.blackhole.qwen38_flash_next.tools.qwen38_lanes_session import Qwen38LanesSession
+        from qwen38_flash_next.tools.qwen38_lanes_session import Qwen38LanesSession
 
         lanes_session = Qwen38LanesSession(lanes=lanes_switch["lanes"], drafts=lanes_switch["drafts"], marker=marker)
         scheduler = Qwen38LaneScheduler(

@@ -15,10 +15,10 @@ from pathlib import Path
 
 import pytest
 
-from models.demos.blackhole.qwen38_flash_next.ttnn import fused
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import final_mixer as fm
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gr_read as gr
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import program as fp
+from qwen38_flash_next.ttnn import fused
+from qwen38_flash_next.ttnn.fused import final_mixer as fm
+from qwen38_flash_next.ttnn.fused import gr_read as gr
+from qwen38_flash_next.ttnn.fused import program as fp
 
 HERE = Path(__file__).resolve().parents[1]
 MIXER_SOURCE = (HERE / "ttnn" / "final_mixer.py").read_text()

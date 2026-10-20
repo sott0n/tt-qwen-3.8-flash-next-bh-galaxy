@@ -3,9 +3,10 @@
 
 import shutil
 from pathlib import Path
+from qwen38_flash_next.paths import MODEL_DIR, TT_METAL_ROOT
 
-REPO_ROOT = Path(__file__).resolve().parents[5]
-QSA = REPO_ROOT / "models/demos/blackhole/qwen38_flash_next/ttnn/qsa.py"
+REPO_ROOT = TT_METAL_ROOT
+QSA = MODEL_DIR / "ttnn/qsa.py"
 COMPUTE_STREAMING = REPO_ROOT / "ttnn/cpp/ttnn/operations/transformer/sdpa/device/kernels/compute/compute_streaming.hpp"
 INDEXER_SCORE_COMPUTE = (
     REPO_ROOT / "ttnn/cpp/ttnn/operations/experimental/indexer_score/device/kernels/compute_indexer_score.cpp"

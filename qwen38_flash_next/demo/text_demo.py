@@ -7,7 +7,7 @@ The model is the vLLM adapter's ``Qwen38ForCausalLM`` on the shared ``mesh_devic
 128-token prompt, greedy host argmax over the full-vocabulary logits, 50 decode steps.  ``traced_128`` asserts the token
 count and emits the benchmark JSON (under ``CI=true``); ``determinism_128`` generates twice and asserts identical tokens.
 
-Run:  pytest models/demos/blackhole/qwen38_flash_next/demo/text_demo.py -v -s -k traced_128
+Run:  pytest qwen38_flash_next/demo/text_demo.py -v -s -k traced_128
 Env:  MODEL_WEIGHTS_DIR (or HF_MODEL, resolved through the local Hugging Face cache), QWEN38_CACHE_ROOT,
       TT_METAL_TRACE_ALLOC_TRACKING=1 before ttnn is imported; QWEN38_BF4_CORPUS and QWEN38_BF4_CORPUS_VERIFICATION
       when the BF4 expert cache under QWEN38_CACHE_ROOT is not populated yet.
@@ -25,11 +25,11 @@ from loguru import logger
 
 import ttnn
 from models.common.utility_functions import run_for_blackhole
-from models.demos.blackhole.qwen38_flash_next.chat import TOKENIZER_SIZE, Qwen38OfficialChatTemplate
-from models.demos.blackhole.qwen38_flash_next.config import EP_SIZE
-from models.demos.blackhole.qwen38_flash_next.tools.qwen38_vllm import Qwen38ForCausalLM
-from models.demos.blackhole.qwen38_flash_next.ttnn.builder import RESIDENT_CONTEXT_HEADROOM
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import MESH_SHAPE
+from qwen38_flash_next.chat import TOKENIZER_SIZE, Qwen38OfficialChatTemplate
+from qwen38_flash_next.config import EP_SIZE
+from qwen38_flash_next.tools.qwen38_vllm import Qwen38ForCausalLM
+from qwen38_flash_next.ttnn.builder import RESIDENT_CONTEXT_HEADROOM
+from qwen38_flash_next.ttnn.contracts import MESH_SHAPE
 from models.demos.utils.llm_demo_utils import create_benchmark_data
 from models.perf.benchmarking_utils import BenchmarkProfiler
 from models.tt_transformers.tt.model_config import determine_device_name

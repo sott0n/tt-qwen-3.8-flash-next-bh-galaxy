@@ -27,7 +27,7 @@ from types import SimpleNamespace
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.tests.test_mtp_v2_step4_rows_no_device import (
+from qwen38_flash_next.tests.test_mtp_v2_step4_rows_no_device import (
     BF16,
     FP32,
     ROW_MAJOR,
@@ -38,7 +38,7 @@ from models.demos.blackhole.qwen38_flash_next.tests.test_mtp_v2_step4_rows_no_de
     FakeTensor,
     _bf16,
 )
-from models.demos.blackhole.qwen38_flash_next.tests.test_mtp_v2_step5_verify_no_device import (
+from qwen38_flash_next.tests.test_mtp_v2_step5_verify_no_device import (
     BLOCKS,
     CONTEXT,
     U32,
@@ -48,12 +48,12 @@ from models.demos.blackhole.qwen38_flash_next.tests.test_mtp_v2_step5_verify_no_
     _u32_scalar,
     make_verify_fake,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn import contracts as contracts_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import embedding as embedding_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import mtp_v2
-from models.demos.blackhole.qwen38_flash_next.ttnn import qsa as qsa_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.layer import Qwen38TTNNLayerNamespace
+from qwen38_flash_next.ttnn import contracts as contracts_module
+from qwen38_flash_next.ttnn import embedding as embedding_module
+from qwen38_flash_next.ttnn import gdn as gdn_module
+from qwen38_flash_next.ttnn import mtp_v2
+from qwen38_flash_next.ttnn import qsa as qsa_module
+from qwen38_flash_next.ttnn.layer import Qwen38TTNNLayerNamespace
 
 ROOT = Path(__file__).resolve().parents[1]
 MTP_V2_SOURCE = ROOT / "ttnn" / "mtp_v2.py"

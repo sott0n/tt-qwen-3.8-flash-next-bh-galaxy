@@ -9,10 +9,10 @@ import io
 
 import pytest
 
-from models.demos.blackhole.qwen38_flash_next.mrope import IMAGE_TOKEN_ID, Qwen38ImageGrid
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_protocol as protocol
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_vision_inputs as inputs
-from models.demos.blackhole.qwen38_flash_next.tools.qwen38_chat_protocol import Qwen38ChatRequestRejected
+from qwen38_flash_next.mrope import IMAGE_TOKEN_ID, Qwen38ImageGrid
+from qwen38_flash_next.tools import qwen38_chat_protocol as protocol
+from qwen38_flash_next.tools import qwen38_vision_inputs as inputs
+from qwen38_flash_next.tools.qwen38_chat_protocol import Qwen38ChatRequestRejected
 
 PNG_1X1 = base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="

@@ -10,11 +10,11 @@ from __future__ import annotations
 import ast
 import inspect
 
-from models.demos.blackhole.qwen38_flash_next.ttnn import layer as layer_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import model as model_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import CHUNK_ROWS
-from models.demos.blackhole.qwen38_flash_next.ttnn.layer import Qwen38TTNNDecoderLayer, Qwen38TTNNDecoderLayerChunkState
-from models.demos.blackhole.qwen38_flash_next.ttnn.model import Qwen38TTNNTextModel, Qwen38TTNNTextModelChunkState
+from qwen38_flash_next.ttnn import layer as layer_module
+from qwen38_flash_next.ttnn import model as model_module
+from qwen38_flash_next.ttnn.contracts import CHUNK_ROWS
+from qwen38_flash_next.ttnn.layer import Qwen38TTNNDecoderLayer, Qwen38TTNNDecoderLayerChunkState
+from qwen38_flash_next.ttnn.model import Qwen38TTNNTextModel, Qwen38TTNNTextModelChunkState
 
 HOST_IO = ("from_torch(", "to_torch(", "copy_host_to_device_tensor(", ".item()", "synchronize", ".shape[")
 
@@ -191,9 +191,9 @@ def test_gdn_step_anchor_is_a_keyword_off_by_default_from_the_chain_to_the_gdn_c
     """The GDN state re-anchor (``commit_rows(step_committed_rows=True)``) reaches the chunk body as one keyword,
     default off at every level: the layer, the model body and its capture, the chain's open and the driver."""
 
-    from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_session as session_module
-    from models.demos.blackhole.qwen38_flash_next.tools import qwen38_prefill_driver as driver_module
-    from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
+    from qwen38_flash_next.tools import qwen38_chat_session as session_module
+    from qwen38_flash_next.tools import qwen38_prefill_driver as driver_module
+    from qwen38_flash_next.ttnn import gdn as gdn_module
 
     signatures = {
         gdn_module.Qwen38TTNNGDN.commit_rows: "step_committed_rows",

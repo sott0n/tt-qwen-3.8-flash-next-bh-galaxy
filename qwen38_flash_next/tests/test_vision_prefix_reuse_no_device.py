@@ -14,20 +14,20 @@ from types import SimpleNamespace
 
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.mrope import (
+from qwen38_flash_next.mrope import (
     IMAGE_TOKEN_ID,
     VISION_END_TOKEN_ID,
     VISION_START_TOKEN_ID,
     Qwen38ImageGrid,
     mrope_positions,
 )
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_session as session_module
-from models.demos.blackhole.qwen38_flash_next.tools.qwen38_chat_session import (
+from qwen38_flash_next.tools import qwen38_chat_session as session_module
+from qwen38_flash_next.tools.qwen38_chat_session import (
     Qwen38ChatSession,
     Qwen38PromptSnapshot,
     vision_spans_compatible,
 )
-from models.demos.blackhole.qwen38_flash_next.vision_splice import Qwen38VisionPrompt
+from qwen38_flash_next.vision_splice import Qwen38VisionPrompt
 
 GRID = Qwen38ImageGrid(1, 8, 8)  # 16 merged tokens
 TEXT = list(range(1000, 1012))

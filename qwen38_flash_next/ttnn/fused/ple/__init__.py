@@ -393,7 +393,7 @@ def conv_composed(state_rows, normalized, taps, gated, *, shift: bool = True, me
 def _group_norm(module, x, weight):
     """``_distributed_group_norm`` on the fused programs around the chain's stats all_gather."""
 
-    from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import TensorPlacement
+    from qwen38_flash_next.ttnn.contracts import TensorPlacement
 
     s = stats(x)
     s.update_tensor_topology(x.tensor_topology())
@@ -413,7 +413,7 @@ def _body(module, residual_rows, prepared, state, *, inject_residual=None):
     layer's branch-major residual) the conv program also performs the layer's ``add(residual, delta)`` and returns the
     injected residual instead of the delta."""
 
-    from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import TensorPlacement
+    from qwen38_flash_next.ttnn.contracts import TensorPlacement
 
     embedding_tile = ttnn.to_layout(prepared.embedding_sharded, ttnn.TILE_LAYOUT, memory_config=ttnn.DRAM_MEMORY_CONFIG)
     embedding_tile.update_tensor_topology(prepared.embedding_sharded.tensor_topology())
@@ -447,8 +447,8 @@ def ple_fused(module, residual, prepared, state):
     embedding gather and the two linears), then the fused group norms, gate and convolution around the chain's
     collectives; the state shift happens in the conv program's writer."""
 
-    from models.demos.blackhole.qwen38_flash_next.ttnn import ple as pm
-    from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import TensorPlacement
+    from qwen38_flash_next.ttnn import ple as pm
+    from qwen38_flash_next.ttnn.contracts import TensorPlacement
 
     module._validate_residual(residual, label="PLE residual input")
     state.validate()
@@ -469,7 +469,7 @@ def ple_layer_fused(layer, residual, state, *, token_id=None, prepared_ple=None,
     the ``add(residual, delta)`` happen inside the conv program.  The eager host-token branch (no prepared row) and the
     layers without a PLE take the chain."""
 
-    from models.demos.blackhole.qwen38_flash_next.ttnn import ple as pm
+    from qwen38_flash_next.ttnn import ple as pm
 
     if layer.ple is None or prepared_ple is None:
         return type(layer)._apply_ple(
@@ -750,7 +750,7 @@ def conv_lanes(state_rows, normalized, taps, gated, lanes: int, *, mac_form: int
 def _group_norm_lanes(module, x, weight, lanes: int):
     """``_distributed_group_norm_rows`` on the fused lane programs around the chain's stats all_gather."""
 
-    from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import TensorPlacement
+    from qwen38_flash_next.ttnn.contracts import TensorPlacement
 
     s = stats_lanes(x, lanes)
     s.update_tensor_topology(x.tensor_topology())
@@ -770,8 +770,8 @@ def ple_lanes_fused(module, residual_lanes, prepared, lanes_state):
     ``_project_rows`` (the embedding gather and the two linears), then the fused group norms, gate and convolution
     around the chain's collectives (the state shift happens in the conv program's reader); the contexts advance."""
 
-    from models.demos.blackhole.qwen38_flash_next.ttnn import ple as pm
-    from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import TensorPlacement
+    from qwen38_flash_next.ttnn import ple as pm
+    from qwen38_flash_next.ttnn.contracts import TensorPlacement
 
     lanes_state.validate()
     lanes = lanes_state.lanes

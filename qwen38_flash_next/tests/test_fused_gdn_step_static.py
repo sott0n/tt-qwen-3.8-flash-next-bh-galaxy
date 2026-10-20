@@ -9,8 +9,8 @@ from pathlib import Path
 
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.ttnn import fused
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gdn_step as module
+from qwen38_flash_next.ttnn import fused
+from qwen38_flash_next.ttnn.fused import gdn_step as module
 
 KERNELS = Path(module.__file__).parent / "kernels"
 
@@ -158,7 +158,7 @@ def test_the_served_default_dispatches_per_call_and_the_switch_restores_the_chai
 
 
 def test_reference_step_matches_the_oracle_functions():
-    from models.demos.blackhole.qwen38_flash_next.reference import causal_depthwise_conv1d, gated_delta_recurrent
+    from qwen38_flash_next.reference import causal_depthwise_conv1d, gated_delta_recurrent
 
     g = torch.Generator().manual_seed(5)
     rows = 3

@@ -16,8 +16,8 @@ import math
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gdn_rows_reference as ref
+from qwen38_flash_next.ttnn import gdn as gdn_module
+from qwen38_flash_next.ttnn.fused import gdn_rows_reference as ref
 
 T = 64  # two chunks: the FIR boundary between tile rows and the first chunk with a history
 R = 5  # the MTP verify's real rows (k = 4 drafts + the base token) of one 32-row tile
@@ -244,7 +244,7 @@ def test_serial_scan_at_one_row_is_reference_step_bitwise():
     """(i) ``serial_scan_reference`` at R = 1 under ORACLE is ``gdn_step.reference_step`` (tt/gdn.py's arithmetic) bit
     for bit: the conv, beta, the decay, the state after the row, the read-out and the gated row."""
 
-    gdn_step = pytest.importorskip("models.demos.blackhole.qwen38_flash_next.ttnn.fused.gdn_step")
+    gdn_step = pytest.importorskip("qwen38_flash_next.ttnn.fused.gdn_step")
     g = torch.Generator().manual_seed(11)
     projected = torch.zeros(1, ref.PROJECTION_WIDTH)
     projected[:, : ref.A_COLUMN] = torch.randn(1, ref.A_COLUMN, generator=g) * 0.6

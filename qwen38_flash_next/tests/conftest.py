@@ -36,6 +36,6 @@ def pcc_thresholds():
 def tp_harness(mesh_device, tmp_path):
     """The device-side harness on the root ``mesh_device`` fixture; imported here so no-device tests load without ttnn."""
 
-    from models.demos.blackhole.qwen38_flash_next.tests.tp_harness import Qwen38TPHarness
+    from qwen38_flash_next.tests.tp_harness import Qwen38TPHarness
 
     return Qwen38TPHarness(mesh_device, tmp_path)

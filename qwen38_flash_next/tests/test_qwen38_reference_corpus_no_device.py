@@ -13,7 +13,7 @@ import math
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_reference_corpus as corpus
+from qwen38_flash_next.tools import qwen38_reference_corpus as corpus
 
 VOCAB = 40
 HIDDEN = 8

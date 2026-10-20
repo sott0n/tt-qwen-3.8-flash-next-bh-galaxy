@@ -34,7 +34,7 @@ from types import SimpleNamespace
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.tests.test_mtp_v2_step4_rows_no_device import (
+from qwen38_flash_next.tests.test_mtp_v2_step4_rows_no_device import (
     BF16,
     FP32,
     HEAD_DIM,
@@ -55,8 +55,8 @@ from models.demos.blackhole.qwen38_flash_next.tests.test_mtp_v2_step4_rows_no_de
     _residual_rows,
     _seed_state,
 )
-from models.demos.blackhole.qwen38_flash_next.tests import test_mtp_v2_step6_draft_no_device as step6
-from models.demos.blackhole.qwen38_flash_next.tests.test_mtp_v2_step5_verify_no_device import (
+from qwen38_flash_next.tests import test_mtp_v2_step6_draft_no_device as step6
+from qwen38_flash_next.tests.test_mtp_v2_step5_verify_no_device import (
     BLOCKS,
     CONTEXT,
     HOST_TENSOR_CALLS,
@@ -78,17 +78,17 @@ from models.demos.blackhole.qwen38_flash_next.tests.test_mtp_v2_step5_verify_no_
     _Stream,
     make_verify_fake,
 )
-from models.demos.blackhole.qwen38_flash_next.tools.mtp_v2_verify_reference import accept_select
-from models.demos.blackhole.qwen38_flash_next.ttnn import embedding as embedding_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import final_mixer as final_mixer_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import lanes as lanes_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import layer as layer_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import mtp as mtp_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import mtp_lanes, mtp_v2
-from models.demos.blackhole.qwen38_flash_next.ttnn.layer import Qwen38TTNNLayerNamespace
-from models.demos.blackhole.qwen38_flash_next.ttnn import ple as ple_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import qsa as qsa_module
+from qwen38_flash_next.tools.mtp_v2_verify_reference import accept_select
+from qwen38_flash_next.ttnn import embedding as embedding_module
+from qwen38_flash_next.ttnn import final_mixer as final_mixer_module
+from qwen38_flash_next.ttnn import gdn as gdn_module
+from qwen38_flash_next.ttnn import lanes as lanes_module
+from qwen38_flash_next.ttnn import layer as layer_module
+from qwen38_flash_next.ttnn import mtp as mtp_module
+from qwen38_flash_next.ttnn import mtp_lanes, mtp_v2
+from qwen38_flash_next.ttnn.layer import Qwen38TTNNLayerNamespace
+from qwen38_flash_next.ttnn import ple as ple_module
+from qwen38_flash_next.ttnn import qsa as qsa_module
 
 ROOT = Path(__file__).resolve().parents[1]
 GDN_SOURCE = ROOT / "ttnn" / "gdn.py"
@@ -1111,7 +1111,7 @@ def _install_admission_ops(fake) -> None:
     verify writer's tensors), and a ``view`` that ALIASES its source whenever the tile-page reinterpretation is a plain
     reshape (a fill through the view then lands in the owner, as on device)."""
 
-    from models.demos.blackhole.qwen38_flash_next.tests.test_mtp_v2_step4_rows_no_device import (
+    from qwen38_flash_next.tests.test_mtp_v2_step4_rows_no_device import (
         _from_tile_pages,
         _tile_pages,
     )

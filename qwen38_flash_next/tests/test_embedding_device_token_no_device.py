@@ -10,10 +10,10 @@ from types import SimpleNamespace
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.ttnn import embedding as embedding_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import model as model_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import CHUNK_ROWS
-from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import (
+from qwen38_flash_next.ttnn import embedding as embedding_module
+from qwen38_flash_next.ttnn import model as model_module
+from qwen38_flash_next.ttnn.contracts import CHUNK_ROWS
+from qwen38_flash_next.ttnn.embedding import (
     LOCAL_VOCAB_SIZE,
     TILE_SIZE,
     TP_SIZE,
@@ -22,9 +22,10 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import (
     Qwen38TTNNTokenRowConstants,
     _localize_token_ids_on_host,
 )
+from qwen38_flash_next.paths import MODEL_DIR, TT_METAL_ROOT
 
-REPO_ROOT = Path(__file__).resolve().parents[5]
-EMBEDDING = REPO_ROOT / "models/demos/blackhole/qwen38_flash_next/ttnn/embedding.py"
+REPO_ROOT = TT_METAL_ROOT
+EMBEDDING = MODEL_DIR / "ttnn/embedding.py"
 
 
 def _slice(source: str, start: str, end: str) -> str:
@@ -503,7 +504,7 @@ def test_model_embeds_residual_rows_from_the_device_token_rows() -> None:
     assert "embed_device_token_rows(token_row)" in embed
     assert "ttnn.repeat_interleave( hidden, repeats=RESIDUAL_BRANCHES, dim=1" in embed
     assert "residual_rows_shape(rows)" in embed and "block_rows_shape(rows)" in embed
-    from models.demos.blackhole.qwen38_flash_next.ttnn.layer import BLOCK_ROWS_LOCAL_SHAPE, RESIDUAL_ROWS_LOCAL_SHAPE
+    from qwen38_flash_next.ttnn.layer import BLOCK_ROWS_LOCAL_SHAPE, RESIDUAL_ROWS_LOCAL_SHAPE
 
     assert RESIDUAL_ROWS_LOCAL_SHAPE == (1, 4, 32, 640) and BLOCK_ROWS_LOCAL_SHAPE == (1, 1, 32, 640)
     # The 1-row builder is not edited.

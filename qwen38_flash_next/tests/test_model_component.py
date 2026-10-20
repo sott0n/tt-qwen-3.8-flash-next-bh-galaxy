@@ -8,15 +8,15 @@ from pathlib import Path
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.checkpoint import Qwen38Checkpoint
-from models.demos.blackhole.qwen38_flash_next.config import Qwen38Placement
-from models.demos.blackhole.qwen38_flash_next.tt.model import (
+from qwen38_flash_next.checkpoint import Qwen38Checkpoint
+from qwen38_flash_next.config import Qwen38Placement
+from qwen38_flash_next.tt.model import (
     Qwen38FinalMixer,
     Qwen38FinalMixerWeights,
     Qwen38ModelIO,
     text_rope,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.model import _host_rope, _inverse_frequency
+from qwen38_flash_next.ttnn.model import _host_rope, _inverse_frequency
 
 CHECKPOINT = Path(os.environ.get("QWEN38_CHECKPOINT", "/nonexistent/Qwen3.8-Flash-Next"))
 TRANSFORMERS_SRC = os.environ.get("QWEN38_TRANSFORMERS_SRC")

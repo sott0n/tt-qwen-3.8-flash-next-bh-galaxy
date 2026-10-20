@@ -9,7 +9,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from models.demos.blackhole.qwen38_flash_next.ttnn import model as model_module
+from qwen38_flash_next.ttnn import model as model_module
 
 
 class FakeTTNN:

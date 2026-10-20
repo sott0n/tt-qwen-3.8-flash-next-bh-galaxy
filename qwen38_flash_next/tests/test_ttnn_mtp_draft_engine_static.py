@@ -9,21 +9,21 @@ from types import SimpleNamespace
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.ttnn.layer import (
+from qwen38_flash_next.ttnn.layer import (
     Qwen38TTNNDecoderLayerAux,
     Qwen38TTNNDecoderLayerResult,
     Qwen38TTNNDecoderLayerState,
     Qwen38TTNNLayerNamespace,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.mtp_draft import (
+from qwen38_flash_next.ttnn.mtp_draft import (
     BF4_LOAD_POLICY,
     Qwen38TTNNMTPExtensionPositionOneObservation,
     Qwen38TTNNMTPExtensionPositionOneResult,
     Qwen38TTNNMTPDraftEngine,
     Qwen38TTNNMTPDraftPoisonedError,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.moe import Qwen38TTNNRouting
-from models.demos.blackhole.qwen38_flash_next.ttnn.qsa import Qwen38TTNNQSASelection
+from qwen38_flash_next.ttnn.moe import Qwen38TTNNRouting
+from qwen38_flash_next.ttnn.qsa import Qwen38TTNNQSASelection
 
 IDENTITY = "a" * 64
 
@@ -218,7 +218,7 @@ def _engine(monkeypatch, predictions=range(100, 140)):
     def deallocate(tensor):
         released.append(tensor)
 
-    monkeypatch.setattr("models.demos.blackhole.qwen38_flash_next.ttnn.mtp_draft.ttnn.deallocate", deallocate)
+    monkeypatch.setattr("qwen38_flash_next.ttnn.mtp_draft.ttnn.deallocate", deallocate)
     engine = object.__new__(Qwen38TTNNMTPDraftEngine)
     layer = _Layer()
     mixer = _InputMixer()

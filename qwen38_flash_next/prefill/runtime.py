@@ -25,8 +25,8 @@ from typing import Sequence
 from loguru import logger
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.prefill import kv_chunk_table as kct
-from models.demos.blackhole.qwen38_flash_next.prefill.adapter import GDN_LAYERS, QSA_LAYERS
+from qwen38_flash_next.prefill import kv_chunk_table as kct
+from qwen38_flash_next.prefill.adapter import GDN_LAYERS, QSA_LAYERS
 from models.demos.common.prefill.adapter import KvCaches
 from models.demos.common.prefill.runners.migration import KvCacheStage
 
@@ -148,10 +148,10 @@ def build_target_model(*, mesh_device, params):
     import argparse
 
     import ttnn
-    from models.demos.blackhole.qwen38_flash_next.tools import hardware_profiles, runtime_admission
-    from models.demos.blackhole.qwen38_flash_next.tools.live_decode_diagnostic import MODE as HARDWARE_MODE
-    from models.demos.blackhole.qwen38_flash_next.tools.live_decode_diagnostic import construct_live_decode_diagnostic
-    from models.demos.blackhole.qwen38_flash_next.tools.qwen38_chat_session import resolve_route
+    from qwen38_flash_next.tools import hardware_profiles, runtime_admission
+    from qwen38_flash_next.tools.live_decode_diagnostic import MODE as HARDWARE_MODE
+    from qwen38_flash_next.tools.live_decode_diagnostic import construct_live_decode_diagnostic
+    from qwen38_flash_next.tools.qwen38_chat_session import resolve_route
 
     # construct_live_decode_diagnostic refuses any other mode; it is a precondition of this
     # construction path rather than an operator choice, so the runtime sets it.

@@ -12,11 +12,11 @@ import re
 
 import pytest
 
-from models.demos.blackhole.qwen38_flash_next.ttnn import fused
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import moe_combine as mc
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import program as fp
+from qwen38_flash_next.ttnn import fused
+from qwen38_flash_next.ttnn.fused import moe_combine as mc
+from qwen38_flash_next.ttnn.fused import program as fp
 
-MOE = (fp.REPO_ROOT / "models/demos/blackhole/qwen38_flash_next/ttnn/moe.py").read_text()
+MOE = (fp.MODEL_DIR / "ttnn/moe.py").read_text()
 
 
 def _body(name: str) -> str:
@@ -63,7 +63,7 @@ def test_fused_branch_marks_the_program_partial_and_slices_nothing(monkeypatch):
 
     from types import SimpleNamespace
 
-    from models.demos.blackhole.qwen38_flash_next.ttnn import moe as moe_module
+    from qwen38_flash_next.ttnn import moe as moe_module
 
     calls, marked, phases = [], [], []
     monkeypatch.setattr(fused.moe_combine, "admits", lambda *a, **k: True)

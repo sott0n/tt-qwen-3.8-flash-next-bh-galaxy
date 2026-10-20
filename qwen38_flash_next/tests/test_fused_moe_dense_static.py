@@ -14,15 +14,15 @@ from types import SimpleNamespace
 import pytest
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn import fused
-from models.demos.blackhole.qwen38_flash_next.ttnn.decode_matmul import dram_sharded_matmul_configs
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import moe_dense as md
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import placement
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import program as fp
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import router_tail as rt
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import shared_expert as se
+from qwen38_flash_next.ttnn import fused
+from qwen38_flash_next.ttnn.decode_matmul import dram_sharded_matmul_configs
+from qwen38_flash_next.ttnn.fused import moe_dense as md
+from qwen38_flash_next.ttnn.fused import placement
+from qwen38_flash_next.ttnn.fused import program as fp
+from qwen38_flash_next.ttnn.fused import router_tail as rt
+from qwen38_flash_next.ttnn.fused import shared_expert as se
 
-MODEL_DIR = fp.REPO_ROOT / "models/demos/blackhole/qwen38_flash_next"
+MODEL_DIR = fp.MODEL_DIR
 DOWN_KERNEL = (MODEL_DIR / "ttnn/fused/moe_dense/kernels/down_compute.cpp").read_text()
 GR_DOWN_KERNEL = (MODEL_DIR / "ttnn/fused/gr_read/kernels/down_compute.cpp").read_text()
 MOE = (MODEL_DIR / "ttnn/moe.py").read_text()

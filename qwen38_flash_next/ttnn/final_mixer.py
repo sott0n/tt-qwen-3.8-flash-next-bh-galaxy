@@ -13,10 +13,10 @@ from typing import Any, Literal
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.checkpoint import INDEX_SHA256, Qwen38Checkpoint
-from models.demos.blackhole.qwen38_flash_next.config import TP_SIZE, Qwen38Placement
-from models.demos.blackhole.qwen38_flash_next.tt.model import Qwen38FinalMixerWeights
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
+from qwen38_flash_next.checkpoint import INDEX_SHA256, Qwen38Checkpoint
+from qwen38_flash_next.config import TP_SIZE, Qwen38Placement
+from qwen38_flash_next.tt.model import Qwen38FinalMixerWeights
+from qwen38_flash_next.ttnn.contracts import (
     MESH_SHAPE,
     Qwen38MeshContract,
     TensorPlacement,
@@ -24,7 +24,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     require_lane_count,
     same_buffer,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.decode_matmul import (
+from qwen38_flash_next.ttnn.decode_matmul import (
     dense_dtype_tag,
     dense_math_fidelity_name,
     dram_sharded_matmul_configs,
@@ -309,7 +309,7 @@ class Qwen38TTNNFinalMixer:
         self.norm_scale_flat = ttnn.experimental.view(weights.norm_scale, FLAT_LOCAL_SHAPE)
         # QWEN38_FUSED=final_mixer: the fused programs (F2's stats/normalize/down/gate and the composite-order low-rank
         # sum) bind at construction; the pinned chain below stays the class body.
-        from models.demos.blackhole.qwen38_flash_next.ttnn import fused as fused_kernels
+        from qwen38_flash_next.ttnn import fused as fused_kernels
 
         if fused_kernels.enabled("final_mixer") and weights.weight_dtype != ttnn.bfloat16:
             raise ValueError(

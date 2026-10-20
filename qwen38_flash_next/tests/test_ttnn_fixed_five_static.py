@@ -16,28 +16,28 @@ from unittest import mock
 import pytest
 import torch
 
-import models.demos.blackhole.qwen38_flash_next.ttnn.fixed_five as fixed_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.builder import Qwen38TTNNBuiltTarget, Qwen38TTNNTargetComponents
-from models.demos.blackhole.qwen38_flash_next.ttnn.fixed_five import (
+import qwen38_flash_next.ttnn.fixed_five as fixed_module
+from qwen38_flash_next.ttnn.builder import Qwen38TTNNBuiltTarget, Qwen38TTNNTargetComponents
+from qwen38_flash_next.ttnn.fixed_five import (
     TARGET_ROWS,
     Qwen38TTNNFixedFiveTarget,
     _Qwen38FixedFiveTransaction,
     validate_fixed_five_static_contract,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.layer import (
+from qwen38_flash_next.ttnn.layer import (
     BACKBONE_LAYERS,
     Qwen38TTNNDecoderLayerState,
     Qwen38TTNNLayerNamespace,
     Qwen38TTNNLayerType,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.model import (
+from qwen38_flash_next.ttnn.model import (
     Qwen38TTNNModelPoisonedError,
     Qwen38TTNNTextModel,
     Qwen38TTNNTextModelOutput,
     Qwen38TTNNTextModelState,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.moe import Qwen38TTNNMoEResult
-from models.demos.blackhole.qwen38_flash_next.ttnn.mtp_decode import (
+from qwen38_flash_next.ttnn.moe import Qwen38TTNNMoEResult
+from qwen38_flash_next.ttnn.mtp_decode import (
     Qwen38FixedFiveTarget,
     Qwen38TargetCommitMode,
     Qwen38TargetVerification,

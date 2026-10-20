@@ -28,28 +28,28 @@ from typing import Any, Mapping, NoReturn, Sequence
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.checkpoint import (
+from qwen38_flash_next.checkpoint import (
     CHECKPOINT_FILE_MANIFEST_SHA256,
     CHECKPOINT_TENSOR_MANIFEST_SHA256,
     INDEX_SHA256,
     PINNED_CHECKPOINT_REVISION,
     Qwen38Checkpoint,
 )
-from models.demos.blackhole.qwen38_flash_next.config import (
+from qwen38_flash_next.config import (
     CONFIG_SHA256,
     EP_SIZE,
     SUPPORTED_TP_SIZES,
     TP_SIZE,
     Qwen38Placement,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
+from qwen38_flash_next.ttnn.contracts import (
     CHUNK_ROW_COUNTS,
     MESH_SHAPE,
     Qwen38MeshContract,
     TensorPlacement,
     same_buffer,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.decode_matmul import dense_dtype_tag, dense_math_fidelity_name
+from qwen38_flash_next.ttnn.decode_matmul import dense_dtype_tag, dense_math_fidelity_name
 
 TP_AXIS = 1
 HIDDEN_SIZE = 2560

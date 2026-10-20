@@ -69,31 +69,31 @@ from typing import Any
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.tools.qwen38_chat_protocol import THINK_END_ID
-from models.demos.blackhole.qwen38_flash_next.tools.qwen38_mtp_device_accept import ARITHMETIC_HOST
-from models.demos.blackhole.qwen38_flash_next.tools.qwen38_mtp_device_accept import SWITCH as DEVICE_ACCEPT_SWITCH
-from models.demos.blackhole.qwen38_flash_next.tools.qwen38_mtp_device_accept import Qwen38DeviceAcceptance
-from models.demos.blackhole.qwen38_flash_next.tools.qwen38_mtp_device_accept import (
+from qwen38_flash_next.tools.qwen38_chat_protocol import THINK_END_ID
+from qwen38_flash_next.tools.qwen38_mtp_device_accept import ARITHMETIC_HOST
+from qwen38_flash_next.tools.qwen38_mtp_device_accept import SWITCH as DEVICE_ACCEPT_SWITCH
+from qwen38_flash_next.tools.qwen38_mtp_device_accept import Qwen38DeviceAcceptance
+from qwen38_flash_next.tools.qwen38_mtp_device_accept import (
     for_chain as device_acceptance_for_chain,
 )
-from models.demos.blackhole.qwen38_flash_next.tools.resident_decode import (
+from qwen38_flash_next.tools.resident_decode import (
     SINGLE_TRACE_RESIDUE_CLASS_TRACES as RESIDUE_CLASSES,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn import fused, mtp_v2
-from models.demos.blackhole.qwen38_flash_next.ttnn.device_sampler import (
+from qwen38_flash_next.ttnn import fused, mtp_v2
+from qwen38_flash_next.ttnn.device_sampler import (
     Qwen38DeviceSamplerPolicy,
     Qwen38TTNNDeviceSamplerConstants,
     candidate_row_lanes,
     device_sampler_reference,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import (
+from qwen38_flash_next.ttnn.embedding import (
     SAMPLING_CANDIDATE_ROW_SHAPE,
     ZERO_EMBEDDING_TOKEN,
     Qwen38ShardedLogits,
     Qwen38TTNNLMHead,
     Qwen38TTNNSamplingCandidateConstants,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.sampling import (
+from qwen38_flash_next.ttnn.sampling import (
     CANDIDATE_TOP_K_LIMIT,
     MAX_SEED,
     MAX_TOP_LOGPROBS,
@@ -109,7 +109,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.sampling import (
     sample_candidates,
     sample_full_vocabulary,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.speculative_sampling import (
+from qwen38_flash_next.ttnn.speculative_sampling import (
     Qwen38SpeculativeAcceptance,
     accept_point_mass,
 )
@@ -562,8 +562,8 @@ class Qwen38SampledDraftingStats:
         """One device-decided pass from its 16 statistics lanes (``fused/mtp_accept``): ``a*`` drafts accepted,
         ``k + 1`` uniforms consumed, the resample flag, the guard bits, ``p_j = w_j / S_j`` of the evaluated rows."""
 
-        from models.demos.blackhole.qwen38_flash_next.tools import qwen38_mtp_device_accept as da
-        from models.demos.blackhole.qwen38_flash_next.ttnn.fused import mtp_accept as ma
+        from qwen38_flash_next.tools import qwen38_mtp_device_accept as da
+        from qwen38_flash_next.ttnn.fused import mtp_accept as ma
 
         self.passes += 1
         self.accepted_drafts += int(statistics[ma.STAT_ACCEPTED])

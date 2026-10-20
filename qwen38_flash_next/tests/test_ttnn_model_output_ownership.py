@@ -3,8 +3,8 @@
 
 from __future__ import annotations
 
-from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import Qwen38ShardedLogits
-from models.demos.blackhole.qwen38_flash_next.ttnn.model import Qwen38TTNNTextModelOutput
+from qwen38_flash_next.ttnn.embedding import Qwen38ShardedLogits
+from qwen38_flash_next.ttnn.model import Qwen38TTNNTextModelOutput
 
 
 class _Tensor:
@@ -38,7 +38,7 @@ def test_hyper_root_transfer_updates_cleanup_ledger(monkeypatch):
     output = _output(root=root, hidden=hidden, logits=_logits(logit_tensor))
     released = []
     monkeypatch.setattr(
-        "models.demos.blackhole.qwen38_flash_next.ttnn.model.ttnn.deallocate",
+        "qwen38_flash_next.ttnn.model.ttnn.deallocate",
         released.append,
     )
 
@@ -57,7 +57,7 @@ def test_logits_transfer_leaves_root_owned_and_never_releases_logits(monkeypatch
     output = _output(root=root, logits=logits)
     released = []
     monkeypatch.setattr(
-        "models.demos.blackhole.qwen38_flash_next.ttnn.model.ttnn.deallocate",
+        "qwen38_flash_next.ttnn.model.ttnn.deallocate",
         released.append,
     )
 
@@ -74,7 +74,7 @@ def test_single_root_transfer_consumes_output_owner_without_deallocation(monkeyp
     output = _output(root=root)
     released = []
     monkeypatch.setattr(
-        "models.demos.blackhole.qwen38_flash_next.ttnn.model.ttnn.deallocate",
+        "qwen38_flash_next.ttnn.model.ttnn.deallocate",
         released.append,
     )
 

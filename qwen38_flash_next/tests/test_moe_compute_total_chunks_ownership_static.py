@@ -3,8 +3,9 @@
 
 import re
 from pathlib import Path
+from qwen38_flash_next.paths import TT_METAL_ROOT
 
-REPO_ROOT = Path(__file__).resolve().parents[5]
+REPO_ROOT = TT_METAL_ROOT
 KERNELS = REPO_ROOT / "ttnn/cpp/ttnn/operations/experimental/ccl/moe_compute/device/kernels"
 
 

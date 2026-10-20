@@ -19,7 +19,7 @@ import inspect
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.tests.test_mtp_v2_step4_rows_no_device import (
+from qwen38_flash_next.tests.test_mtp_v2_step4_rows_no_device import (
     BF16,
     FP32,
     ROW_MAJOR,
@@ -41,11 +41,11 @@ from models.demos.blackhole.qwen38_flash_next.tests.test_mtp_v2_step4_rows_no_de
     fake,  # noqa: F401  (pytest fixture)
     gdn_weights,  # noqa: F401  (pytest fixture)
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import layer as layer_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import model as model_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import qsa as qsa_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import CHUNK_ROWS
+from qwen38_flash_next.ttnn import gdn as gdn_module
+from qwen38_flash_next.ttnn import layer as layer_module
+from qwen38_flash_next.ttnn import model as model_module
+from qwen38_flash_next.ttnn import qsa as qsa_module
+from qwen38_flash_next.ttnn.contracts import CHUNK_ROWS
 
 TAIL_ROWS = (0, 1, 2, 8, 9, 31)
 PREFILL_CASES = [(tail, tail + 32 * chunks) for tail in TAIL_ROWS for chunks in range(3)]

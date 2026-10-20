@@ -7,9 +7,9 @@ from __future__ import annotations
 import inspect
 from pathlib import Path
 
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_sampling_step as step
-from models.demos.blackhole.qwen38_flash_next.ttnn import embedding, fused
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import greedy_tail as gt
+from qwen38_flash_next.tools import qwen38_sampling_step as step
+from qwen38_flash_next.ttnn import embedding, fused
+from qwen38_flash_next.ttnn.fused import greedy_tail as gt
 
 KERNELS = Path(gt.__file__).parent / "kernels"
 

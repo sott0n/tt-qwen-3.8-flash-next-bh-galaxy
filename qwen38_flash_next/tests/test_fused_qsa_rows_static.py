@@ -14,13 +14,13 @@ from pathlib import Path
 
 import ttnn
 
-from models.demos.blackhole.qwen38_flash_next.ttnn import fused
-from models.demos.blackhole.qwen38_flash_next.ttnn import qsa as qsa_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import qsa_block, qsa_rows
+from qwen38_flash_next.ttnn import fused
+from qwen38_flash_next.ttnn import qsa as qsa_module
+from qwen38_flash_next.ttnn.fused import qsa_block, qsa_rows
 
 # the package rebinds its ``main_tail_rows`` attribute to the function; the module is reached through sys.modules
 main_tail_rows_module = importlib.import_module(
-    "models.demos.blackhole.qwen38_flash_next.ttnn.fused.qsa_rows.main_tail_rows"
+    "qwen38_flash_next.ttnn.fused.qsa_rows.main_tail_rows"
 )
 
 MODEL_DIR = Path(__file__).resolve().parents[1]
@@ -201,7 +201,7 @@ def test_post_attention_rows_is_a_default_bitwise_program_on_48_cores() -> None:
 
     import importlib
 
-    pa = importlib.import_module("models.demos.blackhole.qwen38_flash_next.ttnn.fused.qsa_rows.post_attention_rows")
+    pa = importlib.import_module("qwen38_flash_next.ttnn.fused.qsa_rows.post_attention_rows")
 
     kernel = fused.kernel(qsa_rows.PA_NAME)
     assert qsa_rows.PA_NAME == "qsa_rows_post_attention" and kernel.tolerance == fused.BITWISE

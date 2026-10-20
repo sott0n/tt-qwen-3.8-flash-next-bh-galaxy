@@ -22,17 +22,17 @@ from types import SimpleNamespace
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_sampling_step as step
-from models.demos.blackhole.qwen38_flash_next.tools.mtp_v2_verify_reference import accept_select
-from models.demos.blackhole.qwen38_flash_next.ttnn import mtp_v2
-from models.demos.blackhole.qwen38_flash_next.ttnn import sampling
-from models.demos.blackhole.qwen38_flash_next.ttnn import speculative_sampling as spec
-from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import (
+from qwen38_flash_next.tools import qwen38_sampling_step as step
+from qwen38_flash_next.tools.mtp_v2_verify_reference import accept_select
+from qwen38_flash_next.ttnn import mtp_v2
+from qwen38_flash_next.ttnn import sampling
+from qwen38_flash_next.ttnn import speculative_sampling as spec
+from qwen38_flash_next.ttnn.embedding import (
     SAMPLING_CANDIDATE_ROW_SHAPE,
     VOCAB_SIZE,
     ZERO_EMBEDDING_TOKEN,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.sampling import (
+from qwen38_flash_next.ttnn.sampling import (
     Qwen38CandidateFallback,
     Qwen38CandidateRow,
     Qwen38RowDistribution,
@@ -750,7 +750,7 @@ def test_session_admits_sampled_drafting_only_through_the_switch_and_the_admissi
     assert "mtp_sampled: bool = False" in construct and "mtp_sampled=mtp_sampled" in construct
     # The switch: the server reads QWEN38_MTP_SAMPLED; unset, it is on wherever it applies (an --mtp --sampling
     # server) and off elsewhere; 0 turns it off, 1 on (main refuses 1 where it does not apply); other values refused.
-    from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_server as server
+    from qwen38_flash_next.tools import qwen38_chat_server as server
 
     assert server.MTP_SAMPLED_VARIABLE == "QWEN38_MTP_SAMPLED"
     assert server.mtp_sampled_switch({}) is True and server.mtp_sampled_switch({}, applicable=False) is False
@@ -777,7 +777,7 @@ def test_open_captures_the_fused_verify_always_and_the_split_form_beside_it_unde
     rounds under the switch are the split form's; ``mtp_enter`` routes a greedy request (``decide`` None) to the
     fused traces with no head output and a sampled one to the split traces with its ``decide``."""
 
-    from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_session as session_module
+    from qwen38_flash_next.tools import qwen38_chat_session as session_module
 
     functions = _functions(SESSION_SOURCE)
     opened = _segment(SESSION_SOURCE, functions["open"])
@@ -882,7 +882,7 @@ def test_open_captures_the_fused_verify_always_and_the_split_form_beside_it_unde
         '(["split"] if target.split_traces is not None else [])' in captures
         and 'if captured_forms != target.admission["verify_forms_captured"]:' in captures
     )
-    from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_server as server
+    from qwen38_flash_next.tools import qwen38_chat_server as server
 
     main = inspect.getsource(server.main)
     assert "forms = mtp_verify_forms(mtp_sampled, mtp_device_accept)" in main and "verify_forms=len(forms)" in main

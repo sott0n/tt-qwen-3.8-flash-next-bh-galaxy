@@ -1,6 +1,6 @@
 """Download the Qwen3.8-Flash-Next checkpoint from ModelScope at a pinned revision, verified by SHA-256.
 
-    python -m models.demos.blackhole.qwen38_flash_next.tools.download_checkpoint --out /data/Qwen3.8-Flash-Next
+    python -m qwen38_flash_next.tools.download_checkpoint --out /data/Qwen3.8-Flash-Next
 
 The file listing of the revision (path, size, SHA-256 per file) comes from the ModelScope API and is saved next to
 the download (``<out>/.download/files.json``; ``tools/verify_checkpoint_files.py`` takes it).  Every file is fetched
@@ -24,7 +24,7 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from models.demos.blackhole.qwen38_flash_next.checkpoint import PINNED_CHECKPOINT_REVISION
+from qwen38_flash_next.checkpoint import PINNED_CHECKPOINT_REVISION
 
 MODEL = "Qwen/Qwen3.8-Flash-Next"
 # The ModelScope commit of the release (2026-09-04): 145 files, 360,023,351,829 bytes; its safetensors, config,

@@ -18,9 +18,9 @@ import pytest
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn import fused
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gr_write as gw
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import program as fp
+from qwen38_flash_next.ttnn import fused
+from qwen38_flash_next.ttnn.fused import gr_write as gw
+from qwen38_flash_next.ttnn.fused import program as fp
 
 SOURCES = {name: (fp.REPO_ROOT / path).read_text() for name, path in gw.KERNELS.items()}
 GR_SOURCE = Path(__file__).resolve().parents[1] / "ttnn" / "gr.py"

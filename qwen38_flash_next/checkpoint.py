@@ -18,7 +18,7 @@ from typing import Any, Callable, Sequence
 import torch
 from safetensors import safe_open
 
-from models.demos.blackhole.qwen38_flash_next.config import Qwen38Config
+from qwen38_flash_next.config import Qwen38Config
 
 PINNED_CHECKPOINT_REVISION = "f5d08274bafd880402bd16f5e3e6c514136ec06c"
 INDEX_SHA256 = "99e815241ef03325536b0aaa4441deea45174c17fae31e10f0bb456410c590de"

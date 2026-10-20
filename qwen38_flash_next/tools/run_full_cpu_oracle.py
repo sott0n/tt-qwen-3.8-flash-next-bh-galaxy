@@ -15,9 +15,9 @@ from pathlib import Path
 
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.checkpoint import Qwen38Checkpoint
-from models.demos.blackhole.qwen38_flash_next.config import Qwen38Placement
-from models.demos.blackhole.qwen38_flash_next.tt.model import Qwen38TextModelOracle
+from qwen38_flash_next.checkpoint import Qwen38Checkpoint
+from qwen38_flash_next.config import Qwen38Placement
+from qwen38_flash_next.tt.model import Qwen38TextModelOracle
 
 
 OFFICIAL_CHAT_SYSTEM_PROMPT = "You are a helpful assistant."
@@ -103,7 +103,7 @@ def _error_stats(actual: torch.Tensor, expected: torch.Tensor) -> dict[str, floa
 def _render_official_sky_prompt(template):
     """Render the same fixed ordinary request used by ``--run-append-once``."""
 
-    from models.demos.blackhole.qwen38_flash_next.chat import PINNED_TOKENIZER_ARTIFACTS
+    from qwen38_flash_next.chat import PINNED_TOKENIZER_ARTIFACTS
 
     rendered = template.render(
         (
@@ -395,7 +395,7 @@ def _generate_official_sky_reference(
 
 
 def _run_official_sky_chat(args: argparse.Namespace) -> int:
-    from models.demos.blackhole.qwen38_flash_next.chat import EOS_TOKEN_IDS, Qwen38OfficialChatTemplate
+    from qwen38_flash_next.chat import EOS_TOKEN_IDS, Qwen38OfficialChatTemplate
 
     torch.set_grad_enabled(False)
     checkpoint = Qwen38Checkpoint(args.checkpoint)

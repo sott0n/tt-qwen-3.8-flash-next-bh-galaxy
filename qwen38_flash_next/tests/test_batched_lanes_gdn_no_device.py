@@ -25,16 +25,16 @@ from pathlib import Path
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.ttnn import contracts as contracts_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import final_mixer as mixer_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import gr as gr_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import layer as layer_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import model as model_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import ple as ple_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import qsa as qsa_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import GDN_RESIDUE_CLASSES, Qwen38TTNNDevicePositionRow
-from models.demos.blackhole.qwen38_flash_next.ttnn.final_mixer import (
+from qwen38_flash_next.ttnn import contracts as contracts_module
+from qwen38_flash_next.ttnn import final_mixer as mixer_module
+from qwen38_flash_next.ttnn import gdn as gdn_module
+from qwen38_flash_next.ttnn import gr as gr_module
+from qwen38_flash_next.ttnn import layer as layer_module
+from qwen38_flash_next.ttnn import model as model_module
+from qwen38_flash_next.ttnn import ple as ple_module
+from qwen38_flash_next.ttnn import qsa as qsa_module
+from qwen38_flash_next.ttnn.contracts import GDN_RESIDUE_CLASSES, Qwen38TTNNDevicePositionRow
+from qwen38_flash_next.ttnn.final_mixer import (
     FLAT_LOCAL_WIDTH,
     RESIDUAL_RANK,
     Qwen38TTNNFinalMixer,
@@ -416,7 +416,7 @@ HOST_IO = ("ttnn.from_torch", "ttnn.to_torch", "ttnn.copy_host_to_device_tensor"
 
 
 def test_gdn_lanes_body_is_the_one_row_walk_with_the_lanes_suffix_and_the_one_row_body_is_untouched() -> None:
-    from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gdn_step as gdn_step_module
+    from qwen38_flash_next.ttnn.fused import gdn_step as gdn_step_module
 
     one_row = [name for name in _self_walk(gdn_module.Qwen38TTNNGDN.forward_decode) if name.startswith("_")]
     lanes = [name for name in _self_walk(gdn_module.Qwen38TTNNGDN.forward_decode_lanes) if name.startswith("_")]
@@ -492,8 +492,8 @@ def test_gdn_fused_lanes_body_is_the_one_row_fused_walk_on_b_rows_and_binds_unde
     slot, the phase advanced once after the step); it is bound over the class body at construction only when the kernel
     is on, and the class body, the fallback, still runs the lane chain."""
 
-    from models.demos.blackhole.qwen38_flash_next.ttnn import fused
-    from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gdn_step as gdn_step_module
+    from qwen38_flash_next.ttnn import fused
+    from qwen38_flash_next.ttnn.fused import gdn_step as gdn_step_module
 
     cls = gdn_module.Qwen38TTNNGDN
     fused_body = cls._forward_decode_lanes_fused

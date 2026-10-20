@@ -10,7 +10,8 @@ from pathlib import Path
 import pytest
 import ttnn
 
-from models.demos.blackhole.qwen38_flash_next.ttnn.qsa import (
+from qwen38_flash_next.paths import TT_METAL_ROOT
+from qwen38_flash_next.ttnn.qsa import (
     MAX_CONTEXT,
     MIN_QSA_CACHE_CAPACITY,
     QSA_CACHE_CAPACITY_ALIGNMENT,
@@ -86,7 +87,7 @@ def test_front_padded_query_pads_only_after_row_major_conversion() -> None:
 
 
 def test_pinned_runtime_tile_pad_rejects_front_padding_but_row_major_path_supports_it() -> None:
-    repository = Path(inspect.getfile(Qwen38TTNNQSA)).resolve().parents[5]
+    repository = TT_METAL_ROOT
     pad_source = (repository / "ttnn/cpp/ttnn/operations/data_movement/pad/pad.cpp").read_text()
     row_major = pad_source[pad_source.index("ttnn::Tensor invoke_rm(") : pad_source.index("ttnn::Tensor invoke_tile(")]
     tile = pad_source[pad_source.index("ttnn::Tensor invoke_tile(") :]

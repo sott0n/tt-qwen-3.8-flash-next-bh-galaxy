@@ -15,13 +15,13 @@ import itertools
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.tools.mtp_v2_verify_reference import (
+from qwen38_flash_next.tools.mtp_v2_verify_reference import (
     accept_select,
     chain_alphas,
     expected_tokens_per_pass,
     tf32,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import GREEDY_TIE_BREAK_EPS, TP_SIZE
+from qwen38_flash_next.ttnn.embedding import GREEDY_TIE_BREAK_EPS, TP_SIZE
 
 # Ids seen on the pinned prefixes and at the vocabulary edge: below and above the 2048 TF32 limit.
 SMALL_IDS = (17, 15, 16, 21, 12, 20, 11, 0, 2047)

@@ -11,18 +11,18 @@ import pytest
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.checkpoint import CHECKPOINT_FILE_MANIFEST_SHA256, INDEX_SHA256
-from models.demos.blackhole.qwen38_flash_next.config import CONFIG_SHA256
-from models.demos.blackhole.qwen38_flash_next.ttnn.builder import Qwen38BuildProvenance, Qwen38LiveBuildIdentity
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import Qwen38MeshContract, TensorPlacement
-from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import (
+from qwen38_flash_next.checkpoint import CHECKPOINT_FILE_MANIFEST_SHA256, INDEX_SHA256
+from qwen38_flash_next.config import CONFIG_SHA256
+from qwen38_flash_next.ttnn.builder import Qwen38BuildProvenance, Qwen38LiveBuildIdentity
+from qwen38_flash_next.ttnn.contracts import Qwen38MeshContract, TensorPlacement
+from qwen38_flash_next.ttnn.embedding import (
     PINNED_CHECKPOINT_REVISION,
     PINNED_TENSOR_MANIFEST_SHA256,
     VOCAB_SIZE,
     Qwen38ShardedLogits,
     Qwen38TTNNLMHead,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.sampling import (
+from qwen38_flash_next.ttnn.sampling import (
     EXPECTED_VOCAB_RANGES,
     Qwen38SamplingCleanupError,
     Qwen38SamplingError,

@@ -22,18 +22,18 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from models.demos.blackhole.qwen38_flash_next.checkpoint import (
+from qwen38_flash_next.checkpoint import (
     CHECKPOINT_FILE_MANIFEST_SHA256,
     CHECKPOINT_TENSOR_MANIFEST_SHA256,
     PINNED_CHECKPOINT_REVISION,
 )
-from models.demos.blackhole.qwen38_flash_next.config import CONFIG_SHA256
-from models.demos.blackhole.qwen38_flash_next.ttnn.bf4 import (
+from qwen38_flash_next.config import CONFIG_SHA256
+from qwen38_flash_next.ttnn.bf4 import (
     BF4CacheIdentity,
     Qwen38BF4Cache,
     bf4_converter_source_identity,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import Qwen38MeshContract
+from qwen38_flash_next.ttnn.contracts import Qwen38MeshContract
 
 MODE = "diagnostic_non_promoting_cpu_bf4_binding_probe"
 PHYSICAL_IDS = (1, 0, 2, 3)

@@ -17,7 +17,7 @@ from typing import Sequence
 
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.mrope import IMAGE_TOKEN_ID, Qwen38MRoPEPositions
+from qwen38_flash_next.mrope import IMAGE_TOKEN_ID, Qwen38MRoPEPositions
 
 IMAGE_LANE_SENTINEL_TOKEN = -1  # embedding.ZERO_EMBEDDING_TOKEN: the lane embeds to an exact zero row
 HIDDEN_SIZE = 2560

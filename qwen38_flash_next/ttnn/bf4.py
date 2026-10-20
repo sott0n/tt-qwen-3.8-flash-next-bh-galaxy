@@ -53,13 +53,13 @@ from ttnn.experimental.moe_compute_utils import (
 )
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.checkpoint import (
+from qwen38_flash_next.checkpoint import (
     CHECKPOINT_FILE_MANIFEST_SHA256,
     CHECKPOINT_TENSOR_MANIFEST_SHA256,
     PINNED_CHECKPOINT_REVISION,
     Qwen38Checkpoint,
 )
-from models.demos.blackhole.qwen38_flash_next.config import (
+from qwen38_flash_next.config import (
     CONFIG_SHA256,
     EP_SIZE,
     EXPERT_MESH_AXIS,
@@ -67,14 +67,15 @@ from models.demos.blackhole.qwen38_flash_next.config import (
     TP_SIZE,
     Qwen38Placement,
 )
-from models.demos.blackhole.qwen38_flash_next.tt.moe import Qwen38MoEWeights
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
+from qwen38_flash_next.tt.moe import Qwen38MoEWeights
+from qwen38_flash_next.ttnn.contracts import (
     MESH_SHAPE,
     Qwen38MeshContract,
     Qwen38TensorBackingIdentity,
     TensorPlacement,
     qwen38_tensor_backing_identity,
 )
+from qwen38_flash_next.paths import MODEL_DIR, TT_METAL_ROOT
 
 FORMAT_VERSION = 3
 # Adopted in place by the first format-3 run: 1 was keyed by the tt-metal revision, 2 by the first die's DRAM
@@ -96,7 +97,7 @@ CONVERSION_LOCK_TIMEOUT_SECONDS = 60.0
 TENSORBIN_HEADER_PREFIX_BYTES = 8
 TENSORBIN_HEADER_ALIGNMENT = 8
 MAX_TENSORBIN_HEADER_BYTES = 16 << 20
-REPO_ROOT = Path(__file__).resolve().parents[5]
+REPO_ROOT = TT_METAL_ROOT
 # The sources that determine the packed bytes: this module (the layer walk), the moe_compute layout packer, and
 # tt-metal's BFP4 tile packer.  The cache identity pins their digests instead of the tt-metal revision.
 CONVERTER_SOURCES = (
@@ -121,13 +122,21 @@ def validate_bf4_layer_request(namespace: str, layer_index: int) -> None:
         raise ValueError(f"{namespace} layer index must be in [0,{layer_count}), got {layer_index}")
 
 
+def _converter_source_name(path: Path) -> str:
+    """A tt-metal source relative to the tt-metal root, a model source as ``qwen38_flash_next/...``."""
+
+    if path.is_relative_to(REPO_ROOT):
+        return path.relative_to(REPO_ROOT).as_posix()
+    return path.relative_to(MODEL_DIR.parent).as_posix()
+
+
 def bf4_converter_source_identity() -> tuple[tuple[str, str], ...]:
-    """``(repository-relative path, sha256)`` of every converter source, in path order."""
+    """``(source name, sha256)`` of every converter source, in path order."""
 
     identity = []
     for path in CONVERTER_SOURCES:
         try:
-            relative = path.relative_to(REPO_ROOT).as_posix()
+            relative = _converter_source_name(path)
             digest = hashlib.sha256(path.read_bytes()).hexdigest()
         except (OSError, ValueError) as error:
             raise RuntimeError(f"BF4 converter source is unavailable under {REPO_ROOT}: {path}") from error
@@ -983,7 +992,7 @@ class Qwen38BF4Cache:
 
         expected = _json_normalized(asdict(self.identity))
         del expected["dram_bank_ring_order"], expected["format_version"]
-        this_module = CONVERTER_SOURCES[0].relative_to(REPO_ROOT).as_posix()
+        this_module = _converter_source_name(CONVERTER_SOURCES[0])
         packers = [source for source in expected.pop("converter_sources") if source[0] != this_module]
         candidates = []
         for manifest_path in cache_root.glob("*/manifest.json"):

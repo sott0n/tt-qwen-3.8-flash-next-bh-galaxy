@@ -23,9 +23,9 @@ from pathlib import Path
 
 import pytest
 
-from models.demos.blackhole.qwen38_flash_next.tools import hardware_profiles
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_asgi as asgi
-from models.demos.blackhole.qwen38_flash_next.tools import runtime_admission
+from qwen38_flash_next.tools import hardware_profiles
+from qwen38_flash_next.tools import qwen38_asgi as asgi
+from qwen38_flash_next.tools import runtime_admission
 
 # -- the settings ----------------------------------------------------------------------------------------------------
 
@@ -74,7 +74,7 @@ def test_settings_on_four_other_nodes_move_the_line_profile_and_parse_with_the_s
     host = hardware_profiles.P150_LINE.with_device_nodes((4, 5, 6, 7), present=range(8))
     assert (host.device_nodes, host.visible_devices) == ((4, 5, 6, 7), "4,5,6,7")
     assert hardware_profiles.present_device_nodes(tmp_path / "absent") == ()
-    from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_server as chat_server
+    from qwen38_flash_next.tools import qwen38_chat_server as chat_server
 
     parsed = chat_server._parser().parse_args(argv)  # the server's own parser admits every composed flag
     assert (parsed.mtp, parsed.sampling, parsed.require_json_96) == (4, True, True)
@@ -109,7 +109,7 @@ def test_settings_refuse_what_they_cannot_serve(tmp_path, nodes, environ, match)
 
 
 def test_a_flag_the_server_does_not_know_is_refused_by_its_parser_not_dropped(tmp_path, capsys, monkeypatch) -> None:
-    from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_server as chat_server
+    from qwen38_flash_next.tools import qwen38_chat_server as chat_server
 
     server = _settings(tmp_path, QWEN38_SERVER_ARGS="--mtp 4 --sampling --no-such-flag")
     assert "--no-such-flag" in server.argv  # composed as given ...

@@ -46,9 +46,9 @@ from typing import Any, Literal, NoReturn
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.config import EP_SIZE, SUPPORTED_TP_SIZES
-from models.demos.blackhole.qwen38_flash_next.ttnn.bf4 import Qwen38BF4ResidentSet
-from models.demos.blackhole.qwen38_flash_next.ttnn.builder import (
+from qwen38_flash_next.config import EP_SIZE, SUPPORTED_TP_SIZES
+from qwen38_flash_next.ttnn.bf4 import Qwen38BF4ResidentSet
+from qwen38_flash_next.ttnn.builder import (
     Qwen38BuildProvenance,
     Qwen38LiveBuildIdentity,
     Qwen38TTNNBuilder,
@@ -56,17 +56,17 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.builder import (
     Qwen38TTNNMTPComponents,
     Qwen38TTNNTargetComponents,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import MESH_SHAPE, TP_SIZE
-from models.demos.blackhole.qwen38_flash_next.ttnn.fixed_five import Qwen38TTNNFixedFiveTarget
-from models.demos.blackhole.qwen38_flash_next.ttnn.layer import BACKBONE_LAYERS
-from models.demos.blackhole.qwen38_flash_next.ttnn.model import (
+from qwen38_flash_next.ttnn.contracts import MESH_SHAPE, TP_SIZE
+from qwen38_flash_next.ttnn.fixed_five import Qwen38TTNNFixedFiveTarget
+from qwen38_flash_next.ttnn.layer import BACKBONE_LAYERS
+from qwen38_flash_next.ttnn.model import (
     MAX_CONTEXT,
     VOCAB_SIZE,
     Qwen38TTNNTextModel,
     Qwen38TTNNTextModelOutput,
     Qwen38TTNNTextModelState,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.mtp_decode import (
+from qwen38_flash_next.ttnn.mtp_decode import (
     DRAFT_EXTENSION_CALLS,
     VERIFY_POSITIONS,
     Qwen38MTPSeed,
@@ -75,8 +75,8 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.mtp_decode import (
     Qwen38SpeculativeStatus,
     Qwen38SpeculativeTokenSource,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.mtp_draft import Qwen38TTNNMTPDraftEngine
-from models.demos.blackhole.qwen38_flash_next.ttnn.sampling import (
+from qwen38_flash_next.ttnn.mtp_draft import Qwen38TTNNMTPDraftEngine
+from qwen38_flash_next.ttnn.sampling import (
     Qwen38SampledTokens,
     Qwen38SamplingParameters,
     Qwen38SamplingProfile,

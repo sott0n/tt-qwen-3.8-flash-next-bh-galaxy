@@ -12,14 +12,14 @@ from pathlib import Path
 
 import pytest
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn import builder as builder_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import decode_matmul as dm
-from models.demos.blackhole.qwen38_flash_next.ttnn import embedding as embedding_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import final_mixer as final_mixer_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import moe as moe_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import mtp as mtp_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import qsa as qsa_module
+from qwen38_flash_next.ttnn import builder as builder_module
+from qwen38_flash_next.ttnn import decode_matmul as dm
+from qwen38_flash_next.ttnn import embedding as embedding_module
+from qwen38_flash_next.ttnn import final_mixer as final_mixer_module
+from qwen38_flash_next.ttnn import gdn as gdn_module
+from qwen38_flash_next.ttnn import moe as moe_module
+from qwen38_flash_next.ttnn import mtp as mtp_module
+from qwen38_flash_next.ttnn import qsa as qsa_module
 
 BF16, BF8, BF4 = ttnn.bfloat16, ttnn.bfloat8_b, ttnn.bfloat4_b
 MODEL_DIR = Path(gdn_module.__file__).resolve().parents[1]

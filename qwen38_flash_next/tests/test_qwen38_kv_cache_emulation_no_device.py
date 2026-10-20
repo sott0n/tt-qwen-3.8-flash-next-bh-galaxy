@@ -14,9 +14,9 @@ import struct
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_kv_cache_emulation as kv
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_reference_corpus as corpus
-from models.demos.blackhole.qwen38_flash_next.tt.qsa import Qwen38QSA, Qwen38QSADimensions, Qwen38QSAWeights
+from qwen38_flash_next.tools import qwen38_kv_cache_emulation as kv
+from qwen38_flash_next.tools import qwen38_reference_corpus as corpus
+from qwen38_flash_next.tt.qsa import Qwen38QSA, Qwen38QSADimensions, Qwen38QSAWeights
 
 
 def e4m3_bits_reference(value: float) -> int:

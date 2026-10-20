@@ -7,16 +7,16 @@ device policy's presence admission and the history image."""
 
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.ttnn import device_sampler as ds
-from models.demos.blackhole.qwen38_flash_next.ttnn import fused
-from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import (
+from qwen38_flash_next.ttnn import device_sampler as ds
+from qwen38_flash_next.ttnn import fused
+from qwen38_flash_next.ttnn.embedding import (
     SAMPLING_CANDIDATE_ROW_SHAPE,
     TOKEN_ROW_SHAPE,
     VOCAB_SIZE,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import program as fp
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import sampler_tail as st
-from models.demos.blackhole.qwen38_flash_next.ttnn.sampling import Qwen38SamplingParameters
+from qwen38_flash_next.ttnn.fused import program as fp
+from qwen38_flash_next.ttnn.fused import sampler_tail as st
+from qwen38_flash_next.ttnn.sampling import Qwen38SamplingParameters
 
 KERNEL = (fp.REPO_ROOT / st.KERNEL).read_text(encoding="utf-8")
 

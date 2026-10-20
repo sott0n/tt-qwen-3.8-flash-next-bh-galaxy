@@ -9,13 +9,13 @@ from types import SimpleNamespace
 
 import pytest
 
-import models.demos.blackhole.qwen38_flash_next.ttnn.bf4 as bf4_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.bf4 import (
+import qwen38_flash_next.ttnn.bf4 as bf4_module
+from qwen38_flash_next.ttnn.bf4 import (
     BF4CleanupError,
     BF4TensorCleanupOutcome,
     Qwen38BF4ResidentSet,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.builder import (
+from qwen38_flash_next.ttnn.builder import (
     Qwen38ResidentBuildFailure,
     Qwen38TTNNBuilder,
     Qwen38TTNNMTPComponents,

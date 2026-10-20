@@ -27,9 +27,9 @@ from pathlib import Path
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gdn_post_rows as module
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gdn_rows_reference as gr
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import program as fp
+from qwen38_flash_next.ttnn.fused import gdn_post_rows as module
+from qwen38_flash_next.ttnn.fused import gdn_rows_reference as gr
+from qwen38_flash_next.ttnn.fused import program as fp
 
 KERNELS = Path(module.__file__).parent / "kernels"
 CAST_SOURCES = {role: (KERNELS / f"{role}_cast.cpp").read_text() for role in ("reader", "compute", "writer")}
@@ -453,6 +453,6 @@ def test_the_module_registers_nothing_yet():
     # the lane lead adds the registry entry and the manifest rows when the pair is integrated
     source = Path(module.__file__).read_text()
     assert "register(" not in source and "FusedKernel(" not in source
-    from models.demos.blackhole.qwen38_flash_next.ttnn import fused
+    from qwen38_flash_next.ttnn import fused
 
     assert "gdn_post_rows" not in fused.kernels()

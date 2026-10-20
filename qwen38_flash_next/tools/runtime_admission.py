@@ -19,18 +19,19 @@ from pathlib import Path
 from typing import Any
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.tools.evidence_records import Marker
-from models.demos.blackhole.qwen38_flash_next.tools.hardware_profiles import ResidentHardwareProfile
-from models.demos.blackhole.qwen38_flash_next.tools.live_decode_diagnostic import (
+from qwen38_flash_next.tools.evidence_records import Marker
+from qwen38_flash_next.tools.hardware_profiles import ResidentHardwareProfile
+from qwen38_flash_next.tools.live_decode_diagnostic import (
     DEFAULT_CPU_ORACLE,
     Qwen38RetainedCPUTokenOracle,
     load_retained_cpu_token_oracle,
     prepare_live_decode_diagnostic,
 )
-from models.demos.blackhole.qwen38_flash_next.tools.resident_decode import ResidentDecodeError
-from models.demos.blackhole.qwen38_flash_next.ttnn.builder import RESIDENT_MAX_QSA_CACHE_CAPACITY
+from qwen38_flash_next.tools.resident_decode import ResidentDecodeError
+from qwen38_flash_next.ttnn.builder import RESIDENT_MAX_QSA_CACHE_CAPACITY
+from qwen38_flash_next.paths import TT_METAL_ROOT
 
-REPO_ROOT = Path(__file__).resolve().parents[5]
+REPO_ROOT = TT_METAL_ROOT
 SEAL_MODULE_VARIABLE = "QWEN38_RUNTIME_SEAL_MODULE"
 # The head of a tree without git history (a container image); the vLLM adapter reads the same variable first.
 DECLARED_HEAD_VARIABLE = "QWEN38_TT_METAL_SHA"

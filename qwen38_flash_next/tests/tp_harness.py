@@ -21,22 +21,22 @@ import pytest
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.checkpoint import Qwen38Checkpoint
-from models.demos.blackhole.qwen38_flash_next.config import Qwen38Placement
-from models.demos.blackhole.qwen38_flash_next.tools.live_decode_diagnostic import (
+from qwen38_flash_next.checkpoint import Qwen38Checkpoint
+from qwen38_flash_next.config import Qwen38Placement
+from qwen38_flash_next.tools.live_decode_diagnostic import (
     Qwen38DiagnosticBF4Cache,
     prepare_live_decode_diagnostic,
 )
-from models.demos.blackhole.qwen38_flash_next.tools.runtime_admission import git_identity, sha256_of
-from models.demos.blackhole.qwen38_flash_next.ttnn.bf4 import Qwen38BF4Streamer
-from models.demos.blackhole.qwen38_flash_next.ttnn.builder import RESIDENT_DEFAULT_QSA_CACHE_CAPACITY, Qwen38TTNNBuilder
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
+from qwen38_flash_next.tools.runtime_admission import git_identity, sha256_of
+from qwen38_flash_next.ttnn.bf4 import Qwen38BF4Streamer
+from qwen38_flash_next.ttnn.builder import RESIDENT_DEFAULT_QSA_CACHE_CAPACITY, Qwen38TTNNBuilder
+from qwen38_flash_next.ttnn.contracts import (
     MESH_SHAPE,
     Qwen38MeshContract,
     TensorPlacement,
     replicate_tensor_2d_mesh_mapper,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.model import Qwen38TTNNRoPE
+from qwen38_flash_next.ttnn.model import Qwen38TTNNRoPE
 
 HIDDEN_SIZE = 2560
 RESIDUAL_BRANCHES = 4

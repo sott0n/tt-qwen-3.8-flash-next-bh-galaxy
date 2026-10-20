@@ -15,15 +15,15 @@ import pytest
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn import fused
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import moe_post as mp
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import program as fp
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import router_tail as rt
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import shared_expert as se
+from qwen38_flash_next.ttnn import fused
+from qwen38_flash_next.ttnn.fused import moe_post as mp
+from qwen38_flash_next.ttnn.fused import program as fp
+from qwen38_flash_next.ttnn.fused import router_tail as rt
+from qwen38_flash_next.ttnn.fused import shared_expert as se
 
 POST = {name: (fp.REPO_ROOT / path).read_text() for name, path in mp.KERNELS.items()}
 SHARED = {name: (fp.REPO_ROOT / path).read_text() for name, path in se.KERNELS.items()}
-MOE = (fp.REPO_ROOT / "models/demos/blackhole/qwen38_flash_next/ttnn/moe.py").read_text()
+MOE = (fp.MODEL_DIR / "ttnn/moe.py").read_text()
 
 
 def _named(source: str) -> set[str]:

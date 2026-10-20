@@ -31,7 +31,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.config import TP_SIZE
+from qwen38_flash_next.config import TP_SIZE
 
 
 def _dram_bank_count(mesh_device) -> int:

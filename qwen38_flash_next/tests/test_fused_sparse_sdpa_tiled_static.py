@@ -17,10 +17,10 @@ from pathlib import Path
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused.sparse_sdpa_tiled import synthetic as gen
-from models.demos.blackhole.qwen38_flash_next.ttnn import fused
-from models.demos.blackhole.qwen38_flash_next.ttnn import qsa as qsa_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import sparse_sdpa_tiled as sst
+from qwen38_flash_next.ttnn.fused.sparse_sdpa_tiled import synthetic as gen
+from qwen38_flash_next.ttnn import fused
+from qwen38_flash_next.ttnn import qsa as qsa_module
+from qwen38_flash_next.ttnn.fused import sparse_sdpa_tiled as sst
 
 KERNELS = Path(sst.__file__).parent / "kernels"
 NAMED = re.compile(r'get_named_compile_time_arg_val\("([A-Z0-9_]+)"\)')

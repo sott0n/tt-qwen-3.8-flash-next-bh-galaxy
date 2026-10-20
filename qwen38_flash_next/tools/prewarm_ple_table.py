@@ -26,7 +26,7 @@ import sys
 import time
 from pathlib import Path
 
-from models.demos.blackhole.qwen38_flash_next.checkpoint import Qwen38Checkpoint
+from qwen38_flash_next.checkpoint import Qwen38Checkpoint
 
 EXPECTED_TABLE_PARTS = 128
 EXPECTED_TABLE_FILES = 33

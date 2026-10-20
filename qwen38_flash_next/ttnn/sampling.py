@@ -79,14 +79,14 @@ from typing import Any, Literal
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn.builder import Qwen38BuildProvenance, Qwen38LiveBuildIdentity
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
+from qwen38_flash_next.ttnn.builder import Qwen38BuildProvenance, Qwen38LiveBuildIdentity
+from qwen38_flash_next.ttnn.contracts import (
     MESH_SHAPE,
     TP_SIZE,
     Qwen38MeshContract,
     TensorPlacement,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import (
+from qwen38_flash_next.ttnn.embedding import (
     LOCAL_VOCAB_SIZE,
     SAMPLING_CANDIDATE_ROW_SHAPE,
     SAMPLING_CANDIDATES_PER_DEVICE,

@@ -19,10 +19,10 @@ import pytest
 import torch
 from safetensors.torch import save_file
 
-from models.demos.blackhole.qwen38_flash_next.checkpoint import Qwen38Checkpoint, Qwen38CheckpointRowReader
-from models.demos.blackhole.qwen38_flash_next.reference import build_ngram_hash_spec, ngram_token_ids
-from models.demos.blackhole.qwen38_flash_next.tt.ple import Qwen38HostPLEEmbedding
-from models.demos.blackhole.qwen38_flash_next.ttnn.ple import (
+from qwen38_flash_next.checkpoint import Qwen38Checkpoint, Qwen38CheckpointRowReader
+from qwen38_flash_next.reference import build_ngram_hash_spec, ngram_token_ids
+from qwen38_flash_next.tt.ple import Qwen38HostPLEEmbedding
+from qwen38_flash_next.ttnn.ple import (
     Qwen38ResidentPLELookup,
     Qwen38TTNNPLE,
     ngram_token_ids_decode_step,

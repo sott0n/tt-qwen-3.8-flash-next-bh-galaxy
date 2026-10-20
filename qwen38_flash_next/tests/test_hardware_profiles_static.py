@@ -11,8 +11,8 @@ from unittest import mock
 
 import pytest
 
-from models.demos.blackhole.qwen38_flash_next.tools import hardware_profiles
-from models.demos.blackhole.qwen38_flash_next.tools.hardware_profiles import (
+from qwen38_flash_next.tools import hardware_profiles
+from qwen38_flash_next.tools.hardware_profiles import (
     HARDWARE_PROFILES,
     HardwareProfileError,
     ResidentHardwareProfile,

@@ -22,11 +22,12 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from qwen38_flash_next.paths import TT_METAL_ROOT
 
 TESTS = Path(__file__).resolve().parent
 GDN_SOURCE = TESTS.parents[0] / "ttnn" / "gdn.py"
 SHARED_DELTA_RULE_SOURCE = (
-    TESTS.parents[3] / "experimental" / "gated_attention_gated_deltanet" / "tt" / "ttnn_delta_rule_ops.py"
+    TT_METAL_ROOT / "models" / "experimental" / "gated_attention_gated_deltanet" / "tt" / "ttnn_delta_rule_ops.py"
 )
 # The shared FLA module is not part of this diet: the Qwen3.8 step lives in gdn.py.
 SHARED_DELTA_RULE_SHA256 = "a29c3daa6274cc8ca5d970fb5de7ee1b1cef567ca2c1c95603b2235b94a759a3"
@@ -207,7 +208,7 @@ def test_forward_decode_calls_exactly_the_walked_methods_in_order() -> None:
     assert called == FORWARD_METHODS
     import inspect
 
-    from models.demos.blackhole.qwen38_flash_next.ttnn.fused.gdn_step import gdn_step_composed
+    from qwen38_flash_next.ttnn.fused.gdn_step import gdn_step_composed
 
     composed = ast.parse(inspect.getsource(gdn_step_composed))
     chain = sorted(
@@ -262,7 +263,7 @@ def test_decode_path_has_no_copies_and_writes_persistent_buffers_in_place() -> N
     # the composed chain (ttnn/fused/gdn_step.gdn_step_composed) slices into the ring slot before the conv reads it
     import inspect
 
-    from models.demos.blackhole.qwen38_flash_next.ttnn.fused.gdn_step import gdn_step_composed
+    from qwen38_flash_next.ttnn.fused.gdn_step import gdn_step_composed
 
     composed = inspect.getsource(gdn_step_composed)
     chain = (
@@ -355,7 +356,7 @@ def test_static_contract_pins_the_tile_aligned_projection_columns() -> None:
 
 def test_pack_projection_columns_moves_b_to_a_tile_boundary_with_zero_gaps() -> None:
     torch = pytest.importorskip("torch")
-    gdn = pytest.importorskip("models.demos.blackhole.qwen38_flash_next.ttnn.gdn")
+    gdn = pytest.importorskip("qwen38_flash_next.ttnn.gdn")
     gdn.validate_gdn_static_contract()
     shards = []
     for device_index in range(gdn.TP_SIZE):
@@ -378,7 +379,7 @@ def test_pack_projection_columns_moves_b_to_a_tile_boundary_with_zero_gaps() -> 
 
 
 def test_conv_ring_phase_selects_the_window_and_round_trips_through_snapshots(monkeypatch) -> None:
-    gdn = pytest.importorskip("models.demos.blackhole.qwen38_flash_next.ttnn.gdn")
+    gdn = pytest.importorskip("qwen38_flash_next.ttnn.gdn")
     copies: list[tuple[object, object]] = []
     monkeypatch.setattr(gdn, "_copy_inplace", lambda source, target, *, label: copies.append((source, target)))
     monkeypatch.setattr(gdn.Qwen38TTNNGDNState, "validate", lambda self: None)
@@ -417,7 +418,7 @@ def test_conv_ring_phase_selects_the_window_and_round_trips_through_snapshots(mo
 
 
 def test_state_and_snapshot_validation_reject_an_out_of_range_phase() -> None:
-    gdn = pytest.importorskip("models.demos.blackhole.qwen38_flash_next.ttnn.gdn")
+    gdn = pytest.importorskip("qwen38_flash_next.ttnn.gdn")
     ttnn = pytest.importorskip("ttnn")
 
     class FakeContract:

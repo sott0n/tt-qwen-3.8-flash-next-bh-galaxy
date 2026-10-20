@@ -13,9 +13,9 @@ import inspect
 import re
 from pathlib import Path
 
-from models.demos.blackhole.qwen38_flash_next.ttnn import fused
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gr_fold, gr_read
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import program as fp
+from qwen38_flash_next.ttnn import fused
+from qwen38_flash_next.ttnn.fused import gr_fold, gr_read
+from qwen38_flash_next.ttnn.fused import program as fp
 
 PHASE = (fp.REPO_ROOT / fp.KERNEL_ROOT / "gr_fold" / "kernels" / "transport_phase.h").read_text()  # the protocol body
 KERNEL = (fp.REPO_ROOT / gr_fold.TRANSPORT_KERNEL).read_text()  # one phase per program

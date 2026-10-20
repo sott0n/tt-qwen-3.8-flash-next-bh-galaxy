@@ -9,7 +9,7 @@ and the reference's dense attention see the same keys.
 
 test_qsa_component.py proves ``Qwen38QSA`` against the pinned Transformers module on the CPU; this is the device side.
 
-Run:  pytest models/demos/blackhole/qwen38_flash_next/tests/test_qsa_tp.py -v -s
+Run:  pytest qwen38_flash_next/tests/test_qsa_tp.py -v -s
 Env:  MODEL_WEIGHTS_DIR, MESH_DEVICE="(1, 4)"; QWEN38_CACHE_ROOT optional (component cache reuse)
 """
 
@@ -21,12 +21,12 @@ from loguru import logger
 
 import ttnn
 from models.common.utility_functions import run_for_blackhole
-from models.demos.blackhole.qwen38_flash_next.tests.tp_harness import DEVICE_PARAMS, HIDDEN_SIZE, pcc
-from models.demos.blackhole.qwen38_flash_next.tt.model import text_rope
-from models.demos.blackhole.qwen38_flash_next.tt.qsa import Qwen38QSA, Qwen38QSAWeights
-from models.demos.blackhole.qwen38_flash_next.ttnn.builder import RESIDENT_DEFAULT_QSA_CACHE_CAPACITY
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import MESH_SHAPE
-from models.demos.blackhole.qwen38_flash_next.ttnn.qsa import COMPRESS_RATIO, Qwen38TTNNQSA, Qwen38TTNNQSAWeights
+from qwen38_flash_next.tests.tp_harness import DEVICE_PARAMS, HIDDEN_SIZE, pcc
+from qwen38_flash_next.tt.model import text_rope
+from qwen38_flash_next.tt.qsa import Qwen38QSA, Qwen38QSAWeights
+from qwen38_flash_next.ttnn.builder import RESIDENT_DEFAULT_QSA_CACHE_CAPACITY
+from qwen38_flash_next.ttnn.contracts import MESH_SHAPE
+from qwen38_flash_next.ttnn.qsa import COMPRESS_RATIO, Qwen38TTNNQSA, Qwen38TTNNQSAWeights
 
 pytestmark = pytest.mark.skipif(
     os.environ.get("QWEN38_FUSED_DEVICE_TEST") != "1",

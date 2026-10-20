@@ -15,18 +15,18 @@ from dataclasses import dataclass
 
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.checkpoint import Qwen38Checkpoint
-from models.demos.blackhole.qwen38_flash_next.config import Qwen38Placement
-from models.demos.blackhole.qwen38_flash_next.tt.gdn import Qwen38GDN, Qwen38GDNState, Qwen38GDNWeights
-from models.demos.blackhole.qwen38_flash_next.tt.gr import Qwen38GatedResidual, Qwen38GatedResidualWeights
-from models.demos.blackhole.qwen38_flash_next.tt.moe import Qwen38MoE, Qwen38MoERouting, Qwen38MoEWeights
-from models.demos.blackhole.qwen38_flash_next.tt.ple import (
+from qwen38_flash_next.checkpoint import Qwen38Checkpoint
+from qwen38_flash_next.config import Qwen38Placement
+from qwen38_flash_next.tt.gdn import Qwen38GDN, Qwen38GDNState, Qwen38GDNWeights
+from qwen38_flash_next.tt.gr import Qwen38GatedResidual, Qwen38GatedResidualWeights
+from qwen38_flash_next.tt.moe import Qwen38MoE, Qwen38MoERouting, Qwen38MoEWeights
+from qwen38_flash_next.tt.ple import (
     Qwen38HostPLEEmbedding,
     Qwen38PLE,
     Qwen38PLEState,
     Qwen38PLEWeights,
 )
-from models.demos.blackhole.qwen38_flash_next.tt.qsa import Qwen38QSA, Qwen38QSAState, Qwen38QSAWeights
+from qwen38_flash_next.tt.qsa import Qwen38QSA, Qwen38QSAState, Qwen38QSAWeights
 
 
 @dataclass(frozen=True)

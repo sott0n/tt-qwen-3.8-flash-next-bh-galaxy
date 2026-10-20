@@ -3,7 +3,7 @@
 
 import unittest
 
-from models.demos.blackhole.qwen38_flash_next.tools.checkpoint_budget import (
+from qwen38_flash_next.tools.checkpoint_budget import (
     BF4_TILE_BYTES,
     TensorRecord,
     bfp_tile_storage_bytes,

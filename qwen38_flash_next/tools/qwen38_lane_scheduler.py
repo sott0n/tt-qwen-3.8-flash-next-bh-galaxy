@@ -65,8 +65,8 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Sequence
 
-from models.demos.blackhole.qwen38_flash_next.chat import TOKENIZER_SIZE
-from models.demos.blackhole.qwen38_flash_next.tools.qwen38_chat_protocol import THINK_END_ID
+from qwen38_flash_next.chat import TOKENIZER_SIZE
+from qwen38_flash_next.tools.qwen38_chat_protocol import THINK_END_ID
 
 MIN_LANES = 2
 MAX_LANES = 16  # B x (k + 1) <= 32; 16 lanes need k = 1

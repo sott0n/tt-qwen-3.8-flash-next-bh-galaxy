@@ -13,19 +13,19 @@ from types import SimpleNamespace
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.checkpoint import (
+from qwen38_flash_next.checkpoint import (
     CHECKPOINT_FILE_MANIFEST_SHA256,
     CHECKPOINT_TENSOR_MANIFEST_SHA256,
     INDEX_SHA256,
     PINNED_CHECKPOINT_REVISION,
 )
-from models.demos.blackhole.qwen38_flash_next.config import CONFIG_SHA256
-from models.demos.blackhole.qwen38_flash_next.ttnn.builder import (
+from qwen38_flash_next.config import CONFIG_SHA256
+from qwen38_flash_next.ttnn.builder import (
     Qwen38TTNNMTPComponents,
     validate_builder_constructor_contract,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import TensorPlacement
-from models.demos.blackhole.qwen38_flash_next.ttnn.mtp import (
+from qwen38_flash_next.ttnn.contracts import TensorPlacement
+from qwen38_flash_next.ttnn.mtp import (
     EMBEDDING_GLOBAL_SHAPE,
     EMBEDDING_LOCAL_SHAPE,
     HIDDEN_SIZE,

@@ -48,12 +48,12 @@ from typing import Any, NoReturn
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next import mrope, vision_splice
-from models.demos.blackhole.qwen38_flash_next.config import CONFIG_SHA256, LAYER_PATTERN, TP_SIZE, Qwen38Config
-from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import moe as moe_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import qsa as qsa_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
+from qwen38_flash_next import mrope, vision_splice
+from qwen38_flash_next.config import CONFIG_SHA256, LAYER_PATTERN, TP_SIZE, Qwen38Config
+from qwen38_flash_next.ttnn import gdn as gdn_module
+from qwen38_flash_next.ttnn import moe as moe_module
+from qwen38_flash_next.ttnn import qsa as qsa_module
+from qwen38_flash_next.ttnn.contracts import (
     CHUNK_ROW_COUNTS,
     CHUNK_ROWS,
     LONG_CHUNK_ROWS,
@@ -69,15 +69,15 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     require_rope_shift,
     tensor_metadata,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import (
+from qwen38_flash_next.ttnn.embedding import (
     Qwen38ShardedLogits,
     Qwen38TTNNEmbeddingSyncPolicy,
     Qwen38TTNNModelIO,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.final_mixer import Qwen38TTNNFinalMixer
-from models.demos.blackhole.qwen38_flash_next.ttnn.gr import block_rows_shape, residual_rows_shape
-from models.demos.blackhole.qwen38_flash_next.ttnn.lanes import Qwen38LaneLayout
-from models.demos.blackhole.qwen38_flash_next.ttnn.layer import (
+from qwen38_flash_next.ttnn.final_mixer import Qwen38TTNNFinalMixer
+from qwen38_flash_next.ttnn.gr import block_rows_shape, residual_rows_shape
+from qwen38_flash_next.ttnn.lanes import Qwen38LaneLayout
+from qwen38_flash_next.ttnn.layer import (
     BACKBONE_LAYERS,
     BLOCK_LOCAL_SHAPE,
     PLE_CHECKPOINT_LAYER,
@@ -93,7 +93,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.layer import (
     Qwen38TTNNLayerNamespace,
     Qwen38TTNNLayerType,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.ple import (
+from qwen38_flash_next.ttnn.ple import (
     Qwen38TTNNPLELanesPreparedInput,
     Qwen38TTNNPLEPreparedInput,
     Qwen38TTNNPLERowsPreparedInput,
@@ -1128,7 +1128,7 @@ class Qwen38TTNNTextModel:
         # model lifetime so every captured address stays valid.
         self.rope_table: Qwen38TTNNRoPETable | None = None
         self.qsa_position_constants: Any | None = None
-        from models.demos.blackhole.qwen38_flash_next.ttnn import fused as fused_kernels
+        from qwen38_flash_next.ttnn import fused as fused_kernels
 
         if fused_kernels.enabled("position_derive"):
             self._position_derive = fused_kernels.kernel("position_derive").fused

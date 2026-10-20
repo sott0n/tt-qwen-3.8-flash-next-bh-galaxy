@@ -3,7 +3,7 @@
 
 """The chat server as an ASGI application: the form a container that starts its model with uvicorn can run.
 
-    python -m uvicorn --lifespan on models.demos.blackhole.qwen38_flash_next.tools.qwen38_asgi:app
+    python -m uvicorn --lifespan on qwen38_flash_next.tools.qwen38_asgi:app
 
 starts ``tools/qwen38_chat_server.py`` as a child process (``python -m`` the server module with the composed
 arguments and environment: the server keeps its own main thread, its signal handlers and its device teardown exactly
@@ -57,12 +57,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Mapping, Protocol, Sequence
 
-from models.demos.blackhole.qwen38_flash_next.checkpoint import PINNED_CHECKPOINT_REVISION
-from models.demos.blackhole.qwen38_flash_next.tools import hardware_profiles
-from models.demos.blackhole.qwen38_flash_next.ttnn.builder import RESIDENT_QSA_CACHE_CAPACITIES
+from qwen38_flash_next.checkpoint import PINNED_CHECKPOINT_REVISION
+from qwen38_flash_next.tools import hardware_profiles
+from qwen38_flash_next.ttnn.builder import RESIDENT_QSA_CACHE_CAPACITIES
 
 MODEL_DIR = Path(__file__).resolve().parents[1]
-SERVER_MODULE = "models.demos.blackhole.qwen38_flash_next.tools.qwen38_chat_server"
+SERVER_MODULE = "qwen38_flash_next.tools.qwen38_chat_server"
 ACCEPTANCE_PROMPTS = MODEL_DIR / "tools" / "acceptance" / "greedy-prompts"
 DEFAULT_HF_MODEL = "Qwen/Qwen3.8-Flash-Next"
 DEFAULT_PROFILE = "p150-line"

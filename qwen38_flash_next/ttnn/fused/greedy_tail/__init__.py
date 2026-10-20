@@ -88,7 +88,7 @@ _ZERO_TILES: dict[int, tuple] = {}
 
 
 def _embedding():
-    from models.demos.blackhole.qwen38_flash_next.ttnn import embedding
+    from qwen38_flash_next.ttnn import embedding
 
     return embedding
 
@@ -484,7 +484,7 @@ def resolve_greedy_lanes_on_device_fused(lm_head, candidates):
     program (lane u of the token row = row u's id, the lanes past the row count 0.0); candidates without a packed row
     (the chain's) take the chain."""
 
-    from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import TensorPlacement
+    from qwen38_flash_next.ttnn.contracts import TensorPlacement
 
     embedding = _embedding()
     if getattr(candidates, "packed", None) is None:
@@ -591,7 +591,7 @@ def resolve_greedy_on_device_fused(lm_head, candidates, *, into=None):
     also writes ``into``, the server's persistent token row, instead of a ttnn.copy); candidates without a packed row
     (the chain's) take the chain."""
 
-    from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import TensorPlacement
+    from qwen38_flash_next.ttnn.contracts import TensorPlacement
 
     embedding = _embedding()
     if getattr(candidates, "packed", None) is None:

@@ -17,9 +17,9 @@ from types import SimpleNamespace
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gdn_pre_rows as gp
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gdn_rows_reference as ref
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import program as fp
+from qwen38_flash_next.ttnn.fused import gdn_pre_rows as gp
+from qwen38_flash_next.ttnn.fused import gdn_rows_reference as ref
+from qwen38_flash_next.ttnn.fused import program as fp
 
 SOURCES = {role: (fp.REPO_ROOT / path).read_text() for role, path in gp.KERNELS.items()}
 COMPUTE_QKV = SOURCES["compute_qkv"]

@@ -387,7 +387,7 @@ def reference_step(projected, older, taps, dt_bias, neg_exp_A, norm, state):
     ``state`` [rows, 12, 128, 128] fp32.  Returns (new_state fp32, gated [rows, 1536] bf16, conv [rows, 2560] bf16,
     o [rows, 12, 128] bf16, beta [rows, 12] bf16, decay [rows, 12] fp32)."""
 
-    from models.demos.blackhole.qwen38_flash_next.reference import gated_delta_recurrent
+    from qwen38_flash_next.reference import gated_delta_recurrent
 
     rows = projected.shape[0]
     window = [*older, projected[:, :QKV_WIDTH]]

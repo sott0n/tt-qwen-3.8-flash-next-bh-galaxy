@@ -17,16 +17,16 @@ from types import SimpleNamespace
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_prefill_driver as driver_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import contracts as contracts_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import decode_matmul as decode_matmul_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import gr as gr_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import layer as layer_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import model as model_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import moe as moe_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import qsa as qsa_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
+from qwen38_flash_next.tools import qwen38_prefill_driver as driver_module
+from qwen38_flash_next.ttnn import contracts as contracts_module
+from qwen38_flash_next.ttnn import decode_matmul as decode_matmul_module
+from qwen38_flash_next.ttnn import gdn as gdn_module
+from qwen38_flash_next.ttnn import gr as gr_module
+from qwen38_flash_next.ttnn import layer as layer_module
+from qwen38_flash_next.ttnn import model as model_module
+from qwen38_flash_next.ttnn import moe as moe_module
+from qwen38_flash_next.ttnn import qsa as qsa_module
+from qwen38_flash_next.ttnn.contracts import (
     CHUNK_ROW_COUNTS,
     CHUNK_ROWS,
     DEFAULT_SLAB_ROWS,
@@ -284,7 +284,7 @@ def test_a_reshape_source_is_freed_only_when_the_reshape_copied() -> None:
     reshape-then-free site of the model: the predicate is ``same_buffer`` (by buffer address), the moe_compute source
     is freed before the call only when the reshape copied and never after it, no tensor-id test decides a free, and
     today's view/copy fact of each site under the reshape rule."""
-    from models.demos.blackhole.qwen38_flash_next.ttnn import contracts, final_mixer, gr, mtp, mtp_v2
+    from qwen38_flash_next.ttnn import contracts, final_mixer, gr, mtp, mtp_v2
 
     class _Tensor:
         def __init__(self, address: int, tensor_id: int) -> None:
@@ -349,7 +349,7 @@ def test_slab_moe_switches_are_admitted_before_the_device(monkeypatch) -> None:
     """A refused QWEN38_MOE_SLAB_ONE_CALL ends the process at its start: the server admits the slab MoE switch right
     after its --prefill-slab argument checks and before the runtime admission opens a device, and every slab MoE
     instance re-admits it at construction (not at its first forward, 79 s into the warm pass)."""
-    from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_server as server_module
+    from qwen38_flash_next.tools import qwen38_chat_server as server_module
 
     monkeypatch.delenv(moe_module.MOE_SLAB_ONE_CALL_ENV, raising=False)
     assert moe_module.admit_slab_moe_switches() is True
@@ -895,7 +895,7 @@ def test_a_slab_record_replays_only_on_a_server_with_a_prefill_slab() -> None:
 
     import inspect
 
-    from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_server as chat_server
+    from qwen38_flash_next.tools import qwen38_chat_server as chat_server
 
     records = [
         {"prompt": "json", "prompt_token_ids": [1] * 85},

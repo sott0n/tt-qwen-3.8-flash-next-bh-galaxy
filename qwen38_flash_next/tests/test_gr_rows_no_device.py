@@ -21,8 +21,8 @@ import pytest
 import torch
 import torch.nn.functional as F
 
-from models.demos.blackhole.qwen38_flash_next.ttnn import gr as gr_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.gr import (
+from qwen38_flash_next.ttnn import gr as gr_module
+from qwen38_flash_next.ttnn.gr import (
     BLOCK_ROWS_LOCAL_SHAPE,
     FLAT_LOCAL_WIDTH,
     INJECTION_ROWS_SHAPE,

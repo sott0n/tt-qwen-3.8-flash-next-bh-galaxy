@@ -19,17 +19,17 @@ import pytest
 import torch
 import torch.nn.functional as F
 
-from models.demos.blackhole.qwen38_flash_next.reference import build_ngram_hash_spec, mtp_input_fusion, ngram_token_ids
-from models.demos.blackhole.qwen38_flash_next.tools.mtp_v2_verify_reference import row_serial_torch
-from models.demos.blackhole.qwen38_flash_next.tt.gr import Qwen38GatedResidual, Qwen38GatedResidualWeights
-from models.demos.blackhole.qwen38_flash_next.tt.model import Qwen38FinalMixer, Qwen38FinalMixerWeights
-from models.demos.blackhole.qwen38_flash_next.tt.moe import (
+from qwen38_flash_next.reference import build_ngram_hash_spec, mtp_input_fusion, ngram_token_ids
+from qwen38_flash_next.tools.mtp_v2_verify_reference import row_serial_torch
+from qwen38_flash_next.tt.gr import Qwen38GatedResidual, Qwen38GatedResidualWeights
+from qwen38_flash_next.tt.model import Qwen38FinalMixer, Qwen38FinalMixerWeights
+from qwen38_flash_next.tt.moe import (
     Qwen38ExpertWeights,
     Qwen38MoE,
     Qwen38SharedExpertShard,
     weighted_routed_reduce,
 )
-from models.demos.blackhole.qwen38_flash_next.tt.ple import Qwen38PLE, Qwen38PLEWeights, Qwen38PLEState
+from qwen38_flash_next.tt.ple import Qwen38PLE, Qwen38PLEWeights, Qwen38PLEState
 
 ROWS = 5
 HIDDEN = 2560

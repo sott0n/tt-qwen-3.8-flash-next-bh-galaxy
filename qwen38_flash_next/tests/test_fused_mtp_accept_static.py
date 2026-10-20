@@ -12,9 +12,9 @@ from pathlib import Path
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.ttnn import device_sampler as ds
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import mtp_accept as ma
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import registry
+from qwen38_flash_next.ttnn import device_sampler as ds
+from qwen38_flash_next.ttnn.fused import mtp_accept as ma
+from qwen38_flash_next.ttnn.fused import registry
 
 KERNEL = Path(ma.__file__).parent / "kernels" / "accept.cpp"
 POLICY = ds.Qwen38DeviceSamplerPolicy(temperature=0.7, top_k=20, top_p=0.8, min_p=0.0)

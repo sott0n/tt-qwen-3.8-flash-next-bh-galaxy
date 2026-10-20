@@ -35,10 +35,10 @@ from typing import Any
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import mtp_v2
-from models.demos.blackhole.qwen38_flash_next.ttnn import qsa as qsa_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
+from qwen38_flash_next.ttnn import gdn as gdn_module
+from qwen38_flash_next.ttnn import mtp_v2
+from qwen38_flash_next.ttnn import qsa as qsa_module
+from qwen38_flash_next.ttnn.contracts import (
     BLOCK_START_LANE_MASK,
     CHUNK_ROWS,
     MESH_SHAPE,
@@ -51,10 +51,10 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import (
     require_rope_shift,
     tensor_metadata,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import TOKEN_ROW_SHAPE, ZERO_EMBEDDING_TOKEN
-from models.demos.blackhole.qwen38_flash_next.ttnn.final_mixer import Qwen38TTNNFinalMixer
-from models.demos.blackhole.qwen38_flash_next.ttnn.gdn import Qwen38TTNNGDN
-from models.demos.blackhole.qwen38_flash_next.ttnn.lanes import (
+from qwen38_flash_next.ttnn.embedding import TOKEN_ROW_SHAPE, ZERO_EMBEDDING_TOKEN
+from qwen38_flash_next.ttnn.final_mixer import Qwen38TTNNFinalMixer
+from qwen38_flash_next.ttnn.gdn import Qwen38TTNNGDN
+from qwen38_flash_next.ttnn.lanes import (
     KV_STAGINGS,
     KV_WIDTH,
     RECURRENT_ROWS,
@@ -62,7 +62,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.lanes import (
     Qwen38TTNNLanePager,
     slice_owned,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.layer import (
+from qwen38_flash_next.ttnn.layer import (
     BACKBONE_LAYERS,
     HIDDEN_SIZE,
     LOCAL_HIDDEN_SIZE,
@@ -71,10 +71,10 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.layer import (
     Qwen38TTNNDecoderLayer,
     Qwen38TTNNLayerNamespace,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.model import Qwen38TTNNTextModel
-from models.demos.blackhole.qwen38_flash_next.ttnn.moe import SUPPORTED_ROWS, Qwen38TTNNMoE
-from models.demos.blackhole.qwen38_flash_next.ttnn.mtp import Qwen38TTNNMTPInput
-from models.demos.blackhole.qwen38_flash_next.ttnn.mtp_v2 import (
+from qwen38_flash_next.ttnn.model import Qwen38TTNNTextModel
+from qwen38_flash_next.ttnn.moe import SUPPORTED_ROWS, Qwen38TTNNMoE
+from qwen38_flash_next.ttnn.mtp import Qwen38TTNNMTPInput
+from qwen38_flash_next.ttnn.mtp_v2 import (
     BLOCK_ROWS_SHAPE,
     RESIDUAL_ROWS_SHAPE,
     SUPPORTED_DRAFTS,
@@ -93,7 +93,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.mtp_v2 import (
     _validate_mtp_components,
     resolve_moe_rows,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.ple import CONV_STATE_LENGTH, Qwen38TTNNPLERowsPreparedInput
+from qwen38_flash_next.ttnn.ple import CONV_STATE_LENGTH, Qwen38TTNNPLERowsPreparedInput
 
 # The KV slab import writes ``update_padded_kv_cache`` chunks of this many rows (a lane's C-row slab in C / chunk
 # writes): the op needs the cache rows to be a multiple of the rows one call writes (its block-cyclic invariant,

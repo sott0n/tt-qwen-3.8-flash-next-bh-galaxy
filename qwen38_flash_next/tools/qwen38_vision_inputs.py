@@ -18,7 +18,7 @@ import math
 from dataclasses import dataclass
 from typing import Any, Sequence
 
-from models.demos.blackhole.qwen38_flash_next.mrope import Qwen38ImageGrid
+from qwen38_flash_next.mrope import Qwen38ImageGrid
 
 PATCH_SIZE = 16
 MERGE_SIZE = 2
@@ -132,7 +132,7 @@ def pixel_patches(image: Qwen38DecodedImage):
     and normalisation, matched to it on the pinned fixtures).  Raises when the tree has no tower module."""
 
     try:
-        from models.demos.blackhole.qwen38_flash_next import vision_reference
+        from qwen38_flash_next import vision_reference
     except ImportError as error:  # the tower lane's module lands beside this one
         raise Qwen38ImageError("this build carries no vision tower preprocessing (vision_reference)") from error
     import dataclasses

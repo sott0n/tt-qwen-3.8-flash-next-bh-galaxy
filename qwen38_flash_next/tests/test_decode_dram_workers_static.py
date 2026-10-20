@@ -13,19 +13,20 @@ from dataclasses import asdict
 from types import SimpleNamespace
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.checkpoint import CHECKPOINT_FILE_MANIFEST_SHA256, INDEX_SHA256
-from models.demos.blackhole.qwen38_flash_next.config import CONFIG_SHA256
-from models.demos.blackhole.qwen38_flash_next.ttnn import builder as builder_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import decode_matmul as dm
-from models.demos.blackhole.qwen38_flash_next.ttnn import embedding as embedding_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import gdn as gdn_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import mtp_v2 as mtp_v2_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import qsa as qsa_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import (
+from qwen38_flash_next.checkpoint import CHECKPOINT_FILE_MANIFEST_SHA256, INDEX_SHA256
+from qwen38_flash_next.config import CONFIG_SHA256
+from qwen38_flash_next.ttnn import builder as builder_module
+from qwen38_flash_next.ttnn import decode_matmul as dm
+from qwen38_flash_next.ttnn import embedding as embedding_module
+from qwen38_flash_next.ttnn import gdn as gdn_module
+from qwen38_flash_next.ttnn import mtp_v2 as mtp_v2_module
+from qwen38_flash_next.ttnn import qsa as qsa_module
+from qwen38_flash_next.ttnn.embedding import (
     PINNED_CHECKPOINT_REVISION,
     PINNED_TENSOR_MANIFEST_SHA256,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.model import EXPECTED_LAYER_PATTERN
+from qwen38_flash_next.ttnn.model import EXPECTED_LAYER_PATTERN
+from qwen38_flash_next.paths import TT_METAL_ROOT
 
 BANKS = 8
 TILE = ttnn.TILE_SIZE
@@ -244,14 +245,14 @@ def test_the_ready_record_and_the_program_placement_carry_the_reader_placement()
 
     builder_source = inspect.getsource(builder_module)
     assert "decode_dram_workers_placement(mesh_device) if decode_dram_workers_per_bank != 1 else None" in builder_source
-    from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_server
+    from qwen38_flash_next.tools import qwen38_chat_server
 
     server_source = inspect.getsource(qwen38_chat_server)
     assert '"dram_workers_placement": chain.construction.builder.decode_dram_workers_placement' in server_source
     assert '"dram_workers_placement": report["chain"].get("dram_workers_placement")' in server_source
     from pathlib import Path
 
-    repo_root = Path(builder_module.__file__).resolve().parents[5]
+    repo_root = TT_METAL_ROOT
     utilities = (repo_root / "ttnn/cpp/ttnn/operations/matmul/device/utilities/matmul_utilities.cpp").read_text()
     assert "Multiple readers per DRAM bank require identical local device geometry" in utilities
     assert "Multiple readers per DRAM bank on a mesh of differently harvested dies" in utilities

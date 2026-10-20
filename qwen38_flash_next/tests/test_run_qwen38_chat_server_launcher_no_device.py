@@ -12,9 +12,10 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from qwen38_flash_next.paths import TT_METAL_ROOT
 
 MODEL_DIR = Path(__file__).resolve().parents[1]
-REPO_ROOT = MODEL_DIR.parents[3]
+REPO_ROOT = TT_METAL_ROOT
 LAUNCHER = MODEL_DIR / "tools" / "run_qwen38_chat_server.sh"
 # a stand-in for the venv interpreter: the extension probe (``-c``) answers with a file under the checkout, the server
 # run reports its working directory and its arguments

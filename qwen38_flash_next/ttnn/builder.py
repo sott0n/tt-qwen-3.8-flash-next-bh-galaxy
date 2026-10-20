@@ -37,12 +37,12 @@ from pathlib import Path
 from typing import Any, Literal, Sequence
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.checkpoint import (
+from qwen38_flash_next.checkpoint import (
     CHECKPOINT_FILE_MANIFEST_SHA256,
     INDEX_SHA256,
     Qwen38Checkpoint,
 )
-from models.demos.blackhole.qwen38_flash_next.config import (
+from qwen38_flash_next.config import (
     CONFIG_SHA256,
     EP_SIZE,
     EXPERT_SHARDS,
@@ -51,8 +51,8 @@ from models.demos.blackhole.qwen38_flash_next.config import (
     TP_SIZE,
     Qwen38Placement,
 )
-from models.demos.blackhole.qwen38_flash_next.tt.ple import Qwen38HostPLEEmbedding
-from models.demos.blackhole.qwen38_flash_next.ttnn.bf4 import (
+from qwen38_flash_next.tt.ple import Qwen38HostPLEEmbedding
+from qwen38_flash_next.ttnn.bf4 import (
     BF4CacheIdentity,
     BF4CleanupError,
     BF4LayerRecord,
@@ -62,8 +62,8 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.bf4 import (
     bf4_converter_source_identity,
     qualify_live_bf4_ring,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import MESH_SHAPE, Qwen38MeshContract, is_slab_rows
-from models.demos.blackhole.qwen38_flash_next.ttnn.decode_matmul import (  # noqa: E402  (the placement source, READY)
+from qwen38_flash_next.ttnn.contracts import MESH_SHAPE, Qwen38MeshContract, is_slab_rows
+from qwen38_flash_next.ttnn.decode_matmul import (  # noqa: E402  (the placement source, READY)
     TWO_READER_QUALIFIED_DTYPES,
     DenseWeightPlan,
     decode_dram_workers_placement,
@@ -73,7 +73,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.decode_matmul import (  # noq
     qualify_decode_dram_workers,
     validate_decode_dram_workers,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import (
+from qwen38_flash_next.ttnn.embedding import (
     PINNED_CHECKPOINT_REVISION,
     PINNED_TENSOR_MANIFEST_SHA256,
     Qwen38IOCache,
@@ -83,19 +83,19 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import (
     Qwen38TTNNModelIOWeights,
     validate_terminal_architecture,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.final_mixer import Qwen38TTNNFinalMixer, Qwen38TTNNFinalMixerWeights
-from models.demos.blackhole.qwen38_flash_next.ttnn.gdn import Qwen38TTNNGDN, Qwen38TTNNGDNWeights
-from models.demos.blackhole.qwen38_flash_next.ttnn.gr import Qwen38TTNNGatedResidual, Qwen38TTNNGatedResidualWeights
-from models.demos.blackhole.qwen38_flash_next.ttnn.layer import Qwen38TTNNDecoderLayer, Qwen38TTNNLayerNamespace
-from models.demos.blackhole.qwen38_flash_next.ttnn.model import Qwen38TTNNTextModel
-from models.demos.blackhole.qwen38_flash_next.ttnn.moe import (
+from qwen38_flash_next.ttnn.final_mixer import Qwen38TTNNFinalMixer, Qwen38TTNNFinalMixerWeights
+from qwen38_flash_next.ttnn.gdn import Qwen38TTNNGDN, Qwen38TTNNGDNWeights
+from qwen38_flash_next.ttnn.gr import Qwen38TTNNGatedResidual, Qwen38TTNNGatedResidualWeights
+from qwen38_flash_next.ttnn.layer import Qwen38TTNNDecoderLayer, Qwen38TTNNLayerNamespace
+from qwen38_flash_next.ttnn.model import Qwen38TTNNTextModel
+from qwen38_flash_next.ttnn.moe import (
     Qwen38TTNNMoE,
     Qwen38TTNNMoESyncPolicy,
     Qwen38TTNNMoEWeights,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.mtp import Qwen38TTNNMTPInput, Qwen38TTNNMTPInputWeights
-from models.demos.blackhole.qwen38_flash_next.ttnn.ple import Qwen38TTNNPLE, Qwen38TTNNPLEWeights
-from models.demos.blackhole.qwen38_flash_next.ttnn.prefill_dense import (
+from qwen38_flash_next.ttnn.mtp import Qwen38TTNNMTPInput, Qwen38TTNNMTPInputWeights
+from qwen38_flash_next.ttnn.ple import Qwen38TTNNPLE, Qwen38TTNNPLEWeights
+from qwen38_flash_next.ttnn.prefill_dense import (
     Qwen38PrefillDensePolicy,
     Qwen38TTNNPrefillDense,
     admit_prefill_dense_dram,
@@ -103,7 +103,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.prefill_dense import (
     slab_working_set_bytes,
     weight_dtype_name,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.qsa import (
+from qwen38_flash_next.ttnn.qsa import (
     CACHE_WRITE_ROWS,
     COMPRESS_RATIO,
     HEAD_DIM,
@@ -114,7 +114,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.qsa import (
     Qwen38TTNNQSAWeights,
     validate_qsa_cache_capacity,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.vision_residency import VISION_ROW_BUCKETS, Qwen38VisionResidency
+from qwen38_flash_next.ttnn.vision_residency import VISION_ROW_BUCKETS, Qwen38VisionResidency
 from models.tt_transformers.tt.ccl import TT_CCL
 
 BACKBONE_LAYERS = 48

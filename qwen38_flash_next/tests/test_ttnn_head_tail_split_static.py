@@ -21,17 +21,17 @@ from types import SimpleNamespace
 import pytest
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.tests.test_ttnn_components_static import _generic_layer, _generic_model
-from models.demos.blackhole.qwen38_flash_next.ttnn import layer as layer_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import model as model_module
-from models.demos.blackhole.qwen38_flash_next.ttnn.layer import (
+from qwen38_flash_next.tests.test_ttnn_components_static import _generic_layer, _generic_model
+from qwen38_flash_next.ttnn import layer as layer_module
+from qwen38_flash_next.ttnn import model as model_module
+from qwen38_flash_next.ttnn.layer import (
     PLE_CHECKPOINT_LAYER,
     Qwen38TTNNDecoderLayer,
     Qwen38TTNNDecoderLayerGenericState,
     Qwen38TTNNLayerNamespace,
     Qwen38TTNNLayerType,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.model import (
+from qwen38_flash_next.ttnn.model import (
     EXPECTED_LAYER_PATTERN,
     GENERIC_HEAD_HANDOFF,
     GENERIC_HEAD_LAYERS,
@@ -44,7 +44,7 @@ from models.demos.blackhole.qwen38_flash_next.ttnn.model import (
     Qwen38TTNNTextModel,
     validate_model_static_contract,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.ple import Qwen38TTNNPLEResult
+from qwen38_flash_next.ttnn.ple import Qwen38TTNNPLEResult
 
 TAIL_EPILOGUE_NAMES = [
     "qsa-position-deallocate",

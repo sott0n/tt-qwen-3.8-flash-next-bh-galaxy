@@ -51,9 +51,10 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Sequence
+from qwen38_flash_next.paths import TT_METAL_ROOT
 
 MODEL_DIR = Path(__file__).resolve().parents[1]
-REPO_ROOT = MODEL_DIR.parents[3]
+REPO_ROOT = TT_METAL_ROOT
 REFERENCE_DIR = Path(__file__).with_name("reference")
 ACCEPTANCE_DIR = Path(__file__).with_name("acceptance") / "greedy-prompts"
 TALE_OF_TWO_CITIES = REPO_ROOT / "models" / "tt_transformers" / "tests" / "tale-of-two-cities.txt.bz2"
@@ -423,10 +424,10 @@ def freeze_corpus(
     eval_items_dir: Path,
     out_dir: Path,
 ) -> dict[str, Any]:
-    from models.demos.blackhole.qwen38_flash_next.chat import PINNED_TOKENIZER_ARTIFACTS, Qwen38OfficialChatTemplate
-    from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_protocol as protocol
-    from models.demos.blackhole.qwen38_flash_next.tools.qwen38_chat_server import load_acceptance_records
-    from models.demos.blackhole.qwen38_flash_next.tools.qwen38_chat_session import SYSTEM_PROMPT
+    from qwen38_flash_next.chat import PINNED_TOKENIZER_ARTIFACTS, Qwen38OfficialChatTemplate
+    from qwen38_flash_next.tools import qwen38_chat_protocol as protocol
+    from qwen38_flash_next.tools.qwen38_chat_server import load_acceptance_records
+    from qwen38_flash_next.tools.qwen38_chat_session import SYSTEM_PROMPT
 
     tokenizer = Qwen38OfficialChatTemplate(checkpoint).tokenizer
     items: list[CorpusItem] = []
@@ -745,14 +746,14 @@ class OracleRunner(_Runner):
     def __init__(self, checkpoint: Path, *, experts: str, rss_limit_gib: float, kv: str = "bf16"):
         import torch
 
-        from models.demos.blackhole.qwen38_flash_next.checkpoint import Qwen38Checkpoint
-        from models.demos.blackhole.qwen38_flash_next.config import Qwen38Placement
-        from models.demos.blackhole.qwen38_flash_next.tools.qwen38_kv_cache_emulation import (
+        from qwen38_flash_next.checkpoint import Qwen38Checkpoint
+        from qwen38_flash_next.config import Qwen38Placement
+        from qwen38_flash_next.tools.qwen38_kv_cache_emulation import (
             KVCacheRounding,
             install_kv_rounding,
         )
-        from models.demos.blackhole.qwen38_flash_next.tt.model import Qwen38TextModelOracle
-        from models.demos.blackhole.qwen38_flash_next.tt.moe import Qwen38ExpertWeights
+        from qwen38_flash_next.tt.model import Qwen38TextModelOracle
+        from qwen38_flash_next.tt.moe import Qwen38ExpertWeights
 
         if experts not in ("bf16", "bf4"):
             raise ReferenceCorpusError(f"experts must be bf16 or bf4, got {experts!r}")

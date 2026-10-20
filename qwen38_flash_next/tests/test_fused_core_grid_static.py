@@ -17,11 +17,11 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.ttnn import qsa
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import gr_fold, gr_read, gr_write
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import program as fp
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import placement
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import qsa_block, router_tail
+from qwen38_flash_next.ttnn import qsa
+from qwen38_flash_next.ttnn.fused import gr_fold, gr_read, gr_write
+from qwen38_flash_next.ttnn.fused import program as fp
+from qwen38_flash_next.ttnn.fused import placement
+from qwen38_flash_next.ttnn.fused import qsa_block, router_tail
 
 SUPPORTED_CONTEXTS = (32768, 65536, 131072, 262144)  # the launchers' admitted --allocated-context values
 GRIDS = {"p150 harvested (120 Tensix)": (11, 10), "p150 unharvested (130 Tensix)": (12, 10)}

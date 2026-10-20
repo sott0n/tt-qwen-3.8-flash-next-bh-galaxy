@@ -8,10 +8,11 @@ from types import SimpleNamespace
 
 import pytest
 
-from models.demos.blackhole.qwen38_flash_next.ttnn import embedding as embedding_module
+from qwen38_flash_next.ttnn import embedding as embedding_module
+from qwen38_flash_next.paths import MODEL_DIR, TT_METAL_ROOT
 
-REPO_ROOT = Path(__file__).resolve().parents[5]
-EMBEDDING = REPO_ROOT / "models/demos/blackhole/qwen38_flash_next/ttnn/embedding.py"
+REPO_ROOT = TT_METAL_ROOT
+EMBEDDING = MODEL_DIR / "ttnn/embedding.py"
 
 
 def _helper_source() -> str:

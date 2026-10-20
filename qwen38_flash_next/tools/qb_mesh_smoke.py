@@ -185,7 +185,7 @@ def main() -> int:
     import torch
     import yaml
 
-    from models.demos.blackhole.qwen38_flash_next.tools import physical_route
+    from qwen38_flash_next.tools import physical_route
 
     phase("before-discovery")
     discovered = (int(ttnn.GetNumAvailableDevices()), int(ttnn.get_num_pcie_devices()), int(ttnn.get_num_devices()))

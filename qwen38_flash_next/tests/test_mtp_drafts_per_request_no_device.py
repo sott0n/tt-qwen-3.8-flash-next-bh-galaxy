@@ -14,8 +14,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_server as server
-from models.demos.blackhole.qwen38_flash_next.ttnn import mtp_v2
+from qwen38_flash_next.tools import qwen38_chat_server as server
+from qwen38_flash_next.ttnn import mtp_v2
 
 ROOT = Path(__file__).resolve().parents[1]
 SESSION_SOURCE = ROOT / "tools" / "qwen38_chat_session.py"

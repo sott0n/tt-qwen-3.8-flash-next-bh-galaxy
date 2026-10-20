@@ -20,10 +20,10 @@ from types import SimpleNamespace
 import torch
 import torch.nn.functional as F
 
-from models.demos.blackhole.qwen38_flash_next.tt.gr import Qwen38GatedResidual, Qwen38GatedResidualWeights
-from models.demos.blackhole.qwen38_flash_next.tt.model import Qwen38FinalMixerWeights
-from models.demos.blackhole.qwen38_flash_next.ttnn import final_mixer as final_mixer_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import gr as gr_module
+from qwen38_flash_next.tt.gr import Qwen38GatedResidual, Qwen38GatedResidualWeights
+from qwen38_flash_next.tt.model import Qwen38FinalMixerWeights
+from qwen38_flash_next.ttnn import final_mixer as final_mixer_module
+from qwen38_flash_next.ttnn import gr as gr_module
 
 QWEN_ROOT = Path(__file__).resolve().parents[1]
 GR_SOURCE = QWEN_ROOT / "ttnn" / "gr.py"

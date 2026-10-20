@@ -27,15 +27,15 @@ from typing import Callable, Mapping
 import torch
 
 import ttnn
-from models.demos.blackhole.qwen38_flash_next.tools.checkpoint_budget import vision_resident_layout
-from models.demos.blackhole.qwen38_flash_next.ttnn.vision_layout import (
+from qwen38_flash_next.tools.checkpoint_budget import vision_resident_layout
+from qwen38_flash_next.ttnn.vision_layout import (
     PADDED_HEAD_DIM,
     TILE,
     device_cos_sin,
     padded_rows,
     tower_layout,
 )
-from models.demos.blackhole.qwen38_flash_next.vision_reference import (
+from qwen38_flash_next.vision_reference import (
     VisionTowerConfig,
     attention_segments,
     interpolated_pos_embed,

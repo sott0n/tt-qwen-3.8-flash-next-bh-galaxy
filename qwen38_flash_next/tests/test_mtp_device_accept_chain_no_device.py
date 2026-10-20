@@ -17,14 +17,14 @@ from types import SimpleNamespace
 import pytest
 import torch
 
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_server as server_module
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_session as session_module
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_mtp_device_accept as device_accept_module
-from models.demos.blackhole.qwen38_flash_next.ttnn import mtp_v2
-from models.demos.blackhole.qwen38_flash_next.ttnn.device_sampler import Qwen38DeviceSamplerPolicy
-from models.demos.blackhole.qwen38_flash_next.ttnn.embedding import VOCAB_SIZE, ZERO_EMBEDDING_TOKEN
-from models.demos.blackhole.qwen38_flash_next.ttnn.fused import mtp_accept
-from models.demos.blackhole.qwen38_flash_next.ttnn.sampling import Qwen38CandidateRow, Qwen38SamplingParameters
+from qwen38_flash_next.tools import qwen38_chat_server as server_module
+from qwen38_flash_next.tools import qwen38_chat_session as session_module
+from qwen38_flash_next.tools import qwen38_mtp_device_accept as device_accept_module
+from qwen38_flash_next.ttnn import mtp_v2
+from qwen38_flash_next.ttnn.device_sampler import Qwen38DeviceSamplerPolicy
+from qwen38_flash_next.ttnn.embedding import VOCAB_SIZE, ZERO_EMBEDDING_TOKEN
+from qwen38_flash_next.ttnn.fused import mtp_accept
+from qwen38_flash_next.ttnn.sampling import Qwen38CandidateRow, Qwen38SamplingParameters
 
 ROOT = Path(__file__).resolve().parents[1]
 MTP_V2_SOURCE = ROOT / "ttnn" / "mtp_v2.py"

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import pytest
 
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_chat_session as session_module
+from qwen38_flash_next.tools import qwen38_chat_session as session_module
 
 RESIDENT = 125_231_104  # the tower's BF16 weights per bank, measured on the line 2026-09-29
 PEAK = 150_994_944  # 65,536 patches (the stock maximum image) x 18,432 bytes per padded patch over 8 banks

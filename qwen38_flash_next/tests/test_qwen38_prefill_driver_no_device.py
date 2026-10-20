@@ -10,14 +10,14 @@ from types import SimpleNamespace
 
 import pytest
 
-from models.demos.blackhole.qwen38_flash_next.tools import qwen38_prefill_driver as driver_module
-from models.demos.blackhole.qwen38_flash_next.tools.qwen38_prefill_driver import (
+from qwen38_flash_next.tools import qwen38_prefill_driver as driver_module
+from qwen38_flash_next.tools.qwen38_prefill_driver import (
     CHUNK_PAD_TOKEN_ID,
     Qwen38ChunkPrefill,
     alignment_steps,
     chunk_accepts,
 )
-from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import CHUNK_ROWS
+from qwen38_flash_next.ttnn.contracts import CHUNK_ROWS
 
 ALLOCATED_CONTEXT = 500  # not a tile multiple, so the padded tail's end can overrun it in the budget test
 TRACE_ID = 77
@@ -371,7 +371,7 @@ def _image_prompt(committed: int = 0):
 
     import torch
 
-    from models.demos.blackhole.qwen38_flash_next import mrope
+    from qwen38_flash_next import mrope
 
     grid = mrope.Qwen38ImageGrid(1, 8, 8)
     tokens = (
