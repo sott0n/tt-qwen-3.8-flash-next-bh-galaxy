@@ -3243,6 +3243,10 @@ class Qwen38TracedChain:
             actual = state.position.read()
             if actual != LONG_CHUNK_ROWS:
                 raise Qwen38ChatChainError(f"warm long chunk position counter {actual} vs expected {LONG_CHUNK_ROWS}")
+            # The padded tail's hand-off reads the chunk at its real row count, one slice per count: compile them
+            # all here, since the hand-off runs under the miss guard.
+            model.warm_padded_handoff(long_chunk_state)
+            synchronize()
             marker("after-chat-long-chunk-warm-pass")
         if chunked_prefill:
             # One eager chunk from the reset state (the chunk body's programs compile here) and both hand-off

@@ -49,14 +49,17 @@ from dataclasses import dataclass
 from typing import Any
 
 import torch
+from ttnn.unsafe_allocation_tracker import UnsafeAllocationTracker
+
 import ttnn
 from models.demos.blackhole.qwen38_flash_next import mrope, vision_splice
 from models.demos.blackhole.qwen38_flash_next.ttnn.contracts import CHUNK_ROWS, LONG_CHUNK_ROWS, is_slab_rows
-from ttnn.unsafe_allocation_tracker import UnsafeAllocationTracker
 
 # Rows past the prompt in the padded tail chunk: any in-vocabulary id; their state is never read after the hand-off.
 CHUNK_PAD_TOKEN_ID = 0
 CHUNK_EVENT_INTERVAL = 4
+# Below this the prefill's tail is cheaper as 32-row chunks than as one padded 128-row chunk (three of them).
+PADDED_LONG_MIN_ROWS = 2 * CHUNK_ROWS + 1
 
 
 def alignment_steps(start_position: int, count: int) -> int:
@@ -69,6 +72,18 @@ def long_chunk_count(count: int, *, long_chunks: bool) -> int:
     """The 128-row chunks of a ``count``-token chunked prefill: ``count // 128`` when the chain has the long trace."""
 
     return count // LONG_CHUNK_ROWS if long_chunks else 0
+
+
+def padded_long_rows(count: int, *, long_chunks: bool) -> int:
+    """The real rows of a padded 128-row chunk taking the tail of a ``count``-token chunked prefill, 0 for none.
+
+    A 128-row chunk replays in about the time of three 32-row ones (0.16 s against 0.060 s, measured at ISL 128
+    on 32 chips), so the tail runs as one padded chunk once it would otherwise take three or more of them.  The
+    hand-off re-reads the GDN and PLE histories at the real row count, which needs the PLE conv state's nine rows.
+    """
+
+    tail = count % LONG_CHUNK_ROWS
+    return tail if long_chunks and tail >= PADDED_LONG_MIN_ROWS else 0
 
 
 def slab_count(count: int, *, slab_rows: int | None) -> int:
@@ -108,6 +123,12 @@ class Qwen38PrefillTiming:
     slab_prepare_ms: tuple[float, ...] = ()
     slab_upload_ms: tuple[float, ...] = ()
     slab_wait_ms: tuple[float, ...] = ()
+    # The chunk-state seed ahead of the first replay (the sync, every state's reset, the MTP chunk resets): eager
+    # work over every layer, so it scales with the chain's states and not with the prompt.
+    reset_ms: float = 0.0
+    # The chunk replays are queued non-blocking, so the hand-off's first sync is where they are waited for:
+    # ``drain_ms`` is their device time and ``handoff_ms`` minus it is the hand-off's own work.
+    drain_ms: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -262,9 +283,10 @@ class Qwen38ChunkPrefill:
 
         if index >= len(plan):
             return None
-        chunk_state, _kind, rows, accepted = plan[index]
-        if accepted is not None and accepted != CHUNK_ROWS - 1:
-            rows = rows + [self.pad_token_id] * (CHUNK_ROWS - len(rows))
+        chunk_state, kind, rows, accepted = plan[index]
+        width = {"short": CHUNK_ROWS, "long": LONG_CHUNK_ROWS, "slab": self.slab_rows}[kind]
+        if len(rows) < width:
+            rows = rows + [self.pad_token_id] * (width - len(rows))
         started_ns = time.perf_counter_ns()
         chunk_positions = self._chunk_positions(positions, position + starts[index], rows)
         chunk_features, feature_cursor = vision_splice.split_features(rows, features, feature_cursor)
@@ -340,7 +362,8 @@ class Qwen38ChunkPrefill:
         slabs = slab_count(len(remaining), slab_rows=self.slab_rows or None)
         after_slabs = len(remaining) - slabs * self.slab_rows
         long_chunks = long_chunk_count(after_slabs, long_chunks=self.long_chunk_state is not None)
-        accepts = chunk_accepts(after_slabs - long_chunks * LONG_CHUNK_ROWS)
+        padded_rows = padded_long_rows(after_slabs, long_chunks=self.long_chunk_state is not None)
+        accepts = chunk_accepts(0 if padded_rows else after_slabs - long_chunks * LONG_CHUNK_ROWS)
         # The chunk sequence: (chunk state, kind, rows, accept scalar or None): the slabs, then the long chunks,
         # then the 32-row chunks and the padded tail.
         plan: list[tuple[Any, str, list[int], int | None]] = [
@@ -358,6 +381,9 @@ class Qwen38ChunkPrefill:
             for index in range(long_chunks)
         ]
         offset += long_chunks * LONG_CHUNK_ROWS
+        if padded_rows:
+            plan.append((self.long_chunk_state, "long", remaining[offset : offset + padded_rows], None))
+            offset += padded_rows
         plan += [
             (
                 self.chunk_state,
@@ -369,6 +395,8 @@ class Qwen38ChunkPrefill:
         ]
         verify_ms = None
         handoff_ms = 0.0
+        reset_ms = 0.0
+        drain_ms = 0.0
         replay_ms: list[float] = []
         host_ms: list[float] = []
         long_replay_ms: list[float] = []
@@ -379,33 +407,37 @@ class Qwen38ChunkPrefill:
         slab_upload_ms: list[float] = []
         slab_wait_ms: list[float] = []
         stopped = None
+        padded_last = None
         consumed = len(remaining)
         chunks = len(accepts)
-        long_done = long_chunks
+        long_done = long_chunks + (1 if padded_rows else 0)
         slabs_done = slabs
         if plan:
             if position % CHUNK_ROWS:
                 raise AssertionError(f"chunks must start at P % {CHUNK_ROWS} == 0, got P = {position}")
-            end = position + slabs * self.slab_rows + long_chunks * LONG_CHUNK_ROWS + CHUNK_ROWS * len(accepts)
+            end = position + slabs * self.slab_rows + CHUNK_ROWS * len(accepts)
+            end += LONG_CHUNK_ROWS * (long_chunks + (1 if padded_rows else 0))
             if end > self.model.allocated_context:
                 raise ValueError(
                     f"the padded tail chunk ends at {end}, past the allocated context {self.model.allocated_context}"
                 )
+            reset_started_ns = time.perf_counter_ns()
             ttnn.synchronize_device(self.mesh)
             self.model.reset_chunk_state_inplace(self.state, self.chunk_state)
-            if long_chunks or slabs:
+            if long_chunks or padded_rows or slabs:
                 self.model.reset_chunk_state_inplace(self.state, self.long_chunk_state)
             if slabs:
                 self.model.reset_chunk_state_inplace(self.state, self.slab_state)
             if self.mtp is not None:
                 self.mtp.reset_chunk()
-                if (long_chunks or slabs) and self.long_mtp is not None:
+                if (long_chunks or padded_rows or slabs) and self.long_mtp is not None:
                     self.long_mtp.reset_chunk()
+            reset_ms = (time.perf_counter_ns() - reset_started_ns) / 1_000_000
             if self.verify_allocations and self.chunk_trace_id is not None:
                 verify_started_ns = time.perf_counter_ns()
                 for trace_id in (
                     (self.chunk_trace_id,)
-                    + ((self.long_chunk_trace_id,) if long_chunks or slabs else ())
+                    + ((self.long_chunk_trace_id,) if long_chunks or padded_rows or slabs else ())
                     + ((self.slab_trace_id,) if slabs else ())
                 ):
                     if trace_id is not None:
@@ -450,6 +482,9 @@ class Qwen38ChunkPrefill:
                 host_started_ns = time.perf_counter_ns()
                 if accepted is not None and accepted != CHUNK_ROWS - 1:
                     self.model.write_chunk_accepted(self.chunk_state, accepted)
+                if kind == "long" and real_rows != LONG_CHUNK_ROWS:
+                    # The padded 128-row tail: the row masks are its accept scalar (the reset wrote the full tile).
+                    self.model.write_chunk_rows(self.long_chunk_state, real_rows)
                 prepared, prepare_ns, feature_cursor = pending
                 ple_context = prepared.contexts[real_rows]
                 upload_started_ns = time.perf_counter_ns()
@@ -482,6 +517,8 @@ class Qwen38ChunkPrefill:
                     timings[kind][1].append((time.perf_counter_ns() - replay_started_ns) / 1_000_000)
                 else:
                     self._run_chunk(blocking=False, kind=kind)
+                # The hand-off repairs the histories only when the padded chunk was the last one replayed.
+                padded_last = real_rows if kind == "long" and real_rows != LONG_CHUNK_ROWS else None
                 # The next chunk's host half under this chunk's replay (its copies are queued behind the replay on the
                 # same command queue at the next iteration, so the device finishes reading the input buffers before
                 # they change); a slab's wait for the previous slab's event follows, so the host runs one slab ahead.
@@ -520,13 +557,26 @@ class Qwen38ChunkPrefill:
             position += consumed
             handoff_started_ns = time.perf_counter_ns()
             ttnn.synchronize_device(self.mesh)
+            drain_ms = (time.perf_counter_ns() - handoff_started_ns) / 1_000_000
             # The decode's shift after the prefill; a prompt that ends in text (Qwen38VisionPrompt.validate_prompt)
             # keeps it within the next position's block start.  A stop inside an image leaves a state no request
             # decodes from (an image prompt always resets), so its shift is clamped to a valid value.
             rope_shift = 0 if positions is None else min(positions.shift_at(position), position & ~3)
-            self.model.finish_prefill(self.state, self.chunk_state, position, rope_shift=rope_shift)
+            self.model.finish_prefill(
+                self.state,
+                self.chunk_state,
+                position,
+                rope_shift=rope_shift,
+                padded_chunk_state=None if padded_last is None else self.long_chunk_state,
+                padded_rows=padded_last,
+            )
             if self.mtp is not None:
-                self.mtp.finish_chunk(self.model, prefilled=position)
+                self.mtp.finish_chunk(
+                    self.model,
+                    prefilled=position,
+                    padded=None if padded_last is None else self.long_mtp,
+                    padded_rows=padded_last,
+                )
             ttnn.synchronize_device(self.mesh)
             handoff_ms = (time.perf_counter_ns() - handoff_started_ns) / 1_000_000
         timing = Qwen38PrefillTiming(
@@ -550,6 +600,8 @@ class Qwen38ChunkPrefill:
             slab_prepare_ms=tuple(slab_prepare_ms),
             slab_upload_ms=tuple(slab_upload_ms),
             slab_wait_ms=tuple(slab_wait_ms),
+            reset_ms=reset_ms,
+            drain_ms=drain_ms,
         )
         return Qwen38PrefillResult(position, ple_context, timing, stopped)
 
@@ -563,5 +615,6 @@ __all__ = [
     "alignment_steps",
     "chunk_accepts",
     "long_chunk_count",
+    "padded_long_rows",
     "slab_count",
 ]

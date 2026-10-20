@@ -82,7 +82,7 @@ void kernel_main() {
 
         // mean(x * x): numeric::row_wise_mean<SUM, REDUCE_ROW, FLOAT32_REDUCTION = false, FullBlockWithPopPolicy>
         {
-            FUSED_ZONE("fz_gpo_cn_mean");
+            FUSED_ZONE("fz_gpo_cn_row_mean");
             cb_wait_front(CB_SCALER, 1);
             reconfig_data_format(CB_XMM2, CB_SCALER);
             tile_regs_acquire();

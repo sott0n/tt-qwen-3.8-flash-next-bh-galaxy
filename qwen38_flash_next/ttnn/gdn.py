@@ -854,7 +854,9 @@ def chunk_constant_tiles() -> dict[str, torch.Tensor]:
 class Qwen38TTNNGDNRowsConstants:
     """Read-only device tensors shared by every GDN layer's ``rows``-row path (one set per row count).
 
-    ``row_mask_*`` is 1.0 for rows below ``rows`` and 0.0 for the padding rows up to the chunk; ``arange``
+    ``row_mask_*`` is 1.0 for rows below ``rows`` and 0.0 for the padding rows up to the chunk (the 128-row
+    prefill chunk rewrites them per chunk from the host, :func:`write_rows_row_mask`, so one trace serves every
+    real row count); ``arange``
     (a column) and ``arange_row`` (a row) hold the row index (fp32, exact); ``one`` is the fp32 scalar 1.0;
     ``conv_taps``, ``history_select_stack`` and ``qk_expand`` are the 0/1 selection matrices of
     :func:`rows_window_select_tiles` (bf16: exactly representable); ``eye``/``tril``/``ones``/``masks`` are
@@ -1089,6 +1091,42 @@ def build_rows_selectors(accepted, constants: Qwen38TTNNGDNRowsConstants) -> Qwe
     )
     selectors.validate(constants.rows)
     return selectors
+
+
+def write_rows_row_mask(mesh_device, constants: Qwen38TTNNGDNRowsConstants, real_rows: int) -> None:
+    """Host write of a padded chunk's row masks and history select for ``real_rows`` real rows.
+
+    The masks and the full-commit history select live at fixed addresses and are read inside the trace, so one
+    captured program serves every real row count: beta = g = 0 makes a padding row an identity update, exactly as
+    the rows past the constants' own ``rows`` already are.  Written outside any trace, like the accept scalar.
+    Only the 128-row prefill chunk writes them; every other row count keeps its build-time images.
+    """
+
+    tile_rows = constants.tile_rows
+    if isinstance(real_rows, bool) or type(real_rows) is not int or not 1 <= real_rows <= tile_rows:
+        raise ValueError(f"the row mask takes a real row count in [1,{tile_rows}], got {real_rows!r}")
+    keep = (torch.arange(tile_rows) < real_rows).float()
+    # The full-commit select is built for the tile's last rows; a padded chunk commits ``real_rows`` of them, so
+    # the next history is window rows real_rows .. real_rows + 2.  Writing it here keeps the commit's matmul the
+    # one captured program (a slice at the real rows would be a new one, which the hand-off cannot compile).
+    select = torch.zeros(CHUNK_SIZE, CHUNK_SIZE + tile_rows)
+    for index in range(CONV_HISTORY_ROWS):
+        select[index, _window_buffer_row(real_rows + index)] = 1.0
+    for tensor, host, dtype in (
+        (constants.history_select_full, select.reshape(1, 1, CHUNK_SIZE, CHUNK_SIZE + tile_rows), ttnn.bfloat16),
+        (constants.row_mask_bf16, keep.reshape(1, tile_rows, 1, 1).to(torch.bfloat16), ttnn.bfloat16),
+        (constants.row_mask_bf16_col, keep.reshape(1, 1, tile_rows, 1).to(torch.bfloat16), ttnn.bfloat16),
+        (constants.row_mask_fp32, keep.reshape(1, 1, tile_rows, 1), ttnn.float32),
+    ):
+        ttnn.copy_host_to_device_tensor(
+            ttnn.from_torch(
+                host.contiguous(),
+                dtype=dtype,
+                layout=ttnn.TILE_LAYOUT,
+                mesh_mapper=replicate_tensor_2d_mesh_mapper(mesh_device),
+            ),
+            tensor,
+        )
 
 
 # The rows-state fields the fused prefill rows form adds (None on every other form).
@@ -2858,7 +2896,9 @@ class Qwen38TTNNGDN:
         l1 = ttnn.L1_MEMORY_CONFIG
         constants = rows_state.constants
         tile_rows = constants.tile_rows
-        full_rows = constants.rows == tile_rows and tile_rows != CHUNK_SIZE  # the long chunk and the slab
+        # The slab only: a 128-row chunk keeps the mask multiplies because a padded one carries fewer real rows
+        # than its tile, and the mask is what makes those rows an identity update (``write_rows_row_mask``).
+        full_rows = constants.rows == tile_rows and is_slab_rows(tile_rows)
         q_slice = ttnn.slice(conv, (0, 0, 0, 0), (1, 1, tile_rows, QK_WIDTH_PER_DEVICE), memory_config=l1)
         k_slice = ttnn.slice(
             conv, (0, 0, 0, QK_WIDTH_PER_DEVICE), (1, 1, tile_rows, 2 * QK_WIDTH_PER_DEVICE), memory_config=l1
@@ -3898,6 +3938,7 @@ __all__ = [
     "Qwen38TTNNGDNSnapshot",
     "Qwen38TTNNRowsSelectors",
     "build_rows_selectors",
+    "write_rows_row_mask",
     "chunk_constant_tiles",
     "rows_window_select_tiles",
     "validate_gdn_static_contract",

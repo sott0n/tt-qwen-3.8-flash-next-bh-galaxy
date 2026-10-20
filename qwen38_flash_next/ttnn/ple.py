@@ -1763,6 +1763,30 @@ class Qwen38TTNNPLE:
         _copy_inplace(history, rows_state.history, label="PLE rows history")
         _deallocate(history)
 
+    def repair_rows_history(self, rows_state: Qwen38TTNNPLERowsState, real_rows: int) -> None:
+        """``history <- normalized[r - 9 : r]`` for a padded chunk (host-called, outside any trace).
+
+        ``commit_rows_full`` inside the trace takes the tile's last nine rows, which on a padded chunk are
+        padding; the rows themselves are still in ``normalized``, so the real ones are re-read here at the
+        hand-off.  Only the last chunk of a prefill is ever padded.
+        """
+
+        rows_state.validate()
+        rows = rows_state.rows
+        if isinstance(real_rows, bool) or type(real_rows) is not int or not CONV_STATE_LENGTH <= real_rows <= rows:
+            raise ValueError(
+                f"the history repair takes a real row count in [{CONV_STATE_LENGTH},{rows}], got {real_rows!r}"
+            )
+        history = ttnn.slice(
+            rows_state.normalized,
+            (0, real_rows - CONV_STATE_LENGTH, 0, 0),
+            (1, real_rows, RESIDUAL_BRANCHES, LOCAL_HIDDEN_SIZE),
+            memory_config=ttnn.DRAM_MEMORY_CONFIG,
+        )
+        self._validate_rows_residual(history, CONV_STATE_LENGTH, label="PLE padded chunk history")
+        _copy_inplace(history, rows_state.history, label="PLE rows history")
+        _deallocate(history)
+
     @staticmethod
     def commit_rows_host(
         rows_state: Qwen38TTNNPLERowsState, prepared: Qwen38TTNNPLERowsPreparedInput, accepted: int

@@ -3106,8 +3106,9 @@ class Qwen38TTNNMTPChunkExtension:
     do at 128 rows: its layer chunk state is allocated beside the 32-row one (the QSA form shares nothing but the
     rule; its kept buffers are its own) and its MoE instance borrows the 128-row chunk state's shared combine buffer
     (the MTP layer runs after layer 47 in the same body, so the buffer is free).  Its ``finish_chunk`` is refused:
-    the hand-off reads the 32-row twin, whose kept buffers a long chunk never wrote, which is the closed-block
-    hand-off the backbone's 128-row chunks already make."""
+    the hand-off reads the 32-row twin, whose kept buffers a full long chunk never wrote, which is the closed-block
+    hand-off the backbone's 128-row chunks already make.  A padded last chunk ends inside a block, so that hand-off
+    takes this twin's kept rows instead (``finish_chunk(padded=...)``)."""
 
     alignment: Qwen38TTNNVerifyAlignment
     layer_chunk_state: Any
@@ -3388,12 +3389,28 @@ class Qwen38TTNNMTPChunkExtension:
         )
         _deallocate(out)
 
-    def finish_chunk(self, model: Qwen38TTNNTextModel, *, prefilled: int) -> None:
+    def finish_chunk(
+        self,
+        model: Qwen38TTNNTextModel,
+        *,
+        prefilled: int,
+        padded: "Qwen38TTNNMTPChunkExtension | None" = None,
+        padded_rows: int | None = None,
+    ) -> None:
         """The MTP layer's hand-off after the last chunk (the model's ``finish_prefill`` form for one layer): the
-        32-row twin's, whatever chunk forms the prefill ran."""
+        32-row twin's, whatever chunk forms the prefill ran.
+
+        ``padded`` is the 128-row twin when the last chunk was a padded one and ``padded_rows`` its real rows: the
+        kept rows the hand-off needs are that twin's, since the 32-row twin never ran.  A full 128-row chunk ends
+        on a 32-row boundary, so its hand-off is the closed-block one and needs neither.
+        """
 
         if self.rows != CHUNK_ROWS:
             raise ValueError(f"the MTP hand-off reads the {CHUNK_ROWS}-row chunk extension, got {self.rows} rows")
+        if (padded is None) != (padded_rows is None):
+            raise ValueError("a padded last chunk takes both the 128-row twin and its real row count")
+        if padded is not None and padded.rows != LONG_CHUNK_ROWS:
+            raise ValueError(f"the padded twin is the {LONG_CHUNK_ROWS}-row form, got {padded.rows} rows")
         ring_select = ttnn.from_torch(
             qsa_module.chunk_handoff_ring_select_rows(prefilled),
             dtype=ttnn.bfloat16,
@@ -3404,7 +3421,11 @@ class Qwen38TTNNMTPChunkExtension:
         )
         try:
             self.alignment.layer.finish_chunk_state_inplace(
-                self.layer_chunk_state, self.alignment.generic_state, prefilled=prefilled, qsa_ring_select=ring_select
+                self.layer_chunk_state if padded is None else padded.layer_chunk_state,
+                self.alignment.generic_state,
+                prefilled=prefilled,
+                qsa_ring_select=ring_select,
+                real_rows=padded_rows,
             )
         finally:
             _deallocate(ring_select)

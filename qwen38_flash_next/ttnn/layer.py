@@ -1493,15 +1493,20 @@ class Qwen38TTNNDecoderLayer:
         *,
         prefilled: int,
         qsa_ring_select,
+        real_rows: int | None = None,
     ) -> None:
         """Eager hand-off after the last chunk of a prefill of ``prefilled`` positions: the decode's per-token
         buffers take what the chunk carry holds (the GDN ring slots and phase from the committed history, the PLE
         slots from the rows history, the QSA staging tile and raw-key ring from the kept slab and raw keys).  The
-        committed GDN state and the QSA caches are already the decode's."""
+        committed GDN state and the QSA caches are already the decode's.
+
+        ``real_rows`` names a padded 128-row last chunk, whose own state the hand-off then reads: its GDN and PLE
+        histories are the shared buffers the caller already repaired, and its QSA kept rows are the whole chunk,
+        so the QSA hand-off slices the open block's tile out of them."""
 
         self._validate_chunk_state(state)
         self._validate_generic_state(generic_state)
-        if state.rows != CHUNK_ROWS:
+        if state.rows != CHUNK_ROWS and (real_rows is None or state.rows != LONG_CHUNK_ROWS):
             raise ValueError(f"the hand-off reads the {CHUNK_ROWS}-row chunk state, got {state.rows} rows")
         if isinstance(self.attention, Qwen38TTNNGDN):
             # The next token lands in slot prefilled % 4; the history rows are the three before it, oldest first.
@@ -1513,6 +1518,7 @@ class Qwen38TTNNDecoderLayer:
                 state.attention,
                 ring_select=qsa_ring_select,
                 open_block=prefilled % CHUNK_ROWS != 0,
+                open_rows=real_rows,
             )
         if state.ple is not None:
             state.ple.store_to_state(generic_state.ple)

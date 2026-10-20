@@ -385,6 +385,9 @@ class _FakeModel:
     def write_chunk_accepted(self, chunk_state, accepted: int) -> None:
         self.calls.append(("accepted", chunk_state, accepted))
 
+    def write_chunk_rows(self, chunk_state, real_rows: int) -> None:
+        self.calls.append(("rows", chunk_state, real_rows))
+
     def prepare_chunk_inputs(self, chunk_state, token_ids, *, ple_context, positions=None, features=None):
         tokens = list(token_ids)
         assert len(tokens) == {"chunk_state": 32, "long_state": 128}[chunk_state]
@@ -397,7 +400,9 @@ class _FakeModel:
     def upload_chunk_inputs(self, chunk_state, prepared) -> None:
         assert prepared.chunk_state == chunk_state  # the upload lands in the state the rows were prepared for
 
-    def finish_prefill(self, state, chunk_state, prefilled: int, *, rope_shift: int = 0) -> None:
+    def finish_prefill(
+        self, state, chunk_state, prefilled: int, *, rope_shift: int = 0, padded_chunk_state=None, padded_rows=None
+    ) -> None:
         self.calls.append(("finish", chunk_state, prefilled))
 
     def forward_prefill_chunk_generic(self, chunk_state, state, *, gdn_step_anchor: bool = False) -> None:
@@ -445,21 +450,24 @@ def test_driver_runs_the_long_chunks_ahead_of_the_32_row_chunks_and_the_tail(dri
     aligned = driver_module.alignment_steps(start, count)
     remaining = count - aligned
     long_chunks = remaining // 128
-    accepts = driver_module.chunk_accepts(remaining - 128 * long_chunks)
+    # The tail runs as one padded 128-row chunk once it would take three or more 32-row ones.
+    padded = driver_module.padded_long_rows(remaining, long_chunks=True)
+    long_replays = long_chunks + (1 if padded else 0)
+    accepts = driver_module.chunk_accepts(0 if padded else remaining - 128 * long_chunks)
     assert result.position == start + count
     assert (result.timing.long_chunks, result.timing.chunks, result.timing.tail_rows) == (
-        long_chunks,
+        long_replays,
         len(accepts),
         remaining % 32,
     )
     log = [entry for entry in driver.log if entry[0] != "event"]
-    if not long_chunks and not accepts:
+    if not long_replays and not accepts:
         assert log == []
         return
     assert log[:2] == [("sync",), ("reset", "chunk_state")]
-    expected_verify = [("verify", TRACE_ID)] + ([("verify", LONG_TRACE_ID)] if long_chunks else [])
-    head = 2 + (1 if long_chunks else 0)
-    assert log[2:head] == ([("reset", "long_state")] if long_chunks else [])
+    expected_verify = [("verify", TRACE_ID)] + ([("verify", LONG_TRACE_ID)] if long_replays else [])
+    head = 2 + (1 if long_replays else 0)
+    assert log[2:head] == ([("reset", "long_state")] if long_replays else [])
     assert log[head : head + len(expected_verify)] == expected_verify
     body = log[head + len(expected_verify) : -3]
     rows_written = []
@@ -469,19 +477,21 @@ def test_driver_runs_the_long_chunks_ahead_of_the_32_row_chunks_and_the_tail(dri
             rows_written.append((entry[1], entry[2]))
         elif entry[0] == "replay":
             replays.append(entry[1])
-    assert replays == [LONG_TRACE_ID] * long_chunks + [TRACE_ID] * len(accepts)
-    assert [state for state, _ in rows_written] == ["long_state"] * long_chunks + ["chunk_state"] * len(accepts)
+    assert replays == [LONG_TRACE_ID] * long_replays + [TRACE_ID] * len(accepts)
+    assert [state for state, _ in rows_written] == ["long_state"] * long_replays + ["chunk_state"] * len(accepts)
     written = [token for _, rows in rows_written for token in rows]
     real = tokens[aligned:]
     assert written[: len(real)] == real and all(
         token == driver_module.CHUNK_PAD_TOKEN_ID for token in written[len(real) :]
     )
-    assert len(written) == 128 * long_chunks + 32 * len(accepts)
+    assert len(written) == 128 * long_replays + 32 * len(accepts)
     assert log[-3:] == [("sync",), ("finish", "chunk_state", start + count), ("sync",)]
-    # The accept scalar is written once, before the padded tail, on the 32-row state only.
+    # The accept scalar is written once, before the padded 32-row tail, on the 32-row state only.
     assert [entry for entry in log if entry[0] == "accepted"] == (
-        [("accepted", "chunk_state", remaining % 32 - 1)] if remaining % 32 else []
+        [("accepted", "chunk_state", remaining % 32 - 1)] if not padded and remaining % 32 else []
     )
+    # The row masks are the padded 128-row tail's accept scalar, on the 128-row state only.
+    assert [entry for entry in log if entry[0] == "rows"] == ([("rows", "long_state", padded)] if padded else [])
 
 
 def test_driver_without_the_long_trace_runs_32_row_chunks_only_and_rejects_bad_pairs(driver) -> None:

@@ -466,6 +466,9 @@ class _FakeModel:
     def write_chunk_accepted(self, chunk_state, accepted: int) -> None:
         self.calls.append(("accepted", accepted))
 
+    def write_chunk_rows(self, chunk_state, real_rows: int) -> None:
+        self.calls.append(("rows", real_rows))
+
     def prepare_chunk_inputs(self, chunk_state, token_ids, *, ple_context, positions=None, features=None):
         tokens = list(token_ids)
         assert len(tokens) == chunk_state.rows
@@ -476,7 +479,9 @@ class _FakeModel:
         assert prepared.rows == chunk_state.rows
         self.calls.append(("upload", chunk_state.rows))
 
-    def finish_prefill(self, state, chunk_state, prefilled: int, *, rope_shift: int = 0) -> None:
+    def finish_prefill(
+        self, state, chunk_state, prefilled: int, *, rope_shift: int = 0, padded_chunk_state=None, padded_rows=None
+    ) -> None:
         self.calls.append(("finish", prefilled))
 
     def forward_prefill_chunk_generic(self, chunk_state, state, *, gdn_step_anchor: bool = False, mtp=None) -> None:
@@ -515,10 +520,14 @@ def test_driver_runs_slabs_then_long_then_short_chunks(driver, start: int, count
     aligned = driver_module.alignment_steps(start, count)
     remaining = count - aligned
     slabs = remaining // SLAB
-    long = (remaining - slabs * SLAB) // 128
-    short = remaining - slabs * SLAB - long * 128
+    after_slabs = remaining - slabs * SLAB
+    long = after_slabs // 128
+    # The tail runs as one padded 128-row chunk once it would take three or more 32-row ones.
+    padded = driver_module.padded_long_rows(after_slabs, long_chunks=True)
+    long_replays = long + (1 if padded else 0)
+    short = 0 if padded else after_slabs - long * 128
     writes = [call for call in model.calls if call[0] == "write"]
-    assert [rows for _, rows, _ in writes] == [SLAB] * slabs + [128] * long + [32] * math.ceil(short / 32)
+    assert [rows for _, rows, _ in writes] == [SLAB] * slabs + [128] * long_replays + [32] * math.ceil(short / 32)
     written = [token for _, _, chunk in writes for token in chunk]
     assert written[:remaining] == tokens[aligned:]
     assert result.position == start + count
@@ -528,9 +537,9 @@ def test_driver_runs_slabs_then_long_then_short_chunks(driver, start: int, count
     timing = result.timing
     assert len(timing.slab_prepare_ms) == len(timing.slab_upload_ms) == len(timing.slab_wait_ms) == slabs
     assert all(ms >= 0.0 for ms in timing.slab_prepare_ms + timing.slab_upload_ms + timing.slab_wait_ms)
-    assert result.timing.long_chunks == long and result.timing.chunks == math.ceil(short / 32)
+    assert result.timing.long_chunks == long_replays and result.timing.chunks == math.ceil(short / 32)
     eager = [call for call in model.calls if call[0] == "eager"]
-    assert [rows for _, rows, _, _ in eager] == [SLAB] * slabs + [128] * long + [32] * math.ceil(short / 32)
+    assert [rows for _, rows, _, _ in eager] == [SLAB] * slabs + [128] * long_replays + [32] * math.ceil(short / 32)
     assert all(not anchor and mtp is None for _, _, anchor, mtp in eager)
     resets = [call for call in model.calls if call[0] == "reset"]
     if remaining:

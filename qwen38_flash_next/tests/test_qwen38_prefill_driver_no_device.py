@@ -45,6 +45,9 @@ class _FakeModel:
     def write_chunk_accepted(self, chunk_state, accepted: int) -> None:
         self.calls.append(("write_chunk_accepted", accepted))
 
+    def write_chunk_rows(self, chunk_state, real_rows: int) -> None:
+        self.calls.append(("write_chunk_rows", real_rows))
+
     def prepare_chunk_inputs(self, chunk_state, token_ids, *, ple_context, positions=None, features=None):
         tokens = list(token_ids)
         assert len(tokens) == CHUNK_ROWS
@@ -58,7 +61,9 @@ class _FakeModel:
     def upload_chunk_inputs(self, chunk_state, prepared) -> None:
         self.calls.append(("upload_chunk_inputs", prepared.tokens))
 
-    def finish_prefill(self, state, chunk_state, prefilled: int, *, rope_shift: int = 0) -> None:
+    def finish_prefill(
+        self, state, chunk_state, prefilled: int, *, rope_shift: int = 0, padded_chunk_state=None, padded_rows=None
+    ) -> None:
         self.calls.append(("finish_prefill", prefilled))
         self.vision.append(("finish", rope_shift))
 
@@ -317,7 +322,7 @@ def test_driver_source_pins() -> None:
         "pending = self._prepare(\n                    plan, starts, index + 1, ple_context, position, positions, features, feature_cursor\n                )",
         "ttnn.event_synchronize(ttnn.record_event(self.mesh, cq_id=0))",
         "between_chunks(row_offset, len(remaining))",
-        "self.model.finish_prefill(self.state, self.chunk_state, position, rope_shift=rope_shift)",
+        "self.model.finish_prefill(",
     )
     positions = [run.index(fragment) for fragment in order]
     assert positions == sorted(positions)
@@ -331,7 +336,7 @@ def test_driver_source_pins() -> None:
         and "positions=chunk_positions, features=chunk_features" in prepare
     )
     assert "chunk_features, feature_cursor = vision_splice.split_features(rows, features, feature_cursor)" in prepare
-    assert "rows = rows + [self.pad_token_id] * (CHUNK_ROWS - len(rows))" in prepare
+    assert "rows = rows + [self.pad_token_id] * (width - len(rows))" in prepare
     # The host half (the lookup and the packing) is timed apart from the copies' enqueue and the slab's event wait.
     assert run.index("slab_prepare_ms.append(prepare_ns / 1_000_000)") < run.index(
         "slab_upload_ms.append((replay_started_ns - upload_started_ns)"

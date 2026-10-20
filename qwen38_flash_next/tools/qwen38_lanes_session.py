@@ -401,12 +401,15 @@ class Qwen38LanesSession:
             if chunked.stopped is not None:
                 raise Qwen38LanesSessionError(f"the chunked prefill stopped: {chunked.stopped!r}")
             suffix = suffix[-1:]
+        forced_started = self.clock_ns()
         with chain.loop_guard():
             finish = session._prefill(suffix, None, None)
+        forced_done = self.clock_ns()
         if finish is not None:
             raise Qwen38LanesSessionError(f"the prefill ended early: {finish!r}")
         pending = int(chain.read_token_row())
         position = int(chain.position())
+        readback_done = self.clock_ns()
         if position != len(ids):
             raise Qwen38LanesSessionError(f"device position {position} after prefilling {len(ids)} tokens")
         ple_context = session.ple_context
@@ -445,6 +448,18 @@ class Qwen38LanesSession:
         timing = None if chunked is None else chunked.timing
         seconds = {
             "prefill": (prefilled - started) / 1e9 - spent,
+            # The prefill by leg: the chunk-state seed, the chunk loop's host half, the replays' device time, the
+            # hand-off's own work, and the last prompt token forced through the decode traces (its enqueue, then
+            # the readback that waits for it).  Only the replays scale with the prompt; the rest are per-request
+            # and have different fixes, which the total hides.
+            "prefill_reset": 0.0 if timing is None else timing.reset_ms / 1e3,
+            "prefill_chunk_loop": 0.0
+            if timing is None
+            else (timing.wall_ms - timing.reset_ms - timing.handoff_ms) / 1e3,
+            "prefill_drain": 0.0 if timing is None else timing.drain_ms / 1e3,
+            "prefill_handoff": 0.0 if timing is None else (timing.handoff_ms - timing.drain_ms) / 1e3,
+            "prefill_forced": (forced_done - forced_started) / 1e9,
+            "prefill_readback": (readback_done - forced_done) / 1e9,
             "evict": (evicted - evict_started) / 1e9,
             "import": (imported - import_started) / 1e9,
             # The eviction by leg, summed over the two pagers: which of the pack body, the small pack-buffer

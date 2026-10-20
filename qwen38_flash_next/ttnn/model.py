@@ -2805,6 +2805,8 @@ class Qwen38TTNNTextModel:
                 layer.reset_chunk_state_inplace(layer_chunk, layer_state)
             if chunk_state.accepted is not None:
                 self.write_chunk_accepted(chunk_state, CHUNK_ROWS - 1)
+            if chunk_state.rows == LONG_CHUNK_ROWS:
+                self.write_chunk_rows(chunk_state, LONG_CHUNK_ROWS)
         except BaseException as error:
             self._mark_poisoned("reset_chunk_state_inplace", 0, error)
 
@@ -2822,6 +2824,40 @@ class Qwen38TTNNTextModel:
             mesh_mapper=replicate_tensor_2d_mesh_mapper(self.mesh_device),
         )
         ttnn.copy_host_to_device_tensor(host, chunk_state.accepted)
+
+    def write_chunk_rows(self, chunk_state: Qwen38TTNNTextModelChunkState, real_rows: int) -> None:
+        """Host write of the GDN row masks (outside any trace): the real rows of a padded 128-row chunk.
+
+        The 32-row form carries the accept scalar instead; the masks are the 128-row form's equivalent, and they
+        are what keeps the padding rows out of the GDN recurrence, whose scan the hand-off cannot repair.
+        """
+
+        self._validate_chunk_state(chunk_state)
+        if chunk_state.rows != LONG_CHUNK_ROWS:
+            raise ValueError(f"the row masks are the {LONG_CHUNK_ROWS}-row chunk form, got {chunk_state.rows} rows")
+        gdn_module.write_rows_row_mask(self.mesh_device, chunk_state.rows_constants, real_rows)
+
+    def warm_padded_handoff(self, chunk_state: Qwen38TTNNTextModelChunkState) -> None:
+        """Compile the padded 128-row hand-off's programs (the warm pass, before the miss guard).
+
+        The hand-off re-reads the PLE history and the QSA open block out of the padded chunk at its real row
+        count; each count is a different slice, and the hand-off itself cannot compile one.  Every count the
+        plan can produce is run here once, on the chunk state's own buffers, and the results are dropped.
+        """
+
+        self._validate_chunk_state(chunk_state)
+        if chunk_state.rows != LONG_CHUNK_ROWS:
+            raise ValueError(f"the padded hand-off is the {LONG_CHUNK_ROWS}-row form, got {chunk_state.rows} rows")
+        ple_layer = self.layers[PLE_CHECKPOINT_LAYER]
+        ple_chunk = chunk_state.layers[PLE_CHECKPOINT_LAYER].ple
+        qsa_layer, qsa_chunk = next(
+            (layer.attention, chunk.attention)
+            for layer, chunk in zip(self.layers, chunk_state.layers)
+            if layer.layer_type is Qwen38TTNNLayerType.QSA
+        )
+        for real_rows in range(CHUNK_ROWS, LONG_CHUNK_ROWS + 1):
+            ple_layer.ple.repair_rows_history(ple_chunk, real_rows)
+            qsa_layer.warm_padded_kept_rows(qsa_chunk, real_rows)
 
     def chunk_rope_host_rows(
         self, chunk_state: Qwen38TTNNTextModelChunkState, positions: torch.Tensor
@@ -3088,6 +3124,8 @@ class Qwen38TTNNTextModel:
         prefilled: int,
         *,
         rope_shift: int = 0,
+        padded_chunk_state: Qwen38TTNNTextModelChunkState | None = None,
+        padded_rows: int | None = None,
     ) -> None:
         """Eager hand-off from the chunk body to the 1-row generic body after a prefill of ``prefilled`` positions
         (0 .. prefilled - 1; the last chunk padded past prefilled % 32 with the accept scalar prefilled % 32 - 1).
@@ -3104,6 +3142,18 @@ class Qwen38TTNNTextModel:
         self._validate_chunk_state(chunk_state)
         if chunk_state.rows != CHUNK_ROWS:
             raise ValueError(f"the hand-off reads the {CHUNK_ROWS}-row chunk state, got {chunk_state.rows} rows")
+        # A padded 128-row last chunk: its row masks and history select kept the padding rows out of the GDN
+        # recurrence and its history, but the PLE history its traced commit wrote is the tile's last nine rows,
+        # so it is re-read below at the real row count.  The two chunk states share that buffer, so the repair
+        # lands where this hand-off looks.
+        if (padded_chunk_state is None) != (padded_rows is None):
+            raise ValueError("a padded last chunk takes both its chunk state and its real row count")
+        if padded_chunk_state is not None:
+            self._validate_chunk_state(padded_chunk_state)
+            if padded_chunk_state.rows != LONG_CHUNK_ROWS:
+                raise ValueError(
+                    f"a padded last chunk is the {LONG_CHUNK_ROWS}-row form, got {padded_chunk_state.rows} rows"
+                )
         if isinstance(prefilled, bool) or type(prefilled) is not int or not 0 <= prefilled <= self.allocated_context:
             raise ValueError(
                 f"prefilled position count must be an int in [0,{self.allocated_context}], got {prefilled!r}"
@@ -3120,9 +3170,20 @@ class Qwen38TTNNTextModel:
             )
             try:
                 state.position.reset(prefilled, rope_shift)
-                for layer, layer_state, layer_chunk in zip(self.layers, state.layers, chunk_state.layers):
+                if padded_chunk_state is not None:
+                    for layer, layer_chunk in zip(self.layers, padded_chunk_state.layers):
+                        if layer.ple is not None and layer_chunk.ple is not None:
+                            layer.ple.repair_rows_history(layer_chunk.ple, padded_rows)
+                # A padded last chunk hands off its own state: the GDN and PLE histories are the shared buffers
+                # just repaired, and only its QSA kept rows are its own.
+                handoff_layers = (chunk_state if padded_chunk_state is None else padded_chunk_state).layers
+                for layer, layer_state, layer_chunk in zip(self.layers, state.layers, handoff_layers):
                     layer.finish_chunk_state_inplace(
-                        layer_chunk, layer_state, prefilled=prefilled, qsa_ring_select=ring_select
+                        layer_chunk,
+                        layer_state,
+                        prefilled=prefilled,
+                        qsa_ring_select=ring_select,
+                        real_rows=padded_rows,
                     )
             finally:
                 _deallocate_unique(ring_select)

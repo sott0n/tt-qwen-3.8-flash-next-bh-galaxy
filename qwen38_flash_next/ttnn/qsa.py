@@ -6422,6 +6422,34 @@ class Qwen38TTNNQSA:
         _deallocate(full_hidden)
         return output
 
+    def warm_padded_kept_rows(self, chunk_state: Qwen38TTNNQSAChunkState, open_rows: int) -> None:
+        """Compile the padded hand-off's two kept-row slices for ``open_rows`` (the warm pass, before the guard).
+
+        The hand-off runs once per prompt and cannot compile anything, so every slice its real row count can ask
+        for is run here first; the results are dropped.
+        """
+
+        self._validate_chunk_state(chunk_state)
+        _deallocate(*self._padded_kept_rows(chunk_state, open_rows))
+
+    def _padded_kept_rows(self, chunk_state: Qwen38TTNNQSAChunkState, open_rows: int):
+        """The ``[v|k]`` slab and raw keys of the 32-row block holding row ``open_rows - 1``, in new buffers."""
+
+        if not CHUNK_ROWS <= open_rows <= chunk_state.rows:
+            raise ValueError(
+                f"a padded last chunk's real rows must be in [{CHUNK_ROWS},{chunk_state.rows}], got {open_rows!r}"
+            )
+        base = ((open_rows - 1) // CHUNK_ROWS) * CHUNK_ROWS
+        dram = ttnn.DRAM_MEMORY_CONFIG
+        kept_kv = ttnn.slice(
+            chunk_state.kept_kv, (0, 0, base, 0), (1, 1, base + CHUNK_ROWS, 2 * HEAD_DIM), memory_config=dram
+        )
+        _retag_tensor(kept_kv, reference=chunk_state.kept_kv, shard_dim=1)
+        kept_raw = ttnn.slice(
+            chunk_state.kept_raw, (0, 0, base, 0), (1, 1, base + CHUNK_ROWS, INDEX_HEAD_DIM), memory_config=dram
+        )
+        return kept_kv, kept_raw
+
     def handoff_chunk_state(
         self,
         state: Qwen38TTNNQSAGenericState,
@@ -6429,12 +6457,15 @@ class Qwen38TTNNQSA:
         *,
         ring_select,
         open_block: bool,
+        open_rows: int | None = None,
     ) -> None:
         """Eager hand-off after the last chunk of a prefill: the generic body's per-token buffers from the kept rows.
 
         ``kv_staging`` takes the kept ``[v|k]`` slab when the prompt ends inside the last chunk's block
         (``open_block``: rows past the prompt hold the padded rows' values, which the next replay rewrites or
-        never gathers), zero when the block is complete.  ``raw_key_ring`` is ``ring_select @ kept_raw``
+        never gathers), zero when the block is complete.  ``open_rows`` names a padded last chunk's real rows: its
+        kept rows are the whole chunk, so the open block's own 32-row tile is sliced out of them first.
+        ``raw_key_ring`` is ``ring_select @ kept_raw``
         (:func:`chunk_handoff_ring_select_rows`: the open compressed block's raw keys in rows 0 .. P % 4 - 1, every
         other row exact zero).  The two caches need nothing: rows past the prompt are never gathered and the open
         block's compressed row is rewritten from the ring before it is scored.
@@ -6442,13 +6473,18 @@ class Qwen38TTNNQSA:
 
         self._validate_generic_state(state)
         self._validate_chunk_state(chunk_state)
-        if chunk_state.rows != CHUNK_ROWS:
+        if chunk_state.rows != CHUNK_ROWS and open_rows is None:
             raise ValueError(f"the QSA hand-off reads the {CHUNK_ROWS}-row chunk state, got {chunk_state.rows} rows")
         _require_shape(ring_select, (1, 1, CHUNK_ROWS, CHUNK_ROWS), "QSA hand-off ring select")
         if ring_select.dtype != ttnn.bfloat16 or ring_select.layout != ttnn.TILE_LAYOUT:
             raise RuntimeError(f"QSA hand-off ring select must be BF16 TILE, got {tensor_metadata(ring_select)}")
+        kept_kv, kept_raw, sliced = chunk_state.kept_kv, chunk_state.kept_raw, ()
+        if chunk_state.rows != CHUNK_ROWS:
+            # The tile-aligned block the last real row sits in: what the 32-row form keeps on its own.
+            kept_kv, kept_raw = self._padded_kept_rows(chunk_state, open_rows)
+            sliced = (kept_kv, kept_raw)
         if open_block:
-            staged = ttnn.copy(chunk_state.kept_kv, state.kv_staging)
+            staged = ttnn.copy(kept_kv, state.kv_staging)
         else:
             staged = ttnn.fill(state.kv_staging, 0.0, output_tensor=state.kv_staging)
         if staged is not None and _tensor_key(staged) != _tensor_key(state.kv_staging):
@@ -6457,11 +6493,12 @@ class Qwen38TTNNQSA:
         # written into the ring itself; the zero rows of the select are the ring's zero rows.
         ring = ttnn.matmul(
             ring_select,
-            chunk_state.kept_raw,
+            kept_raw,
             memory_config=ttnn.DRAM_MEMORY_CONFIG,
             compute_kernel_config=self.compute_config,
             optional_output_tensor=state.raw_key_ring,
         )
+        _deallocate(*sliced)
         if ring is not None and _tensor_key(ring) != _tensor_key(state.raw_key_ring):
             raise RuntimeError("QSA raw-key ring hand-off was not in place")
 

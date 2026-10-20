@@ -317,7 +317,7 @@ def test_handoff_order_and_the_traced_bodies_never_reach_it() -> None:
         ),
     )
     qsa_handoff = inspect.getsource(qsa_module.Qwen38TTNNQSA.handoff_chunk_state)
-    assert "ttnn.copy(chunk_state.kept_kv, state.kv_staging)" in qsa_handoff
+    assert "ttnn.copy(kept_kv, state.kv_staging)" in qsa_handoff
     assert "ttnn.fill(state.kv_staging, 0.0, output_tensor=state.kv_staging)" in qsa_handoff
     assert "optional_output_tensor=state.raw_key_ring" in qsa_handoff and "from_torch" not in qsa_handoff
     for body in (

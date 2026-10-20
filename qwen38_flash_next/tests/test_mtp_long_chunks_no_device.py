@@ -321,6 +321,9 @@ class _DriverModel:
     def write_chunk_accepted(self, chunk_state, accepted: int) -> None:
         self.calls.append(("accepted", chunk_state.rows, accepted))
 
+    def write_chunk_rows(self, chunk_state, real_rows: int) -> None:
+        self.calls.append(("rows", chunk_state.rows, real_rows))
+
     def prepare_chunk_inputs(self, chunk_state, token_ids, *, ple_context, positions=None, features=None):
         tokens = list(token_ids)
         assert len(tokens) == chunk_state.rows
@@ -333,7 +336,9 @@ class _DriverModel:
     def upload_chunk_inputs(self, chunk_state, prepared) -> None:
         assert prepared.rows == chunk_state.rows
 
-    def finish_prefill(self, state, chunk_state, prefilled: int, *, rope_shift: int = 0) -> None:
+    def finish_prefill(
+        self, state, chunk_state, prefilled: int, *, rope_shift: int = 0, padded_chunk_state=None, padded_rows=None
+    ) -> None:
         self.calls.append(("finish", chunk_state.rows, prefilled))
 
     def forward_prefill_chunk_generic(self, chunk_state, state, *, gdn_step_anchor: bool = False, mtp=None) -> None:
@@ -354,7 +359,7 @@ class _Extension:
         if features is not None:
             self.log.append(("mtp_features", self.rows, int(features.shape[0])))
 
-    def finish_chunk(self, model, *, prefilled: int) -> None:
+    def finish_chunk(self, model, *, prefilled: int, padded=None, padded_rows=None) -> None:
         self.log.append(("mtp_finish", self.rows, prefilled))
 
 
