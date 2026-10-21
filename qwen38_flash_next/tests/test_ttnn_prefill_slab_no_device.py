@@ -17,7 +17,6 @@ from types import SimpleNamespace
 import pytest
 import torch
 
-from qwen38_flash_next import ttnn_extensions
 from qwen38_flash_next.tools import qwen38_prefill_driver as driver_module
 from qwen38_flash_next.ttnn import contracts as contracts_module
 from qwen38_flash_next.ttnn import decode_matmul as decode_matmul_module
@@ -42,12 +41,6 @@ BLOCKS = 8192  # the 32k context's compressed blocks
 
 
 # --------------------------------------------------------------------------- contracts
-
-
-# The one-call slab needs moe_compute's packed token lists, which upstream's op lacks.
-needs_one_call = pytest.mark.skipif(
-    not ttnn_extensions.moe_compute_has_prefill_rings(), reason="moe_compute has no packed token lists"
-)
 
 
 def test_slab_row_contract(monkeypatch) -> None:
@@ -75,7 +68,6 @@ def test_slab_row_contract(monkeypatch) -> None:
         moe_module.Qwen38TTNNMoERowContract(SLAB)
 
 
-@needs_one_call
 def test_slab_one_call_switch(monkeypatch) -> None:
     """QWEN38_MOE_SLAB_ONE_CALL (unset = 1) makes a slab instance route its rows in one moe_compute call on the local
     output path (height shard 1: nothing is staged) with the fill of unowned rows off, and reduce in 512-row blocks;
@@ -234,7 +226,6 @@ def test_slab_reduce_never_frees_what_it_did_not_create(monkeypatch, rows: int) 
 # --------------------------------------------------------------------------- the 2D-multicast matmul config
 
 
-@needs_one_call
 def test_slab_moe_defaults_when_nothing_is_set(monkeypatch) -> None:
     """The shipping frame: with the switch unset, a slab instance runs the one-call MoE on the op's local output
     path with three replica rings (the slab site's constant; the op never writes the rows the device does not own),
@@ -354,7 +345,6 @@ def test_a_reshape_source_is_freed_only_when_the_reshape_copied() -> None:
     assert sum(1 for site in RESHAPE_FREE_SITES if site[5]) == 2
 
 
-@needs_one_call
 def test_slab_moe_switches_are_admitted_before_the_device(monkeypatch) -> None:
     """A refused QWEN38_MOE_SLAB_ONE_CALL ends the process at its start: the server admits the slab MoE switch right
     after its --prefill-slab argument checks and before the runtime admission opens a device, and every slab MoE
@@ -862,7 +852,7 @@ def _fake_text_model_for_chunk_state(monkeypatch, fakes):
     return model, base
 
 
-@pytest.mark.parametrize("one_call", [False, pytest.param(True, marks=needs_one_call)], ids=["blocks", "one-call"])
+@pytest.mark.parametrize("one_call", [False, True], ids=["blocks", "one-call"])
 def test_slab_chunk_state_allocates_the_combine_buffer_the_slab_writes(monkeypatch, one_call: bool) -> None:
     """The chain opens a slab state through Qwen38TTNNTextModel.allocate_chunk_state(state, rows=slab, base=chunk):
     the shared MoE combine buffer it allocates is sized by routed_tokens_per_call_for(rows) -- the whole slab by

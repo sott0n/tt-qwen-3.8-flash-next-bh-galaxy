@@ -55,15 +55,30 @@ def mark_corruptible(tensor) -> None:
 
 
 # moe_compute's ``prefill_rings`` (R replica rings that keep the expert weights resident) and its packed token lists
-# (one call per slab) are not in upstream's op.  Without them the op runs its streaming ring and a slab runs as
-# 128-row calls: the same pages, slower.
+# (one call per slab) are not in upstream's op.  The local output path, the only one the model's TP mesh runs, comes
+# from ``qwen38_flash_next.ttnn.moe_compute`` instead; every other path keeps upstream's op on its streaming ring.
 def moe_compute_has_prefill_rings() -> bool:
     return "prefill_rings" in (getattr(ttnn.experimental.moe_compute, "__doc__", None) or "")
 
 
-def _moe_compute_without_prefill_rings(op):
+def _is_local_output(args, kwargs) -> bool:
+    axis = kwargs.get("cluster_axis")
+    return (
+        axis is not None
+        and tuple(args[0].device().shape)[axis] == 1
+        and not kwargs.get("compute_only", False)
+        and kwargs.get("optional_output_tensor") is not None
+        and not kwargs.get("num_shared_experts_per_device")
+    )
+
+
+def _moe_compute_with_local_rings(op):
     @functools.wraps(op)
     def moe_compute(*args, prefill_rings=None, **kwargs):
+        if _is_local_output(args, kwargs):
+            from qwen38_flash_next.ttnn.moe_compute import moe_compute as local_output
+
+            return local_output(*args, prefill_rings=prefill_rings, **kwargs)
         return op(*args, **kwargs)
 
     return moe_compute
@@ -143,7 +158,7 @@ def apply() -> None:
     if not hasattr(ttnn, "TRACE_ALLOC_TRACKING"):
         ttnn.TRACE_ALLOC_TRACKING = TRACE_ALLOC_TRACKING
     if not moe_compute_has_prefill_rings():
-        ttnn.experimental.moe_compute = _moe_compute_without_prefill_rings(ttnn.experimental.moe_compute)
+        ttnn.experimental.moe_compute = _moe_compute_with_local_rings(ttnn.experimental.moe_compute)
     ttnn.load_tensor = _load_tensor_with_descriptors(ttnn.load_tensor)
     if not hasattr(ttnn.device, "get_optimal_dram_bank_to_logical_worker_assignment_at_mesh_coordinate"):
         ttnn.device.get_optimal_dram_bank_to_logical_worker_assignment_at_mesh_coordinate = (

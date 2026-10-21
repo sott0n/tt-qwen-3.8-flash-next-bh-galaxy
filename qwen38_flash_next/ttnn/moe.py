@@ -32,7 +32,6 @@ from ttnn.experimental.moe_compute_utils import auto_output_width_shard_dim, eff
 from ttnn.operations.ccl import MoEActivationFunction
 
 import ttnn
-from qwen38_flash_next import ttnn_extensions
 from qwen38_flash_next.checkpoint import INDEX_SHA256, Qwen38Checkpoint
 from qwen38_flash_next.config import EP_SIZE, EXPERT_SHARDS, TP_SIZE, Qwen38Placement
 from qwen38_flash_next.tt.moe import Qwen38MoEWeights
@@ -136,8 +135,7 @@ def moe_slab_one_call_enabled() -> bool:
     call is bitwise those blocks on the 4-chip line (the acceptance records, the agreement rows and the long-prompt
     completions identical at three heads). Scoped to slab rows: decode and the 32-/128-row chunks keep their forms."""
 
-    # The one call needs moe_compute's packed token lists, which come with its prefill_rings.
-    value = os.environ.get(MOE_SLAB_ONE_CALL_ENV, "1" if ttnn_extensions.moe_compute_has_prefill_rings() else "0")
+    value = os.environ.get(MOE_SLAB_ONE_CALL_ENV, "1")
     if value not in ("0", "1"):
         raise ValueError(f"{MOE_SLAB_ONE_CALL_ENV} must be 0 or 1, got {value!r}")
     return value == "1"
