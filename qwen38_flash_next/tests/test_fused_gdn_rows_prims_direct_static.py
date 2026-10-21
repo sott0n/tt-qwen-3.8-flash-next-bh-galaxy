@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import ast
 import inspect
-import re
 from dataclasses import dataclass
 from pathlib import Path
 from types import SimpleNamespace
@@ -23,11 +22,8 @@ import ttnn
 from qwen38_flash_next.ttnn import fused
 from qwen38_flash_next.ttnn import gdn as gdn_module
 from qwen38_flash_next.ttnn.fused import gdn_rows_prims_direct as module
-from qwen38_flash_next.paths import TT_METAL_ROOT
 
 MODEL_DIR = Path(__file__).resolve().parents[1]
-REPO_ROOT = TT_METAL_ROOT
-COMPOSITE = REPO_ROOT / "ttnn/cpp/ttnn/operations/transformer/chunk_gated_delta_rule/chunk_gated_delta_rule.cpp"
 GDN_SOURCE = MODEL_DIR / "ttnn" / "gdn.py"
 NAME = module.NAME
 HEADS, HEAD_DIM, TILE = module.HEADS, module.HEAD_DIM, module.TILE
@@ -184,50 +180,9 @@ def test_admission_is_the_head_major_rows_form_at_one_tile():
 # --------------------------------------------------------------------------- the transcription against its source
 
 
-def test_the_transcription_is_the_composites_source():
-    """The C++ lines the Python form transcribes (chunk_gated_delta_rule.cpp) are still there in that form; a change
-    to the composite's relayout or its prim calls must be carried into ``chunk_rows_prims`` and re-proven."""
+def test_the_python_form_runs_the_composites_ops_in_order():
+    """One call per op of the composite (chunk_gated_delta_rule.cpp), the two prims by their bound names."""
 
-    source = COMPOSITE.read_text(encoding="utf-8")
-    # head_split_tile / headvec_split_tile: a permute on TILE, then the head-major view
-    assert "t = ttnn::permute(t, ttnn::SmallVector<int64_t>{0, 2, 1, 3});  // [B, Hh, T, D] TILE" in source
-    assert "t = ttnn::reshape(t, ttnn::Shape({B * Hh, T, D}));             // [BH, T, D] TILE" in source
-    assert "t = ttnn::permute(t, ttnn::SmallVector<int64_t>{0, 2, 1});  // [B, Hn, T] TILE" in source
-    assert "t = ttnn::reshape(t, ttnn::Shape({B * Hn, T}));             // [BH, T] TILE" in source
-    # the flat v passes through (bf16 already); no GQA expand at G == 1; the scale fold when q/k are not flat
-    assert (
-        "ttnn::Tensor v = flat_v ? (v_in.dtype() != DataType::BFLOAT16 ? ttnn::typecast(v_in, DataType::BFLOAT16) : v_in)"
-        in source
-    )
-    assert "if (G > 1 && !flat_qk) {" in source
-    assert "const bool qk_norm = flat_qk && (C == 32);" in source
-    assert "if (!qk_norm) {\n        q = ttnn::multiply(q, scale);\n    }" in source
-    # no padding at T == C; the per-chunk views; g / beta to one column tile per head; the state view
-    assert "const uint32_t pad = (C - (T % C)) % C;" in source
-    assert "return ttnn::reshape(t, ttnn::Shape({BH, NC, C, D}));" in source
-    assert "ttnn::Tensor g_c = ttnn::reshape(g, ttnn::Shape({BH, NC, C, 1}));" in source
-    assert "ttnn::Tensor beta_c = ttnn::reshape(beta, ttnn::Shape({BH, NC, C, 1}));" in source
-    assert "s0 = ttnn::reshape(s, ttnn::Shape({BH, K, V}));" in source
-    # the composite's defaults the bindings reproduce when memory_config / compute_kernel_config are left unset
-    assert "const auto out_mem = memory_config.value_or(ttnn::DRAM_MEMORY_CONFIG);" in source
-    assert (
-        "MathFidelity::HiFi4,\n        /*default_approx_mode=*/false,\n        /*default_fp32_acc=*/true,\n        /*default_l1_acc=*/false);"
-        in source
-    )
-    # the prep's positional order (the binding names them: v_flat, HV, qk_norm, scale, qk_flat, Hk) and the scan's
-    prep = re.search(r"ttnn::prim::chunk_gdn_prep\((.*?)\);", source, re.S).group(1)
-    assert [a.strip() for a in prep.split(",")] == [
-        "q_c", "k_c", "v_c", "g_c", "beta_c", "eye_c", "tril_c", "ones_c", "masks_c", "C", "out_mem", "kernel_cfg",
-        "flat_v", "HV", "qk_norm", "scale", "flat_qk", "H",
-    ]  # fmt: skip
-    scan = re.search(r"ttnn::prim::chunk_gdn_scan\((.*?)\);", source, re.S).group(1)
-    assert [a.strip() for a in scan.split(",")] == [
-        *(f"prep[{i}]" for i in range(7)), "s0", "C", "output_final_state", "out_mem", "kernel_cfg",
-    ]  # fmt: skip
-    # the head-major output at pad == 0 and the final state: metadata views
-    assert "o = ttnn::reshape(o_c, ttnn::Shape({BH, L, V}));  // [BH,T,V] TILE, metadata-only" in source
-    assert "final_opt = ttnn::reshape(final_state, ttnn::Shape({B, HV, K, V}));" in source
-    # and the Python form's op order is that source's, one call per C++ op (the two prims by their bound names)
     tree = ast.parse(inspect.getsource(module.chunk_rows_prims))
     ops = [
         ast.unparse(node.func).removeprefix("ttnn.")

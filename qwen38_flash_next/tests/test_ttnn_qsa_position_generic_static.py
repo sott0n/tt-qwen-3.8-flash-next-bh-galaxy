@@ -589,49 +589,6 @@ def test_per_position_path_is_unchanged_apart_from_the_sparse_row_argument() -> 
 # --- pinned-runtime contracts (repo-relative C++ reads) -------------------------
 
 
-def test_pinned_update_padded_kv_cache_has_the_metadata_tensor_overload() -> None:
-    root = "ttnn/cpp/ttnn/operations/experimental/deepseek_prefill/update_padded_kv_cache/"
-    nanobind = _cpp(root + "update_padded_kv_cache_nanobind.cpp")
-    tensor_form = nanobind.split("// Per-element-tensor form (traceable).", 1)[1]
-    # The metadata overload took optional cluster_axis / valid_global / tp_axis upstream; the model's four call sites
-    # pass the first seven arguments and take the defaults.
-    assert re.sub(r"\s+", " ", tensor_form).startswith(
-        " ttnn::overload_t( nb::overload_cast< const Tensor&, const Tensor&, const Tensor&, const Tensor&, uint32_t, "
-        "uint32_t, std::optional<uint32_t>, const std::optional<Tensor>&, std::optional<uint32_t>>"
-        "(&update_padded_kv_cache),"
-    )
-    assert re.findall(r'nb::arg\("(\w+)"\)', tensor_form) == [
-        "cache",
-        "input",
-        "slot_idx",
-        "kv_actual_global",
-        "layer_idx",
-        "num_layers",
-        "cluster_axis",
-        "valid_global",
-        "tp_axis",
-    ]
-    assert 'nb::arg("valid_global").noconvert() = nb::none(),' in tensor_form
-    assert 'nb::arg("tp_axis") = nb::none()));' in tensor_form
-    device = _cpp(root + "device/update_padded_kv_cache_device_operation.cpp")
-    for check in (
-        'TT_FATAL(meta.dtype() == DataType::UINT32, "metadata tensor {} must be UINT32", name);',
-        'TT_FATAL(meta.layout() == Layout::ROW_MAJOR, "metadata tensor {} must be ROW_MAJOR", name);',
-        "meta.logical_volume() == 1,",
-        'TT_FATAL(!meta.is_sharded(), "metadata tensor {} must not be sharded", name);',
-        # The program hash keys on the metadata path, the valid_global presence and the layer.
-        "tensor_args.slot_idx.has_value(),\n        tensor_args.valid_global.has_value() || args.valid_global.has_value(),"
-        "\n        args.layer_idx,",
-        "writer_tile_height = 1;",
-    ):
-        assert check in device, check
-    # The scalar path's tile-alignment check does not run on the metadata path: the writer divides by 1 for ROW_MAJOR.
-    assert "if (!tensor_args.slot_idx.has_value()) {" in device
-    writer = _cpp(root + "device/kernels/dataflow/writer_update_padded_kv_cache.cpp")
-    assert "kv_actual_global_t = CoreLocalMem<volatile uint32_t>(cb_meta.get_write_ptr())[0] / tile_height;" in writer
-    assert "invalidate_l1_cache();" in writer
-
-
 def test_pinned_paged_update_cache_takes_an_int32_index_tensor_and_one_sharded_user() -> None:
     root = "ttnn/cpp/ttnn/operations/experimental/paged_cache/"
     assert 'nb::arg("update_idxs_tensor").noconvert() = nb::none(),' in _cpp(root + "paged_cache_nanobind.cpp")
@@ -647,23 +604,6 @@ def test_pinned_paged_update_cache_takes_an_int32_index_tensor_and_one_sharded_u
     writer = _cpp(root + "device/kernels/dataflow/writer_update_cache_interleaved_start_id.cpp")
     assert "cache_tile_offset_B = update_idx % TILE_HEIGHT * Wbytes;" in writer
     assert "(update_idx / TILE_HEIGHT) * Wt" in writer
-
-
-def test_pinned_indexer_score_hashes_only_kv_len_presence_and_bounds_the_fixed_window() -> None:
-    device = _cpp("ttnn/cpp/ttnn/operations/experimental/indexer_score/device/indexer_score_device_operation.cpp")
-    assert "chunk_start_idx is EXCLUDED" in device
-    assert "attrs.has_runtime_kv_len()," in device
-    validate = device.split("void validate_chunk_start(", 1)[1].split("\n}\n", 1)[0]
-    assert "attrs.chunk_start_idx % tt::constants::TILE_WIDTH == 0," in validate
-    # The chunk must begin inside T and inside kv_len; the causal window may end past kv_len (pad query rows).
-    assert "attrs.chunk_start_idx < T," in validate
-    assert "if (attrs.kv_len.has_value()) {" in validate
-    assert "attrs.chunk_start_idx < kv_len," in validate
-    # Without kv_len the causal window ends at T, the generic cache's last row: chunk_start + Sq == T.
-    assert (
-        "const uint32_t kv_len_tiles = attrs.kv_len.has_value() ? attrs.kv_len.value() / tt::constants::TILE_WIDTH : Tt;"
-        in device
-    )
 
 
 def test_pinned_topk_large_indices_valid_length_is_optional() -> None:

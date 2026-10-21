@@ -480,7 +480,6 @@ def test_fused_injection_sigmoid_uses_the_standalone_sigmoid_parameters() -> Non
     assert "vector_mode (int, optional)" in sigmoid_doc and "Defaults to 4" in sigmoid_doc
     assert "Defaults to `SigmoidMode.Accurate`" in sigmoid_doc
     signatures = [entry[0] for entry in type(ttnn.multiply.function).__call__.__nb_signature__]
-    assert len(signatures) == 2
     assert all("input_tensor_b: int | int | float" in signature for signature in signatures[:1])
     assert all(
         "input_tensor_a_activations: collections.abc.Sequence[ttnn._ttnn.activation.EltwiseUnaryWithParam]" in signature

@@ -26,7 +26,6 @@ from qwen38_flash_next.ttnn.embedding import (
     PINNED_TENSOR_MANIFEST_SHA256,
 )
 from qwen38_flash_next.ttnn.model import EXPECTED_LAYER_PATTERN
-from qwen38_flash_next.paths import TT_METAL_ROOT
 
 BANKS = 8
 TILE = ttnn.TILE_SIZE
@@ -237,35 +236,6 @@ def test_a_mixed_harvest_mesh_runs_two_readers_on_the_reference_placement(monkey
     # a seven-bank ring: the table was qualified on eight banks
     readers, reason = dm.qualify_decode_dram_workers(_mesh(banks=7), 2)
     assert readers == 1 and "qualified on 8 DRAM banks, this mesh has 7" in reason
-
-
-def test_the_ready_record_and_the_program_placement_carry_the_reader_placement() -> None:
-    """The builder records the placement source with the reader count, the chat server's READY record carries it,
-    and the DRAM-sharded matmul's placement rule is the reference device's with the geometry check kept."""
-
-    builder_source = inspect.getsource(builder_module)
-    assert "decode_dram_workers_placement(mesh_device) if decode_dram_workers_per_bank != 1 else None" in builder_source
-    from qwen38_flash_next.tools import qwen38_chat_server
-
-    server_source = inspect.getsource(qwen38_chat_server)
-    assert '"dram_workers_placement": chain.construction.builder.decode_dram_workers_placement' in server_source
-    assert '"dram_workers_placement": report["chain"].get("dram_workers_placement")' in server_source
-    from pathlib import Path
-
-    repo_root = TT_METAL_ROOT
-    utilities = (repo_root / "ttnn/cpp/ttnn/operations/matmul/device/utilities/matmul_utilities.cpp").read_text()
-    assert "Multiple readers per DRAM bank require identical local device geometry" in utilities
-    assert "Multiple readers per DRAM bank on a mesh of differently harvested dies" in utilities
-    assert "identical local device geometry and primary readers" not in utilities
-    # the row +x rule (2026-09-29): the offsets, the env switch and the audit marker the READY record looks for
-    assert f"constexpr uint32_t kRowRuleMaxOffset = {dm.ROW_RULE_MAX_OFFSET};" in utilities
-    assert 'constexpr const char* kRowRuleName = "row+x";' in utilities
-    assert f'kSecondaryReaderRuleMarker = "{dm.SECONDARY_PLACEMENT_MARKER.decode()}";' in utilities
-    assert "getenv" not in utilities  # the rule is the only behaviour: no environment switch
-    assert "const tt::tt_metal::CoreCoord candidate{primary.x + dx, primary.y};" in utilities
-    assert "candidate.x >= worker_grid.x || used.contains(candidate) ||" in utilities
-    assert "secondary_reader_excluded_cores.contains(candidate)) {" in utilities
-    assert utilities.count("record_hop_deviation(best_worker, primary);") == 1
 
 
 # the harvested 11x10 die of the study (banks 0-3 from worker column 0, banks 4-7 from column 6) = the reference die

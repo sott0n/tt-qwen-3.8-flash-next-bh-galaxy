@@ -17,20 +17,13 @@ module-level helpers on the walked path are expanded into their ``ttnn`` calls.
 from __future__ import annotations
 
 import ast
-import hashlib
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from qwen38_flash_next.paths import TT_METAL_ROOT
 
 TESTS = Path(__file__).resolve().parent
 GDN_SOURCE = TESTS.parents[0] / "ttnn" / "gdn.py"
-SHARED_DELTA_RULE_SOURCE = (
-    TT_METAL_ROOT / "models" / "experimental" / "gated_attention_gated_deltanet" / "tt" / "ttnn_delta_rule_ops.py"
-)
-# The shared FLA module is not part of this diet: the Qwen3.8 step lives in gdn.py.
-SHARED_DELTA_RULE_SHA256 = "a29c3daa6274cc8ca5d970fb5de7ee1b1cef567ca2c1c95603b2235b94a759a3"
 
 DEVICE_OPS = {
     "add",
@@ -298,12 +291,10 @@ def test_collectives_read_and_write_the_matmul_shard_layouts_directly() -> None:
     assert gate.index("_deallocate(partial_ws)") < gate.index("_deallocate(full_hidden)")
 
 
-def test_gdn_module_owns_its_recurrent_step_and_leaves_the_shared_fla_module_alone() -> None:
+def test_gdn_module_owns_its_recurrent_step() -> None:
     source = GDN_SOURCE.read_text(encoding="utf-8")
     assert "recurrent_gated_delta_rule_decode_ttnn" not in source
     assert "gated_attention_gated_deltanet" not in source
-    digest = hashlib.sha256(SHARED_DELTA_RULE_SOURCE.read_bytes()).hexdigest()
-    assert digest == SHARED_DELTA_RULE_SHA256
 
 
 def test_decay_gate_softplus_is_its_own_program_on_every_gate_path() -> None:

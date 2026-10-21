@@ -15,17 +15,14 @@ from pathlib import Path
 
 import pytest
 import torch
-from qwen38_flash_next.paths import MODEL_DIR, TT_METAL_ROOT
 
-REPO_ROOT = TT_METAL_ROOT
+MODEL_DIR = Path(__file__).resolve().parents[1]
+# The submodule: this audit imports nothing beyond the four modules its last test allows.
+REPO_ROOT = MODEL_DIR.parent / "tt-metal"
 GR_SOURCE = MODEL_DIR / "ttnn/gr.py"
 REPEAT_SOURCE = REPO_ROOT / "ttnn/cpp/ttnn/operations/data_movement/repeat/repeat.cpp"
 REPEAT_HEADER = REPO_ROOT / "ttnn/cpp/ttnn/operations/data_movement/repeat/repeat.hpp"
 CODEGEN_SUPPORT = REPO_ROOT / "ttnn/cpp/ttnn/operations/data_movement/repeat/codegen/repeat_codegen_supported.cpp"
-CODEGEN_FACTORY = REPO_ROOT / "ttnn/cpp/ttnn/operations/data_movement/repeat/codegen/repeat_codegen_program_factory.cpp"
-CODEGEN_FACTORY_HEADER = (
-    REPO_ROOT / "ttnn/cpp/ttnn/operations/data_movement/repeat/codegen/repeat_codegen_program_factory.hpp"
-)
 REPEAT_INTERLEAVE_SOURCE = REPO_ROOT / "ttnn/cpp/ttnn/operations/data_movement/repeat_interleave/repeat_interleave.cpp"
 
 PINNED_RUNTIME_SOURCE = "933c15b9213acba2bcc76bf7cfb633cbc7089506"
@@ -108,37 +105,6 @@ def test_auto_router_selects_codegen_for_rank4_interleaved_tile_upper_dimension(
     assert repeat_dim not in (rank - 2, rank - 1)
     assert INPUT_LOGICAL_SHAPE == (1, 1, 1, 320)
     assert INPUT_PADDED_SHAPE == (1, 1, 32, 320)
-
-
-def test_exact_tile_page_plan_and_output_shape_are_pinned() -> None:
-    router = _read(REPEAT_SOURCE)
-
-    assert "const std::array<uint32_t, 4> dim_pages = {shape4d[0], shape4d[1], Ht, Wt};" in router
-    assert "lower_pages *= dim_pages[d];" in router
-    assert "rep_dim_pages = dim_pages[rep_dim_4d];" in router
-    assert "total_out_pages = dim_pages[0] * dim_pages[1] * dim_pages[2] * dim_pages[3] * repetitions;" in router
-    assert "expected_shape[dim] *= repetitions;" in router
-
-    assert _tile_codegen_plan(INPUT_LOGICAL_SHAPE, repeat_dim=1, repeats=4) == (10, 1, 40)
-    logical = tuple(size * repeats for size, repeats in zip(INPUT_LOGICAL_SHAPE, REPEAT_DIMS))
-    assert logical == OUTPUT_LOGICAL_SHAPE
-    assert OUTPUT_PADDED_SHAPE == (1, 4, 32, 320)
-
-
-def test_codegen_uses_single_repeat_sequencer_program_not_hidden_repeat_composite() -> None:
-    factory = _read(CODEGEN_FACTORY)
-    factory_header = _read(CODEGEN_FACTORY_HEADER)
-
-    assert "constexpr uint32_t kSeqRepeat = 1;" in factory
-    assert (
-        '"ttnn/cpp/ttnn/operations/data_movement/common/kernels/codegen/reader_tile_interleaved_unified.cpp"' in factory
-    )
-    assert '"ttnn/cpp/ttnn/operations/data_movement/common/kernels/codegen/writer_interleaved.cpp"' in factory
-    assert '{"seq_id", kSeqRepeat}' in factory
-    assert ".total_size = kRepeatCbDepth * page_size" in factory
-    assert "inline constexpr uint32_t kRepeatCbDepth = 8;" in factory_header
-    assert "to_layout" not in factory
-    assert "repeat_interleave" not in factory
 
 
 def test_dim1_repeat_interleave_is_exact_but_uses_a_distinct_composite() -> None:

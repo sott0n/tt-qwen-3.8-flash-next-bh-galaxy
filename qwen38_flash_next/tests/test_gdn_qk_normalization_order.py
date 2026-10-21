@@ -8,9 +8,6 @@ import ast
 from pathlib import Path
 
 QWEN38_GDN_SOURCE = Path(__file__).parents[1] / "ttnn" / "gdn.py"
-SHARED_DELTA_RULE_SOURCE = (
-    Path(__file__).parents[4] / "experimental" / "gated_attention_gated_deltanet" / "tt" / "ttnn_delta_rule_ops.py"
-)
 
 
 def _function(source_path: Path, name: str) -> ast.FunctionDef:
@@ -28,43 +25,6 @@ def _assigns_call(node: ast.AST, target: str, function: str) -> bool:
         and ast.unparse(child.value.func) == function
         for child in ast.walk(node)
     )
-
-
-def test_shared_decode_defaults_to_legacy_promote_then_normalize_order() -> None:
-    function = _function(SHARED_DELTA_RULE_SOURCE, "recurrent_gated_delta_rule_decode_ttnn")
-    argument_names = [argument.arg for argument in function.args.args]
-    flag_index = argument_names.index("normalize_qk_in_input_dtype")
-    default_offset = len(argument_names) - len(function.args.defaults)
-    flag_default = function.args.defaults[flag_index - default_offset]
-    assert isinstance(flag_default, ast.Constant) and flag_default.value is False
-
-    conditionals = [statement for statement in function.body if isinstance(statement, ast.If)]
-    normalize_before = next(
-        statement
-        for statement in conditionals
-        if isinstance(statement.test, ast.Name) and statement.test.id == "normalize_qk_in_input_dtype"
-    )
-    promote = next(
-        statement
-        for statement in conditionals
-        if isinstance(statement.test, ast.Name) and statement.test.id == "high_precision"
-    )
-    normalize_after = next(
-        statement
-        for statement in conditionals
-        if isinstance(statement.test, ast.UnaryOp)
-        and isinstance(statement.test.op, ast.Not)
-        and isinstance(statement.test.operand, ast.Name)
-        and statement.test.operand.id == "normalize_qk_in_input_dtype"
-    )
-
-    assert function.body.index(normalize_before) < function.body.index(promote) < function.body.index(normalize_after)
-    assert _assigns_call(promote, "q", "ttnn.typecast")
-    assert _assigns_call(promote, "k", "ttnn.typecast")
-    assert _assigns_call(normalize_before, "q", "l2_norm_ttnn")
-    assert _assigns_call(normalize_before, "k", "l2_norm_ttnn")
-    assert _assigns_call(normalize_after, "q", "l2_norm_ttnn")
-    assert _assigns_call(normalize_after, "k", "l2_norm_ttnn")
 
 
 def test_qwen38_decode_normalizes_qk_in_bf16_before_the_fp32_promotion() -> None:

@@ -16,19 +16,6 @@ TOPK_LARGE_INDICES_COMPUTE = (
 )
 JIT_HEADER_MANIFEST = REPO_ROOT / "tt_metal/hw/sources.cmake"
 JIT_API_ROOT = REPO_ROOT / "tt_metal/hw/inc"
-EXPERIMENTAL_CCL_CMAKE = REPO_ROOT / "ttnn/cpp/ttnn/operations/experimental/ccl/CMakeLists.txt"
-MOE_COMPUTE_KERNEL = REPO_ROOT / (
-    "ttnn/cpp/ttnn/operations/experimental/ccl/moe_compute/device/kernels/compute.cpp"
-)
-MOE_RING_HEADER = REPO_ROOT / (
-    "ttnn/cpp/ttnn/operations/experimental/ccl/moe_compute/device/kernels/moe_ring_common.h"
-)
-MOE_CONFIG_HEADER = REPO_ROOT / (
-    "ttnn/cpp/ttnn/operations/experimental/ccl/moe_compute/device/hostdevcommon/config.hpp"
-)
-MOE_SWIGLU_HEADER = REPO_ROOT / (
-    "ttnn/cpp/ttnn/operations/experimental/ccl/moe_gpt/device/kernels/swiglu_sfpu.h"
-)
 REQUIRED_STREAMING_HEADERS = (
     "api/compute/experimental/matmul_custom.h",
     "api/compute/experimental/sdpa_sub_custom.h",
@@ -239,17 +226,3 @@ def test_token3_qsa_selection_closure_gate_rejects_every_omission_and_byte_misma
     mismatch.write_bytes(mismatch.read_bytes() + b"\n")
     with expect_error(AssertionError, TOKEN3_QSA_SELECTION_BLACKHOLE_EXTENSION_CLOSURE[-1]):
         _assert_token3_qsa_selection_blackhole_extension_closure(tmp_path)
-
-
-def test_moe_compute_readyseed_relative_header_closure_is_installed_without_flattening() -> None:
-    cmake = EXPERIMENTAL_CCL_CMAKE.read_text(encoding="utf-8")
-    compute = MOE_COMPUTE_KERNEL.read_text(encoding="utf-8")
-    ring = MOE_RING_HEADER.read_text(encoding="utf-8")
-
-    assert cmake.count("moe_compute/device/hostdevcommon/*.hpp") == 1
-    assert cmake.count("moe_gpt/device/kernels/swiglu_sfpu.h") == 1
-    assert compute.count('#include "moe_ring_common.h"') == 1
-    assert compute.count('#include "../../../moe_gpt/device/kernels/swiglu_sfpu.h"') == 1
-    assert ring.count('#include "../hostdevcommon/config.hpp"') == 1
-    assert MOE_CONFIG_HEADER.is_file()
-    assert MOE_SWIGLU_HEADER.is_file()

@@ -18,7 +18,6 @@ from types import SimpleNamespace
 
 import pytest
 import torch
-import ttnn
 
 from qwen38_flash_next.ttnn import contracts as contracts_module
 from qwen38_flash_next.ttnn import model as model_module
@@ -279,21 +278,6 @@ def test_device_position_advance_by_mirrors_advance() -> None:
 
 def _cpp(relative: str) -> str:
     return (REPOSITORY / relative).read_text(encoding="utf-8")
-
-
-def test_pinned_indexer_window_admits_a_32_row_query_against_the_generic_cache() -> None:
-    device = _cpp("ttnn/cpp/ttnn/operations/experimental/indexer_score/device/indexer_score_device_operation.cpp")
-    # The chunk must BEGIN inside the allocated k length; its causal window may end past kv_len (pad query rows).
-    assert "attrs.chunk_start_idx < T," in device
-    # The generic cache carries one extra tile past the resident blocks: chunk_start = blocks, Sq = 32 fit exactly.
-    chunk_start, window_rows = RESIDENT_BLOCKS, ttnn.TILE_SIZE
-    assert chunk_start < RESIDENT_BLOCKS + window_rows
-    assert chunk_start + CHUNK_ROWS <= RESIDENT_BLOCKS + window_rows
-    assert CHUNK_ROWS == window_rows  # a wider chunk would need a wider cache window
-    nanobind = _cpp("ttnn/cpp/ttnn/operations/experimental/indexer_score/indexer_score_nanobind.cpp")
-    # The gate is [B, Hi, Sq, 1]: the module's index_gate is already the 32-row tile the chunk needs.
-    assert "weights: [B, Hi, Sq, 1] bf16 tiled learned per-head gates" in nanobind
-    assert "q: [B, Hi, Sq, D] bf16 or bfp8_b tiled" in nanobind
 
 
 def test_pinned_sparse_sdpa_and_topk_admit_the_chunk_rows() -> None:

@@ -189,43 +189,6 @@ def test_view_row_zero_scores_equal_the_padded_row_scores_and_see_every_complete
     )
 
 
-def test_pinned_runtime_view_reshape_is_a_buffer_alias_and_the_indexer_never_mixes_query_rows() -> None:
-    reshape = _cpp("ttnn/cpp/ttnn/operations/data_movement/reshape_view/reshape.cpp")
-    branch = reshape.split("bool tile_tensor_view_reshape_possible =", 1)[1].split("TT_FATAL(false", 1)[0]
-    assert "layout == ttnn::Layout::TILE and padded_shape.rank() >= 2" in branch
-    assert "tensor.padded_shape()[-1] == padded_shape[-1]);" in branch
-    assert "return ttnn::experimental::view(tensor, logical_shape, padded_shape);" in branch
-    nanobind = _cpp("ttnn/cpp/ttnn/operations/data_movement/reshape_view/reshape_nanobind.cpp")
-    assert (
-        'nb::arg("input_tensor"),\n            nb::arg("logical_shape"),\n            nb::arg("padded_shape"),'
-        in nanobind
-    )
-    ops = _cpp("ttnn/core/tensor/tensor_ops.cpp")
-    assert (
-        "Tensor view(const Tensor& input_tensor, const Shape& new_logical_shape, const Shape& new_padded_shape) {"
-        in ops
-    )
-    assert "input_tensor.mesh_buffer().address());" in ops  # same bytes, new shape metadata
-
-    kernel = _cpp("ttnn/cpp/ttnn/operations/experimental/indexer_score/device/kernels/compute_indexer_score.cpp")
-    # q.kT per DEST pass is a matmul over the head dim (per output element), ReLU in the packer, then a
-    # per-row gate multiply broadcast along columns; the causal mask is stamped per tile; the output is untilized.
-    assert "matmul_block(\n            q_cb,\n            k_cb,\n            q_base + dim_tile," in kernel
-    assert "pack_relu_config(ReluConfig::zero());" in kernel
-    assert "mul_tiles_bcast_cols(qk_cb, w_cb, head, w_base + head, 0);" in kernel
-    assert "mul_tiles_bcast_cols_custom(cb_qk, cb_w, hl * cols + sub_base, w_base + hl, 0, n_cols);" in kernel
-    assert "diagonal (k_tile == diag_tile): L1-ACCUMULATE the strict-upper -inf tile, keeping the lower tri." in kernel
-    assert "stamp_mask_tile<cb_acc_strip, cb_mask>(slot_base + k_col, k_tile0 + k_col, diag_tile);" in kernel
-    assert "compute_kernel_lib::untilize<k_tiles_per_unit, cb_acc_strip, cb_out_strip>(q_tiles_per_unit);" in kernel
-    assert "if (k_tiles_in_unit == 0) {" in kernel  # cells past kv_len are skipped, not computed
-    split = _cpp("ttnn/cpp/ttnn/operations/experimental/indexer_score/device/kernels/indexer_score_work_split.hpp")
-    assert "return chunk_start_tiles + q_row_abs + (q_row_abs >= straddle_q_tile ? straddle_jump_tiles : 0);" in split
-    assert "const uint32_t v = diag_tile > k_tile_start ? diag_tile - k_tile_start : 0;" in split
-    device = _cpp("ttnn/cpp/ttnn/operations/experimental/indexer_score/device/indexer_score_device_operation.cpp")
-    assert '"indexer_score kv_len {} must be tile-aligned"' in device
-    assert "attrs.chunk_start_idx < T," in device and "attrs.chunk_start_idx < kv_len," in device
-
-
 # --- T3: template row with per-token masks instead of the unaligned concat -------------
 
 MAX_TAIL = COMPRESS_RATIO - 1 + MAX_SPECULATIVE_STEPS

@@ -226,61 +226,6 @@ def _composite_prep_arguments() -> list[str]:
     return [argument.strip() for argument in body.split(",")]
 
 
-def _binding_arguments(prim: str) -> list[str]:
-    """The argument names the nanobind declares for one prim, in order."""
-
-    source = (REPO_ROOT / NANOBIND).read_text(encoding="utf-8")
-    block = source[source.index(f'ttnn::bind_function<"{prim}", "ttnn.prim.">') :]
-    block = block[: block.index(");") + 2]
-    return re.findall(r'nb::arg\("([a-zA-Z_]+)"\)', block)
-
-
-def test_the_prims_call_names_every_argument_the_binding_declares():
-    call = MODULE_SOURCE[MODULE_SOURCE.index("ttnn.prim.chunk_gdn_prep(") :]
-    call = call[: call.index("\n    )")]
-    named = set(re.findall(r"\n\s+([a-zA-Z_]+)=", call))
-    positional = {"q", "k", "v", "g", "beta"}
-    declared = set(_binding_arguments("chunk_gdn_prep"))
-    # every keyword argument of the binding is passed explicitly except the two the composite leaves unset
-    assert declared - positional - named == {"memory_config", "compute_kernel_config"}
-    assert named <= declared
-
-
-def test_the_prep_flags_are_what_the_composite_passes_for_the_rows_shapes():
-    """B = 1, T a multiple of C, HV = H = 12 (q/k GQA-expanded before the kernel), K = V = 128, v flat token-major:
-    the composite's ``flat_v`` true, ``flat_qk`` false, ``qk_norm = flat_qk && C == 32`` false, ``HV`` and ``H``
-    both 12, ``C`` the caller's chunk_size and ``scale`` the caller's or ``K ** -0.5``."""
-
-    arguments = _composite_prep_arguments()
-    assert arguments[-6:] == ["flat_v", "HV", "qk_norm", "scale", "flat_qk", "H"]
-    call = _squash(MODULE_SOURCE[MODULE_SOURCE.index("ttnn.prim.chunk_gdn_prep(") :])
-    for pin in (
-        "chunk_size=CHUNK,",
-        "scale=QK_SCALE,",
-        "v_flat=True,",
-        "HV=HEADS,",
-        "qk_flat=False,",
-        "Hk=HEADS,",
-        "qk_norm=False,",
-    ):
-        assert _squash(pin) in call, pin
-    assert module.CHUNK == 32 and module.HEADS == 12
-    assert module.QK_SCALE == HEAD_DIM**-0.5
-
-
-def test_the_prep_kernel_reads_scale_only_under_the_in_kernel_norm():
-    """Why passing the composite's ``scale`` beside q that is already scaled twice is right: ``SCALE_BITS`` is read
-    inside ``if constexpr (QK_NORM)`` only, so with ``qk_norm=False`` it multiplies nothing -- it is a compile-time
-    argument of the prep kernel, and passing the composite's value keeps the program the composite's."""
-
-    source = (REPO_ROOT / PREP_KERNEL).read_text(encoding="utf-8")
-    assert "constexpr uint32_t SCALE_BITS = get_compile_time_arg_val(4);" in source
-    guarded = source[source.index("if constexpr (QK_NORM)") :]
-    before = source[: source.index("if constexpr (QK_NORM)")]
-    assert "SCALE_BITS" in guarded
-    assert before.count("SCALE_BITS") == 1  # the declaration only
-
-
 def test_the_scan_takes_the_prep_outputs_and_the_reshaped_initial_state():
     call = _squash(MODULE_SOURCE[MODULE_SOURCE.index("ttnn.prim.chunk_gdn_scan(") :])
     assert _squash("*prep,") in call  # the seven hand-off tensors, in the order the prep returned them

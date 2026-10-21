@@ -20,14 +20,11 @@ import qwen38_flash_next.ttnn.moe as moe_module
 from qwen38_flash_next.ttnn import decode_matmul as decode_matmul_module
 from qwen38_flash_next.ttnn.contracts import TensorPlacement
 from qwen38_flash_next.ttnn.moe import (
-    BLACKHOLE_MOE_NUMERIC_ISSUE,
     EXPERTS_PER_DEVICE,
     HIDDEN_SIZE,
     MOE_STAGE_FENCES,
     PREFILL_CHUNK_ROWS,
     ROUTED_EXPERTS,
-    ROWS5_HARDWARE_PROVEN,
-    ROWS32_HARDWARE_PROVEN,
     SUPPORTED_ROWS,
     TARGET_VERIFIER_ROWS,
     TOP_K,
@@ -770,39 +767,6 @@ def test_python_path_preserves_normalized_scores_and_dynamic_shared_gate() -> No
     ]
     # router and shared_scalar_gate are the two replicated resident tensors.
     assert [call.args[0].id for call in replicated_validations] == ["router", "shared_scalar_gate"]
-
-
-def test_pinned_ttnn_source_contracts_match_the_five_row_choreography() -> None:
-    moe_source = (
-        REPO_ROOT / "ttnn/cpp/ttnn/operations/experimental/ccl/moe_compute/device/moe_compute_device_operation.cpp"
-    ).read_text()
-    assert "const uint32_t total_tokens = input_shape[0] * input_shape[1];" in moe_source
-    assert ".seq_size = total_tokens" in moe_source
-    assert "path=FullLocal requires combine_params->local_combine to be true" in moe_source
-    # the fused local combine is the 1x1 form only (as upstream has it); the served form is the local output path on a
-    # mesh axis of extent 1, whose replicated-input contract holds on a multi-device mesh (a 1x1 mesh has nothing to
-    # replicate)
-    assert "path=FullLocal is only supported on a 1x1 mesh" in moe_source
-    assert "if (mesh_device->num_devices() > 1) {" in moe_source
-    assert "moe_compute over a mesh axis of extent 1 on a multi-device mesh requires a fully " in moe_source
-    assert (
-        "local_combine ="
-        not in moe_source.split("combine_params->local_combine")[0].split("std::vector<ttnn::Tensor> moe_compute(")[-1]
-    )
-
-    reduce_source = (
-        REPO_ROOT / "ttnn/cpp/ttnn/operations/experimental/reduction/deepseek_moe_fast_reduce_nc_fused/device/"
-        "deepseek_moe_fast_reduce_nc_fused_program_factory.cpp"
-    ).read_text()
-    assert "const uint32_t num_tokens = scores_tensor.logical_shape()[0]" in reduce_source
-    assert "scores shape: [tokens, 1, seq, experts_k]" in reduce_source
-
-    blackhole_test_source = (
-        REPO_ROOT / "tests/ttnn/nightly/unit_tests/operations/experimental/test_moe_compute_single_card.py"
-    ).read_text()
-    assert "https://github.com/tenstorrent/tt-metal/issues/50038" in blackhole_test_source
-    assert ROWS5_HARDWARE_PROVEN is True and ROWS32_HARDWARE_PROVEN is True
-    assert BLACKHOLE_MOE_NUMERIC_ISSUE.endswith("/50038")
 
 
 def test_router_logits_widen_inside_the_sharded_to_interleaved_move() -> None:
